@@ -1,0 +1,10 @@
+Start with "Normal Quality - 0.16mm".
+
+Brims, skirts, and rafts are not necessary unless there are supports. Supports
+probably need a raft under them.
+
+For most models, 20% fill is enough.
+
+For dice, use 80% fill to give them a nice heft.
+
+For the piece box and lid, use 40% "cubic" fill and "Fine Quality - 0.2mm".
