@@ -167,10 +167,30 @@ module double_inlay(large=false) {
       double_base_2d(large=large);
 }
 
+// For the DRG board game, oppressor figure.
+module oppressor_base() {
+  length = 66;
+  width = 32;
+  waist = 18;
+  cut_radius = 8;
+  
+  linear_extrude(1) {
+    difference() {
+      union() {
+        for (a = [-1, 1])
+          translate([a*(length - width)/2, 0])
+            circle(d=width);
+        square([length - width, width*0.7], center=true);
+      }
+      for (a = [-1, 1])
+        translate([0, a*(waist/2 + cut_radius)])
+          circle(cut_radius);
+    }
+  }
+}
+
 // I printed the double bases with 70% fill to help weight the large figures.
 
 
-single_inlay();
-translate([0, 39, 0])     scale([1.13, 1.13, 1])
-      single_large_inlay();
+oppressor_base();
 
