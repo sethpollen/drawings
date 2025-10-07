@@ -24,8 +24,13 @@ module tipped() {
     translate([0, 0, shaft_od/2 - 2])
       rotate([90, 0, 0])
         basic();
+
     translate([0, 0, 100])
       cube(200, center=true);
+    
+    nudge = 20;
+    translate([0, -nudge, shaft_od/2 - 2])
+      sphere(length - nudge, $fn=300);
   }
 }
 
