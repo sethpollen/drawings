@@ -96,12 +96,23 @@ module tombstone_2d(r, length) {
     square([length-r, r*2]);
 }
 
+module crossbar_2d() {
+  hull()
+    for (y = [crossbar_width/2, crossbar_depth-crossbar_width/2])
+      translate([0, y - crossbar_depth*0.19])
+        circle(r=crossbar_width/2, $fn=20+quality*50);
+}
+
 module crossbar() {
-  linear_extrude(crossbar_thickness)
-    hull()
-      for (y = [crossbar_width/2, crossbar_depth-crossbar_width/2])
-        translate([0, y - crossbar_depth*0.19])
-          circle(r=crossbar_width/2, $fn=20+quality*50);
+  bevel = 0.8;
+  hull() {
+    translate([0, 0, bevel])
+      linear_extrude(crossbar_thickness - bevel*2)
+        crossbar_2d();
+    linear_extrude(crossbar_thickness)
+      offset(-bevel)
+        crossbar_2d();
+  }
 }
 
 module handle() {
