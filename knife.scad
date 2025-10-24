@@ -12,16 +12,20 @@ tang_depth = 18;
 tang_length = 70;
 tang_offset = 5;
 
-handle_width = 15;
-handle_depth = 28;
-handle_length = tang_length;
+handle_width = 16;
+handle_depth = 30;
+handle_length = 80;
 
 ring_id = 20;
 ring_od = 27;
 ring_width = 8;
 ring_offset = handle_depth + ring_id*0.3;
 
-include_ring = true;
+crossbar_depth = 55;
+crossbar_width = 21;
+crossbar_thickness = 4.6;
+
+include_ring = false;
 
 module blade_2d() {
   edge_depth = 10;
@@ -78,9 +82,11 @@ module blade() {
   }
 }
 
-module tang() {
+module tang(expand=0) {
   translate([-blade_width/2, tang_offset, eps-tang_length])
-    cube([blade_width, tang_depth, tang_length]);
+    linear_extrude(tang_length)
+      offset(expand)
+        square([blade_width, tang_depth]);
 }
 
 module tombstone_2d(r, length) {
@@ -90,25 +96,59 @@ module tombstone_2d(r, length) {
     square([length-r, r*2]);
 }
 
+module crossbar() {
+  linear_extrude(crossbar_thickness)
+    hull()
+      for (y = [crossbar_width/2, crossbar_depth-crossbar_width/2])
+        translate([0, y - crossbar_depth*0.19])
+          circle(r=crossbar_width/2, $fn=20+quality*50);
+}
+
 module handle() {
   $fn = 30 + quality*30;
   r = handle_width/2;
 
   difference() {
-    translate([0, handle_depth + 1, -handle_length]) {
-      rotate([0, 0, -90]) {
-        intersection() {
-          linear_extrude(handle_length)
-            tombstone_2d(r, handle_depth);
-          
-          grip_r = handle_length * 5;
-          translate([grip_r, 0, handle_length/2])
-            rotate([90, 0, 0], $fn=100+quality*150)
-              rotate_extrude()
-                tombstone_2d(r, grip_r);
+    union() {
+      translate([0, handle_depth + 1, -handle_length]) {
+        rotate([0, 0, -90]) {
+          intersection() {
+            linear_extrude(handle_length)
+              tombstone_2d(r, handle_depth);
+            
+            grip_r = handle_length * 5;
+            translate([grip_r, 0, handle_length/2])
+              rotate([90, 0, 0], $fn=100+quality*250)
+                rotate_extrude()
+                  tombstone_2d(r, grip_r);
+          }
         }
       }
+
+      // Pommel.
+      translate([0, handle_depth/2+1, -handle_length])
+        scale([1, 1, 0.7])
+          rotate([90, 0, 0])
+            pill(handle_width*0.75, handle_depth+3);
+      
+      translate([0, 0, -eps])
+        crossbar();
     }
+    
+    // Flatten bottom of pommel.
+    translate([0, 0, -handle_length-40-handle_width*0.4])
+      cube(80, center=true);
+    
+    // Cavity for tang.
+    for (z = [2, -2])
+      translate([0, 0, z])
+        tang(expand=0.2);
+    
+    // Cavity in crossbar for blade.
+    translate([0, 0, 1.2])
+      linear_extrude(crossbar_thickness)
+        offset(0.25)
+          blade_2d();
     
     if (include_ring)
       translate([-15, ring_offset, -ring_od/2])
@@ -137,14 +177,5 @@ module blade_print() {
   }
 }
 
-module preview() {
-  blade();
-  color("red") tang();
-  color("blue") {
-    handle();
-    if (include_ring)
-      ring();
-  }
-}
-
-blade_print();
+handle();
+//blade();
