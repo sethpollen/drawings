@@ -16,16 +16,9 @@ handle_width = 18;
 handle_depth = 32;
 handle_length = 80;
 
-ring_id = 20;
-ring_od = 27;
-ring_width = 8;
-ring_offset = handle_depth + ring_id*0.3;
-
 crossbar_depth = 53;
 crossbar_width = 22;
 crossbar_thickness = 4.6;
-
-include_ring = false;
 
 module blade_2d() {
   edge_depth = 10;
@@ -160,25 +153,7 @@ module handle() {
       linear_extrude(crossbar_thickness)
         offset(0.25)
           blade_2d();
-    
-    if (include_ring)
-      translate([-15, ring_offset, -ring_od/2])
-        rotate([0, 90, 0])
-          cylinder(d=(ring_id+ring_od)/2, h = 30);
   }
-}
-
-module ring() {
-  small_r = (ring_od - ring_id) / 4;
-  
-  translate([0, ring_offset, -ring_od/2])
-    rotate([0, 90, 0])
-      rotate_extrude($fn=30+quality*50)
-        hull()
-          for (a = [-1, 1])
-            scale([1, a])
-              translate([ring_id/2 + small_r, ring_width/2 - small_r])
-                circle(small_r, $fn = 18);
 }
 
 module blade_print() {
