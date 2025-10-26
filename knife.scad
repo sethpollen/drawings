@@ -1,7 +1,7 @@
 eps = 0.0001;
 
 // 0 for fast, 1 for full render.
-quality = 1;
+quality = 0;
 
 blade_length = 150;
 blade_width = 7;
@@ -172,6 +172,10 @@ module handle() {
       linear_extrude(crossbar_thickness)
         offset(0.25)
           blade_2d();
+    
+    // Air hole in base of pommel.
+    translate([0, handle_depth/2, -500])
+      cylinder(h=1000, d=1.1);
   }
 }
 
@@ -201,4 +205,4 @@ module blade_print() {
   }
 }
 
-blade();handle();
+handle();
