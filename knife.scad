@@ -137,6 +137,15 @@ module handle() {
           translate([0, 8.7, -46]) finger_sculpt();
           translate([0, 7.5, -66]) finger_sculpt();
         }
+        
+        // Knurling.
+        knurl = 0.6;
+        knurl_spacing = 5;
+        for (a = [-1, 1], b = [0:20])
+          translate([a*handle_width/2, 0, 30 - b*knurl_spacing])
+            rotate([-30, 0, 0])
+              rotate([0, 45, 0])
+                cube([knurl, 100, knurl], center=true);
       }
 
       // Pommel.
@@ -192,5 +201,4 @@ module blade_print() {
   }
 }
 
-blade();
 handle();
