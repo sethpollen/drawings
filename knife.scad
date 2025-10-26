@@ -5,7 +5,7 @@ quality = 0;
 
 blade_length = 150;
 blade_width = 7;
-blade_depth = 33;
+blade_depth = 32;
 tip_blunt = 3;
 
 tang_depth = 18;
@@ -16,7 +16,7 @@ handle_width = 18;
 handle_depth = 32;
 handle_length = 80;
 
-crossbar_depth = 53;
+crossbar_depth = blade_depth + 20;
 crossbar_width = 22;
 crossbar_thickness = 4.6;
 
@@ -114,18 +114,28 @@ module handle() {
 
   difference() {
     union() {
-      translate([0, handle_depth + 1, -handle_length]) {
-        rotate([0, 0, -90]) {
-          intersection() {
-            linear_extrude(handle_length)
-              tombstone_2d(r, handle_depth);
-            
-            grip_r = handle_length * 2.5;
-            translate([grip_r, 0, handle_length/2])
-              rotate([90, 0, 0], $fn=100+quality*250)
-                rotate_extrude()
-                  tombstone_2d(r, grip_r);
+      difference() {
+        translate([0, handle_depth + 1, -handle_length]) {
+          rotate([0, 0, -90]) {
+            intersection() {
+              linear_extrude(handle_length)
+                tombstone_2d(r, handle_depth);
+              
+              grip_r = handle_length * 2.5;
+              translate([grip_r, 0, handle_length/2])
+                rotate([90, 0, 0], $fn=100+quality*250)
+                  rotate_extrude()
+                    tombstone_2d(r, grip_r);
+            }
           }
+        }
+        
+        // Finger sculpts.
+        translate([0, handle_depth, 0]) {
+          translate([0, 6.8, -7.5]) finger_sculpt();
+          translate([0, 8.7, -26]) finger_sculpt();
+          translate([0, 8.7, -46]) finger_sculpt();
+          translate([0, 7.5, -66]) finger_sculpt();
         }
       }
 
@@ -156,6 +166,25 @@ module handle() {
   }
 }
 
+module finger_sculpt() {
+  $fn = 30 + quality*100;
+
+  scale([handle_width/2, 5, 10]) {
+    translate([0, -1, 0]) {
+      rotate([90, 0, 90]) {
+        rotate_extrude() {
+          difference() {
+            translate([0, -1])
+              square(2);
+            translate([2, 0])
+              circle(d=2);
+          }
+        }
+      }
+    }
+  }
+}
+
 module blade_print() {
   rotate([90, 0, 0]) {
     blade();
@@ -163,5 +192,5 @@ module blade_print() {
   }
 }
 
-handle();
 blade();
+handle();
