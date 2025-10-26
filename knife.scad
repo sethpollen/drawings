@@ -1,19 +1,19 @@
 eps = 0.0001;
 
 // 0 for fast, 1 for full render.
-quality = 1;
+quality = 0;
 
 blade_length = 150;
 blade_width = 7;
-blade_depth = 35;
+blade_depth = 33;
 tip_blunt = 3;
 
 tang_depth = 18;
 tang_length = 70;
 tang_offset = 5;
 
-handle_width = 16;
-handle_depth = 30;
+handle_width = 18;
+handle_depth = 32;
 handle_length = 80;
 
 ring_id = 20;
@@ -21,8 +21,8 @@ ring_od = 27;
 ring_width = 8;
 ring_offset = handle_depth + ring_id*0.3;
 
-crossbar_depth = 55;
-crossbar_width = 21;
+crossbar_depth = 53;
+crossbar_width = 22;
 crossbar_thickness = 4.6;
 
 include_ring = false;
@@ -127,7 +127,7 @@ module handle() {
             linear_extrude(handle_length)
               tombstone_2d(r, handle_depth);
             
-            grip_r = handle_length * 5;
+            grip_r = handle_length * 2.5;
             translate([grip_r, 0, handle_length/2])
               rotate([90, 0, 0], $fn=100+quality*250)
                 rotate_extrude()
@@ -153,7 +153,7 @@ module handle() {
     // Cavity for tang.
     for (z = [2, -2])
       translate([0, 0, z])
-        tang(expand=0.2);
+        tang(expand=0.3);
     
     // Cavity in crossbar for blade.
     translate([0, 0, 1.2])
@@ -189,4 +189,4 @@ module blade_print() {
 }
 
 handle();
-//blade();
+blade();
