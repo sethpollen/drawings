@@ -1,7 +1,7 @@
 eps = 0.0001;
 
 // 0 for fast, 1 for full render.
-quality = 0;
+quality = 1;
 
 blade_length = 150;
 blade_width = 7;
@@ -176,7 +176,7 @@ module handle() {
 }
 
 module finger_sculpt() {
-  $fn = 30 + quality*100;
+  $fn = 30 + quality*40;
 
   scale([handle_width/2, 5, 10]) {
     translate([0, -1, 0]) {
