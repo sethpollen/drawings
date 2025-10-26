@@ -201,4 +201,4 @@ module blade_print() {
   }
 }
 
-handle();
+blade();handle();
