@@ -1,9 +1,9 @@
 eps = 0.0001;
 
 // 0 for fast, 1 for full render.
-quality = 0;
+quality = 1;
 
-blade_length = 150;
+blade_length = 146;
 blade_width = 7;
 blade_depth = 32;
 tip_blunt = 3;
@@ -205,4 +205,4 @@ module blade_print() {
   }
 }
 
-handle();
+blade_print();
