@@ -2,9 +2,9 @@ eps = 0.001;
 $fn = 90;
 
 id = 65;
-wall = 1.7;
+wall = 1.8;
 od = id + 2*wall;
-height = 109;
+height = 110;
 brick_height = 11;
 door_width = id * 0.9;
 fence = 11.5;
@@ -19,7 +19,7 @@ module barrel() {
     }
     
     // Brick joints.
-    for (z = [0:brick_height:height]) {
+    for (z = [0:brick_height:height+brick_height]) {
       translate([0, 0, z]) {
         // Horizontal joint.
         rotate_extrude()
@@ -48,7 +48,9 @@ module ramps() {
   angle = 27;
   
   base = 34;
-  spacing = 28;
+  spacing = 30;
+  
+  thickness = 1.9;
   
   // Bottom ramp.
   translate([30, 0, 0])
@@ -59,14 +61,14 @@ module ramps() {
   for (z = [base, base+2*spacing])
     translate([4, 0, z])
       rotate([0, -angle, 0])
-        translate([0, -100, wall])
-          cube([200, 200, wall]);
+        translate([0, -100, thickness])
+          cube([200, 200, thickness]);
   
   translate([-4, 0, base+spacing])
     scale([-1, 1, 1])
       rotate([0, -angle, 0])
-        translate([0, -100, wall])
-          cube([200, 200, wall]);
+        translate([0, -100, thickness])
+          cube([200, 200, thickness]);
 }
 
 module constrained_ramps() {
@@ -74,7 +76,7 @@ module constrained_ramps() {
     ramps();
     
     union() {
-      cylinder(h=height, d=id+wall);
+      cylinder(h=height+10, d=id+wall);
       translate([0, -(id-wall)/2, 0])
         cube([id-wall, id-wall, fence]);
     }
@@ -136,7 +138,11 @@ module base() {
   }
 }
 
-barrel();
-constrained_ramps();
-parapet();
-base();
+module piece() {
+  barrel();
+  color("red") constrained_ramps();
+  parapet();
+  base();
+}
+
+piece();
