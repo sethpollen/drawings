@@ -4,7 +4,7 @@ $fn = 90;
 id = 65;
 wall = 1.8;
 od = id + 2*wall;
-height = 110;
+height = 111;
 brick_height = 11;
 door_width = id * 0.9;
 fence = 11.5;
@@ -48,7 +48,7 @@ module ramps() {
   angle = 27;
   
   base = 34;
-  spacing = 30;
+  spacing = 30.5;
   
   thickness = 1.9;
   
