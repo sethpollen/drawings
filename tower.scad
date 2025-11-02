@@ -50,7 +50,7 @@ module ramps() {
   base = 34;
   spacing = 30.5;
   
-  thickness = 1.9;
+  thickness = 1.7;
   
   // Bottom ramp.
   translate([30, 0, 0])
