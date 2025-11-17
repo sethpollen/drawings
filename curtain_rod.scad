@@ -37,8 +37,7 @@ module screw_cavity() {
 
 module stem_2d() {
   hull() {
-    // Shave of a little bit so that the round underside has more plate contact.
-    circle(d=plug_od-1);
+    circle(d=pipe_od-0.5);
     translate([0, height])
       square([plate_depth, eps], center=true);
   }
@@ -60,6 +59,8 @@ module middle_piece_half() {
   $fn = 50;
   
   // Plug.
+  linear_extrude(stem_width/2)
+    circle(d=pipe_od-0.5);
   hull() {
     linear_extrude(stem_width/2 + plug_full_length)
       circle(d=plug_od);
@@ -93,8 +94,8 @@ module middle_piece() {
       middle_piece_half();
 }
 
-module end_block_2d(channel=true) {
-  $fn = 60;
+module end_block_2d(channel) {
+  $fn = 80;
 
   difference() {
     hull() {
@@ -119,9 +120,12 @@ module end_block_2d(channel=true) {
 
 module end_piece() {
   linear_extrude(end_wall)
-    end_block_2d(false);
+    end_block_2d(channel=false);
+  
+  roundoff = 1.1;
   linear_extrude(end_wall + end_lip_length)
-    end_block_2d();
+    offset(roundoff, $fn=16) offset(-roundoff)
+      end_block_2d(channel=true);
   
   // Plate.
   difference() {
