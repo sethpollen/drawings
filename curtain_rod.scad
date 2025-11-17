@@ -13,7 +13,7 @@ plate_depth = 60;
 plate_thickness = 6;
 
 middle_plate_width = 45;
-stem_width = 13;
+stem_width = 12;
 plug_od = pipe_id - 0.5;
 plug_full_length = 6;
 plug_taper1_length = 11;
@@ -24,6 +24,9 @@ end_lip_length = 12;
 hole_id = pipe_od + 0.6;
 end_wall = 11;
 end_plate_width = end_wall + end_lip_length + 18;
+
+// TODO: Knurl the back of the plate to improve epoxy adhesion.
+// TODO: slightly widen the top of the screw hole.
 
 // #10 x 3/4" wood screw.
 module screw_cavity() {
@@ -141,4 +144,51 @@ module end_piece() {
   }
 }
 
-middle_piece();
+horse_wall = 8;
+horse_height = 30; // TODO: 80;
+horse_width = 50; // TODO: 90;
+horse_gap = 1.1;
+horse_floor = horse_height*0.3;
+
+module saw_horse_sides() {
+  $fn = 30;
+  
+  for (a = [-1, 1]) {
+    scale([1, 1, a]) {
+      translate([0, 0, horse_wall/2 + horse_gap/2]) {
+        hull() {
+          // Toroidal disk.
+          rotate_extrude() {
+            translate([hole_id/2 + horse_wall/2, 0])
+              circle(d=horse_wall);
+            translate([0, -horse_wall/2])
+              square([hole_id/2 + horse_wall/2, horse_wall]);
+          }
+          
+          // Base plate.
+          translate([horse_height, 0, 0])
+            cube([eps, horse_width, horse_wall], center=true);
+        }
+      }
+    }
+  }
+}
+
+module saw_horse() {
+  $fn = 70;
+
+  difference() {
+    saw_horse_sides();
+    
+    translate([0, 0, -25])
+      cylinder(d=hole_id, h=50);
+  }
+  
+  difference() {
+    hull()
+      saw_horse_sides();
+    cube([(horse_height-horse_floor)*2, 100, 100], center=true);
+  }
+}
+
+saw_horse();
