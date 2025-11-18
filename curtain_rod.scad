@@ -15,7 +15,7 @@ plate_thickness = 6;
 middle_plate_width = 45;
 stem_width = 12;
 plug_od = pipe_id - 0.5;
-plug_full_length = 6;
+plug_full_length = 10;
 plug_taper1_length = 11;
 plug_taper2_length = 3;
 
