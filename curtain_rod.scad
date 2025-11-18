@@ -20,21 +20,20 @@ plug_taper1_length = 11;
 plug_taper2_length = 3;
 
 end_lip = 8;
-end_lip_length = 12;
+end_lip_length = 14;
 hole_id = pipe_od + 0.6;
 end_wall = 11;
 end_plate_width = end_wall + end_lip_length + 18;
 
 // TODO: Knurl the back of the plate to improve epoxy adhesion.
-// TODO: slightly widen the top of the screw hole.
 
 // #10 x 3/4" wood screw.
 module screw_cavity() {
-  $fn = 20;
+  $fn = 40;
   
-  translate([0, 0, -5])
-    cylinder(d=9, h=5+eps);
-  cylinder(d1=9, d2=4.6, h=3.7);
+  translate([0, 0, -10])
+    cylinder(d=9.6, h=10+eps);
+  cylinder(d1=9.6, d2=4.6, h=3.7);
   cylinder(d=4.6, h=20);
 }
 
@@ -124,14 +123,15 @@ module end_block_2d(channel) {
 module end_piece() {
   linear_extrude(end_wall)
     end_block_2d(channel=false);
-  
+    
+  // Channel housing.
   roundoff = 1.1;
   linear_extrude(end_wall + end_lip_length)
     offset(roundoff, $fn=16) offset(-roundoff)
       end_block_2d(channel=true);
-  
-  // Plate.
+
   difference() {
+    // Plate.
     linear_extrude(end_plate_width) {
       intersection() {
         end_block_2d();
@@ -139,7 +139,7 @@ module end_piece() {
       }
     }
     
-    translate([0, 0, (end_wall + end_lip_length + end_plate_width)/2])
+    translate([0, 0, end_wall + end_lip_length + 4.7])
       screws();
   }
 }
@@ -192,4 +192,4 @@ module saw_horse() {
   }
 }
 
-saw_horse();
+end_piece();
