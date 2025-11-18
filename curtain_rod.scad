@@ -139,7 +139,7 @@ module end_piece() {
       }
     }
     
-    translate([0, 0, end_wall + end_lip_length + 4.7])
+    translate([0, 0, end_wall + end_lip_length + 4.8])
       screws();
   }
 }
