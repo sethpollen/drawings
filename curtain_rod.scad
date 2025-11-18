@@ -25,7 +25,30 @@ hole_id = pipe_od + 0.6;
 end_wall = 11;
 end_plate_width = end_wall + end_lip_length + 18;
 
-// TODO: Knurl the back of the plate to improve epoxy adhesion.
+module plate_knurl(width) {
+  groove = 0.6;
+  spacing = 5;
+  range = 15;
+
+  translate([0, height+eps, 0]) {
+    rotate([90, 0, 0]) {
+      linear_extrude(groove) {
+        intersection() {
+          // Bounding box.
+          offset(-1.2)
+            translate([-plate_depth/2, 0])
+              square([plate_depth, width]);
+        
+          for (y = [-range : range])
+            translate([0, y*spacing])
+              for (a = 45 * [-1, 1])
+                rotate([0, 0, a])
+                  square([groove, 500], center=true);
+        }
+      }
+    }
+  }
+}
 
 // #10 x 3/4" wood screw.
 module screw_cavity() {
@@ -91,9 +114,14 @@ module middle_piece_half() {
 }
 
 module middle_piece() {
-  for (a = [-1, 1])
-    scale([1, 1, a])
-      middle_piece_half();
+  difference() {
+    for (a = [-1, 1])
+      scale([1, 1, a])
+        middle_piece_half();
+    
+    translate([0, 0, -middle_plate_width/2])
+      plate_knurl(middle_plate_width);
+  }
 }
 
 module end_block_2d(channel) {
@@ -121,26 +149,31 @@ module end_block_2d(channel) {
 }
 
 module end_piece() {
-  linear_extrude(end_wall)
-    end_block_2d(channel=false);
-    
-  // Channel housing.
-  roundoff = 1.1;
-  linear_extrude(end_wall + end_lip_length)
-    offset(roundoff, $fn=16) offset(-roundoff)
-      end_block_2d(channel=true);
 
   difference() {
-    // Plate.
-    linear_extrude(end_plate_width) {
-      intersection() {
-        end_block_2d();
-        plate_2d();
+    union() {
+      linear_extrude(end_wall)
+        end_block_2d(channel=false);
+    
+      // Channel housing.
+      roundoff = 1.1;
+      linear_extrude(end_wall + end_lip_length)
+        offset(roundoff, $fn=16) offset(-roundoff)
+          end_block_2d(channel=true);
+
+      // Plate.
+      linear_extrude(end_plate_width) {
+        intersection() {
+          end_block_2d();
+          plate_2d();
+        }
       }
     }
     
     translate([0, 0, end_wall + end_lip_length + 4.8])
       screws();
+    
+    plate_knurl(end_plate_width);
   }
 }
 
@@ -192,4 +225,4 @@ module saw_horse() {
   }
 }
 
-end_piece();
+middle_piece();
