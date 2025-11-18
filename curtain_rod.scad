@@ -145,8 +145,8 @@ module end_piece() {
 }
 
 horse_wall = 8;
-horse_height = 30; // TODO: 80;
-horse_width = 50; // TODO: 90;
+horse_height = 80;
+horse_width = 90;
 horse_gap = 1.1;
 horse_floor = horse_height*0.3;
 
@@ -166,8 +166,9 @@ module saw_horse_sides() {
           }
           
           // Base plate.
-          translate([horse_height, 0, 0])
-            cube([eps, horse_width, horse_wall], center=true);
+          splay = 4;
+          translate([horse_height, 0, splay/2])
+            cube([eps, horse_width, horse_wall+splay], center=true);
         }
       }
     }
