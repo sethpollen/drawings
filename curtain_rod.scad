@@ -10,7 +10,7 @@ height = clearance + pipe_od/2
   - 25.4*0.75;
 
 plate_depth = 60;
-plate_thickness = 6;
+plate_thickness = 7.5;
 
 middle_plate_width = 45;
 stem_width = 12;
