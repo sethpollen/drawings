@@ -88,6 +88,11 @@ module middle_piece_half() {
     
     translate([0, 0, middle_plate_width*0.31])
       screws();
+    
+    // Plate chamfer.
+    translate([0, height, middle_plate_width/2])
+      rotate([45, 0, 0])
+        cube([100, 0.6, 0.6], center=true);
   }
 }
 
@@ -122,7 +127,6 @@ module end_block_2d(channel) {
 }
 
 module end_piece() {
-
   difference() {
     union() {
       linear_extrude(end_wall)
@@ -145,6 +149,12 @@ module end_piece() {
     
     translate([0, 0, end_wall + end_lip_length + 4.8])
       screws();
+    
+    // Plate chamfer.
+    for (z = [0, end_plate_width])
+      translate([0, height, z])
+        rotate([45, 0, 0])
+          cube([100, 0.6, 0.6], center=true);
   }
 }
 
