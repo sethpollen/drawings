@@ -28,31 +28,6 @@ end_plate_width = end_wall + end_lip_length + 18;
 // TODO: shorten the plug
 // TODO: add another set of screws to the end piece.
 
-module plate_knurl(width) {
-  groove = 0.6;
-  spacing = 5;
-  range = 15;
-
-  translate([0, height+eps, 0]) {
-    rotate([90, 0, 0]) {
-      linear_extrude(groove) {
-        intersection() {
-          // Bounding box.
-          offset(-1.2)
-            translate([-plate_depth/2, 0])
-              square([plate_depth, width]);
-        
-          for (y = [-range : range])
-            translate([0, y*spacing])
-              for (a = 45 * [-1, 1])
-                rotate([0, 0, a])
-                  square([groove, 500], center=true);
-        }
-      }
-    }
-  }
-}
-
 // #10 x 3/4" wood screw.
 module screw_cavity() {
   $fn = 40;
@@ -117,14 +92,9 @@ module middle_piece_half() {
 }
 
 module middle_piece() {
-  difference() {
-    for (a = [-1, 1])
-      scale([1, 1, a])
-        middle_piece_half();
-    
-    translate([0, 0, -middle_plate_width/2])
-      plate_knurl(middle_plate_width);
-  }
+  for (a = [-1, 1])
+    scale([1, 1, a])
+      middle_piece_half();
 }
 
 module end_block_2d(channel) {
@@ -175,8 +145,6 @@ module end_piece() {
     
     translate([0, 0, end_wall + end_lip_length + 4.8])
       screws();
-    
-    plate_knurl(end_plate_width);
   }
 }
 
