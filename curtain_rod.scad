@@ -21,9 +21,12 @@ plug_taper2_length = 3;
 
 end_lip = 8;
 end_lip_length = 14;
-hole_id = pipe_od + 0.6;
+hole_id = pipe_od + 1;
 end_wall = 11;
 end_plate_width = end_wall + end_lip_length + 18;
+
+// TODO: shorten the plug
+// TODO: add another set of screws to the end piece.
 
 module plate_knurl(width) {
   groove = 0.6;
@@ -182,6 +185,7 @@ horse_height = 80;
 horse_width = 90;
 horse_gap = 1.1;
 horse_floor = horse_height*0.3;
+horse_hole_id = pipe_od + 0.6;
 
 module saw_horse_sides() {
   $fn = 30;
@@ -192,10 +196,10 @@ module saw_horse_sides() {
         hull() {
           // Toroidal disk.
           rotate_extrude() {
-            translate([hole_id/2 + horse_wall/2, 0])
+            translate([horse_hole_id/2 + horse_wall/2, 0])
               circle(d=horse_wall);
             translate([0, -horse_wall/2])
-              square([hole_id/2 + horse_wall/2, horse_wall]);
+              square([horse_hole_id/2 + horse_wall/2, horse_wall]);
           }
           
           // Base plate.
@@ -215,7 +219,7 @@ module saw_horse() {
     saw_horse_sides();
     
     translate([0, 0, -25])
-      cylinder(d=hole_id, h=50);
+      cylinder(d=horse_hole_id, h=50);
   }
   
   difference() {
