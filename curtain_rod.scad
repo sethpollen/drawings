@@ -21,7 +21,7 @@ plug_taper_length = 1;
 end_lip = 8;
 end_lip_length = 14;
 hole_id = pipe_od + 1;
-end_wall = 11;
+end_wall = 9;
 end_plate_width = end_wall + end_lip_length + 32;
 
 // #10 x 3/4" wood screw.
