@@ -203,4 +203,4 @@ module saw_horse() {
   }
 }
 
-end_piece();
+middle_piece();
