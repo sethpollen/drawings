@@ -1,6 +1,6 @@
 eps = 0.001;
 thickness = 1.6;
-width = 8;
+width = 9;
 
 sizer_steps = 10;
 sizer_step_size = 0.5;
@@ -63,8 +63,8 @@ module ring_blank(id) {
 module crown_cutouts(id) {
   $fn = 40;
   
-  breadth = id*0.3;
-  depth = 2 + id*0.15;
+  breadth = id*0.5;
+  depth = 8 + id*0.15;
   count = 7;
   
   for (a = [1:count])
@@ -89,4 +89,4 @@ module sizers() {
       sizer(17);
 }
 
-sizers();
+crown_ring(15);
