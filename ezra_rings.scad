@@ -35,7 +35,7 @@ module sizer(min_id) {
   color("red")
     translate([36, min_id/2+thickness-eps, width*0.15])
       rotate([90, 0, 180])
-        linear_extrude(2)
+        linear_extrude(1.5)
           offset(0.2, $fn=60)
             text(str(min_id + (sizer_steps-1)*sizer_step_size, " — ", min_id), size=width*0.7);
 }
