@@ -1,6 +1,44 @@
 eps = 0.001;
-thickness = 1.9;
+thickness = 1.6;
 width = 8;
+
+sizer_steps = 10;
+sizer_step_size = 0.5;
+
+module sizer_distribution(min_id) {
+
+  for (i = [0:sizer_steps-1]) {
+    $id = min_id + i*sizer_step_size;
+    x = i*(min_id + thickness-0.2) + i*i*sizer_step_size/2;
+    translate([x, 0])
+      children();
+  }
+}
+
+module sizer_2d(min_id) {
+  $fn=90;
+
+  difference() {
+    hull()
+      sizer_distribution(min_id)
+        circle(d=$id+thickness*2);
+    
+    sizer_distribution(min_id)
+      circle(d=$id);
+  }
+}
+
+module sizer(min_id) {
+  linear_extrude(width)
+    sizer_2d(min_id);
+  
+  color("red")
+    translate([36, min_id/2+thickness-eps, width*0.15])
+      rotate([90, 0, 180])
+        linear_extrude(2)
+          offset(0.2, $fn=60)
+            text(str(min_id + (sizer_steps-1)*sizer_step_size, " — ", min_id), size=width*0.7);
+}
 
 module ring_blank_2d(id) {
   bevel = 0.18;
@@ -22,7 +60,7 @@ module ring_blank(id) {
     ring_blank_2d(id);
 }
 
-module waves(id) {
+module crown_cutouts(id) {
   $fn = 40;
   
   breadth = id*0.3;
@@ -37,26 +75,18 @@ module waves(id) {
             cylinder(d1=0, d2=1, h=id/2+thickness+eps);
 }
 
-module wave_ring(id) {
+module crown_ring(id) {
   difference() {
     ring_blank(id);
-    waves(id);
+    crown_cutouts(id);
   }
 }
 
-module wave_ring_set() {
-  wave_ring(10);
-  wave_ring(16);
-  
-  translate([22, 0, 0]) {
-    wave_ring(12);
-    wave_ring(18);
-  }
-  
-  translate([0, 23, 0]) {
-    wave_ring(14);
-    wave_ring(20);
-  }
+module sizers() {
+  sizer(12);
+  translate([170, -22])
+    rotate([0, 0, 180])
+      sizer(17);
 }
 
-wave_ring_set();
+sizers();
