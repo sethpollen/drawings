@@ -1,8 +1,8 @@
 width = 50;
 height = 90;
-depth = 7;
+depth = 6;
 
-top_inset = depth*0.5;
+top_inset = 2.5;
 hole_inset = 2.2;
 hole_id = 5.5;
 
@@ -20,7 +20,7 @@ module blank() {
     
     hull()
       // Elements are [height, inset].
-      for (a = [[0, 0], [depth*0.3, 0], [depth, top_inset]])
+      for (a = [[0, 0], [depth*0.6, 0], [depth, top_inset]])
         translate([0, 0, a[0]])
           linear_extrude(0.00001)
             offset(-a[1])
