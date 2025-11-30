@@ -35,8 +35,8 @@ module ring(gap=true) {
 }
 
 module border_link() {
-  my_od = gauge*3.5;
-  length = od*0.83;
+  my_od = gauge*5.5;
+  length = od;
   
   for (a = [-1, 1]) {
     scale([a, 1, 1]) {
