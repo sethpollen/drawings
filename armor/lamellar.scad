@@ -6,18 +6,27 @@ ring_gauge = 3.8;
 
 rib_width = 3.8;
 rib_bottom_plate = 1.6;
-rib_top_plate = 1.6;
-rib_outer_wall = 13;
+rib_top_plate = 1.4;
+rib_outer_wall = 13.3;
 
 ring_id = tile_spacing + rib_outer_wall;
 ring_slack = 0.8;
 
-rib_thickness = tile_thickness + ring_gauge + rib_bottom_plate + rib_top_plate + ring_slack*2;
+rib_thickness = ring_gauge + rib_bottom_plate + rib_top_plate + ring_slack*2;
 
-module tile_2d() {
+module tile_2d(hole=false) {
+  $fn = 32;
   roundoff = 3;
-  offset(roundoff, $fn=32)
-    square(tile_width-roundoff*2, center=true);
+  border = 4;
+  
+  difference() {
+    offset(roundoff)
+      square(tile_width-roundoff*2, center=true);
+    
+    if (hole)
+      offset(roundoff)
+        square(tile_width-roundoff*2-border*2, center=true);
+  }
 }
 
 module ribs_2d() {
@@ -45,17 +54,29 @@ module ring(offs=0, extend=0) {
 }
 
 module tile() {
-  linear_extrude(tile_thickness)
-    tile_2d();
+  linear_extrude(0.4)
+    tile_2d(true);
+  translate([0, 0, 0.4])
+    linear_extrude(tile_thickness - 0.4)
+      tile_2d();
   
   difference() {
-    union() {
-      bevel = 2;
-      linear_extrude(rib_thickness-bevel)
-        ribs_2d();
-      translate([0, 0, rib_thickness-bevel])
-        linear_extrude(bevel, scale=0.95)
+    translate([0, 0, tile_thickness]) {
+      union() {
+        bevel = 1.8;
+
+        linear_extrude(rib_thickness-bevel)
           ribs_2d();
+
+        translate([0, 0, rib_thickness-bevel]) {
+          intersection() {
+            linear_extrude(bevel)
+              ribs_2d();
+            linear_extrude(bevel, scale=0.94)
+              tile_2d();
+          }
+        }
+      }
     }
     
     for (a = 90*[0, 1, 2, 3])
