@@ -1,9 +1,9 @@
 side = 40;
-spacing = 5.4;
+spacing = 5.8;
 plate = 2;
 
 ring_gauge = 3.4;
-ring_id = 2*spacing + 13;
+ring_id = 2*spacing + 12.5;
 
 ring_slack_z = 1.3;
 
@@ -100,6 +100,15 @@ module set() {
   children();
 }
 
+module print() {
+  set()
+  rosette_tiles();
+  
+  color("red")
+  // Nudge the rings up, so there is more room for supports beneath them.
+  translate([0, 0, ring_slack_z-0.4])
+  set()
+  rosette_rings();
+}
 
-set() rosette_tiles();
-color("red") set() rosette_rings();
+print();
