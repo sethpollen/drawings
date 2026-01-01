@@ -1,71 +1,50 @@
-gauge = 3.8;
-
-module octagon_2d() {
-  intersection_for(a = [0, 45])
-  rotate([0, 0, a])
-  square(gauge, center=true);
-}
-
-module torus(od) {
-  $fn = od;
+module bevel_extrude(h, i=0) {
+  face = h/(1+sqrt(2));
+  bevel = (h-face)/2;
+  offs = i*0.2;
   
-  rotate_extrude()
-  translate([od/2-gauge/2, 0])
-  octagon_2d();
+  if (i == 0) {
+    translate([0, 0, -h/2])
+    linear_extrude(h)
+    offset(-bevel)
+    children();
+  }
+
+  if (offs < bevel) {
+    translate([0, 0, bevel-offs-h/2])
+    linear_extrude(h - 2*(bevel-offs))
+    offset(-offs)
+    children();
+    
+    // Recurse.
+    bevel_extrude(h, i+1)
+    children();
+  }
 }
 
-module bar(length) {
-  rotate([0, 90, 0])
-  linear_extrude(length)
-  hull()
-  octagon_2d();
-}
+gauge = 3.8;
 
 module link() {
   od = 28.5;
+  $fn = od;
   
   difference() {
-    torus(od);
+    bevel_extrude(gauge)
+    difference() {
+      circle(d=od);
+      circle(d=od-2*gauge);
+    }
     
     translate([-od/2, 0, 0])
     cube([od, 0.7, od], center=true);
   }
 }
 
-module plate() {
-  od = 60;
-  inner_od = od-gauge*6;
-  bars = 10;
-  
-  torus(od);
-  torus(inner_od);
-  
-  for (a = [0:bars])
-  rotate([0, 0, 360*a/bars])
-  translate([inner_od/2-gauge/2, 0, 0])
-  bar((od-inner_od)/2);
-}
-
-module hole_oblong_2d(dim) {
+module hole_2d(dim) {
   $fn = 30;
-  d = min(dim);
-  
-  hull()
-  for (a = [-1, 1], b = [-1, 1])
-  scale([a, b])
-  translate(0.5 * (dim - [d, d]))
-  circle(d=d);
-}
 
-module hole_oval_2d(dim) {
-  $fn = 30;
-  
   scale(dim)
   circle(d=1);
-}
-
-module hole_2d(dim) {
-  hole_oval_2d(dim);
 }
 
 module hole(dim) {
@@ -90,25 +69,27 @@ module hole(dim) {
   }
 }
 
-module plate2() {
+module plate() {
   od = 60;
-
+  
+  bevel_extrude(gauge)
   difference() {
-    hull()
-    torus(od);
+    circle(d=od);
     
     for (a = [-1, 1], b = [-1, 1])
     scale([a, b])
     translate([7.5, od/2-10.2])
-    hole([8, 12]);
+    hole_2d([8, 12]);
   }
 }
 
-scale(0.65) {
-  for (a = [0:5])
-  rotate([0, 0, a*60])
-  translate([75, 0]) {
-    plate2();
-    translate([-45, 0]) link();
+module print_test() {
+  scale(0.65) {
+    translate([75, 0]) {
+      plate();
+      translate([-45, 0]) link();
+    }
   }
 }
+
+print_test();
