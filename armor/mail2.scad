@@ -46,7 +46,6 @@ module plate() {
   bar((od-inner_od)/2);
 }
 
-scale(0.65) {
-  link();
-  plate();
-}
+link();
+plate();
+
