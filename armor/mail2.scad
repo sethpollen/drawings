@@ -14,12 +14,10 @@ module torus(od) {
   octagon_2d();
 }
 
-module bar(length, extra_width) {
+module bar(length) {
   rotate([0, 90, 0])
   linear_extrude(length)
   hull()
-  for (y = extra_width/2 * [-1, 1])
-  translate([0, y])
   octagon_2d();
 }
 
@@ -30,22 +28,25 @@ module link() {
     torus(od);
     
     translate([-od/2, 0, 0])
-    cube([od, 0.9, od], center=true);
+    cube([od, 0.8, od], center=true);
   }
 }
 
 module plate() {
   od = 60;
   inner_od = od-gauge*6;
+  bars = 10;
   
   torus(od);
   torus(inner_od);
   
-  for (a = 90 * [0, 1, 2, 3])
-  rotate([0, 0, a])
+  for (a = [0:bars])
+  rotate([0, 0, 360*a/bars])
   translate([inner_od/2-gauge/2, 0, 0])
-  bar((od-inner_od)/2, 1);
+  bar((od-inner_od)/2);
 }
 
-link();
-plate();
+scale(0.65) {
+  link();
+  plate();
+}
