@@ -72,8 +72,13 @@ module plate() {
 }
 
 module print_test() {
-  translate([75, 0]) {
-    translate([37, 20]) plate();
+  for (a = [0:5])
+  rotate([0, 0, a*60])
+  translate([30, 0]) {
+    translate([27, 30])
+    rotate([0, 0, 30])
+    plate();
+
     link();
   }
 }
