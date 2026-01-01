@@ -22,7 +22,7 @@ module bevel_extrude(h, i=0) {
   }
 }
 
-gauge = 3.8;
+gauge = 3.6;
 
 module link() {
   od = 28.5;
@@ -47,35 +47,23 @@ module hole_2d(dim) {
   circle(d=1);
 }
 
-module hole(dim) {
-  face = gauge/(1+sqrt(2));
-
-  for (a = [-1, 1])
-  scale([1, 1, a]) {
-    translate([0, 0, -0.01])
-    linear_extrude(gauge)
-    hole_2d(dim);
-    
-    hull() {
-      translate([0, 0, face/2])
-      linear_extrude(1)
-      hole_2d(dim);
-      
-      translate([0, 0, face/2+gauge])
-      linear_extrude(1)
-      offset(gauge)
-      hole_2d(dim);
-    }
-  }
-}
-
 module plate() {
-  od = 60;
+  od = 50;
   
   bevel_extrude(gauge)
   difference() {
     circle(d=od);
     
+    // Slightly cut off the sides.
+    for (a = [-1, 1])
+    translate([0, a*(50+od/2-1.2)])
+    square(100, center=true);
+    
+    // Cut off much of the top.
+    translate([50+od/2-6, 0])
+    square(100, center=true);
+    
+    // Holes.
     for (a = [-1, 1], b = [-1, 1])
     scale([a, b])
     translate([7.5, od/2-10.2])
@@ -84,11 +72,9 @@ module plate() {
 }
 
 module print_test() {
-  scale(0.65) {
-    translate([75, 0]) {
-      plate();
-      translate([-45, 0]) link();
-    }
+  translate([75, 0]) {
+    translate([37, 20]) plate();
+    link();
   }
 }
 
