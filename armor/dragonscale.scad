@@ -59,15 +59,11 @@ module plate() {
     translate([0, a*(50+od/2-1.2)])
     square(100, center=true);
     
-    // Cut off much of the top.
-    translate([50+od/2-6, 0])
-    square(100, center=true);
-    
     // Holes.
     for (a = [-1, 1], b = [-1, 1])
     scale([a, b])
-    translate([7.5, od/2-9.5])
-    hole_2d([7, 10.7]);
+    translate([7.5, od/2-9.7])
+    hole_2d([7, 11.2]);
   }
 }
 
