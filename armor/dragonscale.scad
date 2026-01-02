@@ -66,7 +66,7 @@ module plate() {
     // Holes.
     for (a = [-1, 1], b = [-1, 1])
     scale([a, b])
-    translate([7.5, od/2-9.3])
+    translate([7.5, od/2-9.5])
     hole_2d([7, 10.7]);
   }
 }
