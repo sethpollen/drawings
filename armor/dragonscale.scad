@@ -25,7 +25,7 @@ module bevel_extrude(h, i=0) {
 gauge = 3.6;
 
 module link() {
-  od = 28.5;
+  od = 27.5;
   $fn = od;
   
   difference() {
@@ -66,12 +66,17 @@ module plate() {
     // Holes.
     for (a = [-1, 1], b = [-1, 1])
     scale([a, b])
-    translate([7.5, od/2-10.2])
-    hole_2d([8, 12]);
+    translate([7.5, od/2-9.3])
+    hole_2d([7, 10.7]);
   }
 }
 
 module print_test() {
+  link();
+  
+  translate([78, -3])
+  link();
+
   for (a = [0:5])
   rotate([0, 0, a*60])
   translate([30, 0]) {
