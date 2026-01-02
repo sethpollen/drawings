@@ -65,6 +65,12 @@ module plate() {
     translate([7, od/2-9.1])
     hole_2d([6.6, 10.3]);
   }
+  
+  translate([0, 0, gauge/2-0.001])
+  linear_extrude(gauge*0.45, scale=0)
+  scale(od * [0.66, 0.3])
+  rotate([0, 0, 45])
+  square(1/sqrt(2), center=true);
 }
 
 module print_test() {
