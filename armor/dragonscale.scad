@@ -31,12 +31,18 @@ module link() {
   difference() {
     bevel_extrude(gauge)
     difference() {
-      circle(d=od);
+      union() {
+        circle(d=od);
+        
+        // Nubs to provide extra material for welding.
+        translate([gauge/2-od/2, 0, 0])
+        square([gauge*1.2, 3], center=true);
+      }
       circle(d=od-2*gauge);
     }
     
     translate([-od/2, 0, 0])
-    cube([od, 0.7, od], center=true);
+    cube([od, 0.6, od], center=true);
   }
 }
 
@@ -66,9 +72,10 @@ module plate() {
     hole_2d([6.6, 10.3]);
   }
   
-  translate([0, 0, gauge/2-0.001])
-  linear_extrude(gauge*0.45, scale=0)
-  scale(od * [0.66, 0.3])
+  // Diamond shaped ridge.
+  translate([5.5, 0, gauge/2-0.001])
+  linear_extrude(gauge*0.7, scale=0)
+  scale(od * [0.6, 0.3])
   rotate([0, 0, 45])
   square(1/sqrt(2), center=true);
 }
@@ -90,4 +97,4 @@ module print_test() {
   }
 }
 
-plate();
+link();
