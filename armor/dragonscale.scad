@@ -56,7 +56,7 @@ module plate() {
     
     // Slightly cut off the sides.
     for (a = [-1, 1])
-    translate([0, a*(50+od/2-1.2)])
+    translate([0, a*(50+od/2-1.5)])
     square(100, center=true);
     
     // Holes.
@@ -84,4 +84,4 @@ module print_test() {
   }
 }
 
-print_test();
+plate();
