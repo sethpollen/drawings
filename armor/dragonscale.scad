@@ -74,7 +74,7 @@ module plate(ridge=true) {
   
   if(ridge)
   translate([6, 0, gauge/2-0.001])
-  linear_extrude(gauge*0.7, scale=0)
+  linear_extrude(gauge*0.6, scale=0)
   scale(od * [0.62, 0.35])
   rotate([0, 0, 45])
   square(1/sqrt(2), center=true);
@@ -95,7 +95,7 @@ module print_test() {
   translate([76, -1.5])
   link();
 
-  for (a = [0:5])
+  for (a = [0:1])
   rotate([0, 0, a*60])
   translate([28.5, 0]) {
     translate([26, 30])
