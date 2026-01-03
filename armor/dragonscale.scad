@@ -106,4 +106,4 @@ module print_test() {
   }
 }
 
-print_test();
+plate();
