@@ -53,7 +53,7 @@ module hole_2d(dim) {
   circle(d=1);
 }
 
-module plate() {
+module plate(ridge=true) {
   od = 50;
   
   bevel_extrude(gauge)
@@ -72,24 +72,33 @@ module plate() {
     hole_2d([6.6, 10.3]);
   }
   
-  // Diamond shaped ridge.
-  translate([5.5, 0, gauge/2-0.001])
+  if(ridge)
+  translate([6, 0, gauge/2-0.001])
   linear_extrude(gauge*0.7, scale=0)
-  scale(od * [0.6, 0.3])
+  scale(od * [0.62, 0.35])
   rotate([0, 0, 45])
   square(1/sqrt(2), center=true);
+}
+
+module magnet_plate() {
+  intersection() {
+    plate();
+
+    translate([0, 50-9.5])
+    cube(100, center=true);
+  }
 }
 
 module print_test() {
   link();
   
-  translate([78, -3])
+  translate([76, -1.5])
   link();
 
   for (a = [0:5])
   rotate([0, 0, a*60])
-  translate([30, 0]) {
-    translate([27, 30])
+  translate([28.5, 0]) {
+    translate([26, 30])
     rotate([0, 0, 30])
     plate();
 
@@ -97,4 +106,4 @@ module print_test() {
   }
 }
 
-link();
+print_test();
