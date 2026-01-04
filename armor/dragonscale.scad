@@ -24,8 +24,7 @@ module bevel_extrude(h, i=0) {
 
 gauge = 3.6;
 
-module link() {
-  od = 26.3;
+module link(od) {
   $fn = od;
   
   difference() {
@@ -44,6 +43,14 @@ module link() {
     translate([-od/2, 0, 0])
     cube([od, 0.6, od], center=true);
   }
+}
+
+module main_link() {
+  link(26.3);
+}
+
+module border_link() {
+  link(23);
 }
 
 module hole_2d(dim) {
@@ -81,6 +88,7 @@ module plate(ridge=true) {
 }
 
 module magnet_plate() {
+  // TODO:
   intersection() {
     plate();
 
@@ -89,21 +97,4 @@ module magnet_plate() {
   }
 }
 
-module print_test() {
-  link();
-  
-  translate([76, -1.5])
-  link();
-
-  for (a = [0:1])
-  rotate([0, 0, a*60])
-  translate([28.5, 0]) {
-    translate([26, 30])
-    rotate([0, 0, 30])
-    plate();
-
-    link();
-  }
-}
-
-plate();
+border_link();
