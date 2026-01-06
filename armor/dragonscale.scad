@@ -60,29 +60,50 @@ module hole_2d(dim) {
   circle(d=1);
 }
 
+plate_od = 50;
+
+module holes_2d() {
+  for (a = [-1, 1], b = [-1, 1])
+  scale([a, b])
+  translate([7, plate_od/2-9.1])
+  hole_2d([6.6, 10.3]);
+}
+
 module plate(ridge=true) {
-  od = 50;
-  
   bevel_extrude(gauge)
   difference() {
-    circle(d=od);
+    circle(d=plate_od);
     
     // Slightly cut off the sides.
     for (a = [-1, 1])
-    translate([0, a*(50+od/2-1.5)])
+    translate([0, a*(50+plate_od/2-1.5)])
     square(100, center=true);
     
     // Holes.
-    for (a = [-1, 1], b = [-1, 1])
-    scale([a, b])
-    translate([7, od/2-9.1])
-    hole_2d([6.6, 10.3]);
+    holes_2d();
   }
   
   if(ridge)
   translate([6, 0, gauge/2-0.001])
   linear_extrude(gauge*0.6, scale=0)
-  scale(od * [0.62, 0.35])
+  scale(plate_od * [0.62, 0.35])
+  rotate([0, 0, 45])
+  square(1/sqrt(2), center=true);
+}
+
+module top_plate() {
+  bevel_extrude(gauge)
+  difference() {
+    offset(gauge*0.85)
+    hull()
+    holes_2d();
+    
+    holes_2d();
+  }
+  
+  translate([0, 0, gauge/2-0.001])
+  linear_extrude(gauge*0.6, scale=0)
+  scale(plate_od * [0.47, 0.33])
   rotate([0, 0, 45])
   square(1/sqrt(2), center=true);
 }
@@ -97,4 +118,4 @@ module magnet_plate() {
   }
 }
 
-border_link();
+top_plate();
