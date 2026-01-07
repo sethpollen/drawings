@@ -92,20 +92,27 @@ module plate(ridge=true) {
 }
 
 module top_plate() {
-  bevel_extrude(gauge)
   difference() {
-    offset(gauge)
-    hull()
-    holes_2d();
-    
-    holes_2d();
-  }
+    union() {
+      bevel_extrude(gauge)
+      difference() {
+        offset(gauge*0.86)
+        hull()
+        holes_2d();
+        
+        holes_2d();
+      }
+      
+      translate([0, 0, gauge/2-0.001])
+      linear_extrude(gauge*0.6, scale=0)
+      scale(plate_od * [0.47, 0.31])
+      rotate([0, 0, 45])
+      square(1/sqrt(2), center=true);
+    }
   
-  translate([0, 0, gauge/2-0.001])
-  linear_extrude(gauge*0.6, scale=0)
-  scale(plate_od * [0.47, 0.31])
-  rotate([0, 0, 45])
-  square(1/sqrt(2), center=true);
+    translate([plate_od*0.66, 0, -5])
+    cylinder($fn=60, h=10, d=plate_od*0.95);
+  }
 }
 
 module magnet_plate() {
