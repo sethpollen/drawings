@@ -94,7 +94,7 @@ module plate(ridge=true) {
 module top_plate() {
   bevel_extrude(gauge)
   difference() {
-    offset(gauge*0.85)
+    offset(gauge)
     hull()
     holes_2d();
     
@@ -103,7 +103,7 @@ module top_plate() {
   
   translate([0, 0, gauge/2-0.001])
   linear_extrude(gauge*0.6, scale=0)
-  scale(plate_od * [0.47, 0.33])
+  scale(plate_od * [0.47, 0.31])
   rotate([0, 0, 45])
   square(1/sqrt(2), center=true);
 }
