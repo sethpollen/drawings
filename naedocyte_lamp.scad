@@ -3,9 +3,10 @@ $fn = 100;
 inner_id = 27.9;
 outer_id = 46;
 lap = 4.5;
+outer_od = outer_id + 16;
 
 inner_height = 4;
-outer_height = 8;
+outer_height = 8.4;
 
 module inner_2d() {
   intersection() {
@@ -22,10 +23,10 @@ module inner_2d() {
 
 module outer_2d(cut=false) {
   difference() {
-    circle(d=outer_id+16);
+    circle(d=outer_od);
     circle(d=outer_id);
     
-    offset_range = cut ? [-0.15, 0.3] : [0.3, 0.3];
+    offset_range = cut ? [-0.2, 0.3] : [0.3, 0.3];
     angle_range = cut ? [0, 100] : [100, 100];
     steps = 30;
 
@@ -41,7 +42,7 @@ module outer_2d(cut=false) {
 }
 
 module outer() {
-  z_slack = 0.4;
+  z_slack = 0.6;
   
   linear_extrude(outer_height)
   outer_2d(cut=true);
@@ -49,6 +50,19 @@ module outer() {
   translate([0, 0, inner_height+z_slack])
   linear_extrude(outer_height-inner_height-z_slack)
   outer_2d(cut=false);
+  
+  // Flared skirt.
+  skirt_height = 11;
+
+  difference() {
+    translate([0, 0, -skirt_height])
+    cylinder(h=outer_height+skirt_height, d1=outer_od+12, d2=outer_od);
+    
+    cylinder(h=outer_height+1, d=outer_id+lap+1);
+    
+    translate([0, 0, -skirt_height-1])
+    cylinder(h=outer_height+skirt_height+2, d=outer_id);
+  }
 }
 
 module inner() {
@@ -65,4 +79,4 @@ module print() {
   inner();
 }
 
-print();
+outer();
