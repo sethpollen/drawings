@@ -132,47 +132,35 @@ module top_plate() {
 }
 
 magnet_hole_depth = 2.2;
-magnet_hole_id = 8.3;
-magnet_hole_floor = 1;
+magnet_hole_id = 9.4;  // Fits the 9mm magnet.
+magnet_hole_floor = 0.8;
 
-stud_od = 6;
-stud_hole_id = 6.8;
+module stud_2d() {
+  $fn = 20;
 
-module magnet_plate(male=true) {
+  offset(0.7)
+  offset(-0.7)
+  square([4.3, 10], center=true);
+}
+
+module magnet_plate() {
   $fn = 60;
+
+  stud_pos = [magnet_hole_id/2 + 3.2, 0, 0];
 
   difference() {
     plate(ridge=false, half=true);
     
-    translate([0, 0, gauge/2-5-magnet_hole_floor])
+    for (a = [-1, 1])
+    scale([a, 1, 1])    
+    translate([8.5, 0, gauge/2-5-magnet_hole_floor])
     cylinder(d=magnet_hole_id, h=5);
     
-    if(!male)
-    for (a = [-1, 1])
-    scale([a, 1, 1]) {
-      translate([magnet_hole_id/2 + stud_hole_id/2 + 1.7, 0, 0]) {
-        translate([0, 0, -5])
-        cylinder(d=stud_hole_id, h=10);
-        
-        translate([0, 0, gauge/2-0.499])
-        cylinder(d1=stud_hole_id, d2=stud_hole_id+1, h=0.5);
-      }
-    }
-  }
-
-  if(male) {
-    for (a = [-1, 1])
-    scale([a, 1, 1]) {
-      translate([magnet_hole_id/2 + stud_hole_id/2 + 3, 0, 0]) {
-        cylinder(d=stud_od, h=gauge*1.3);
-        
-        translate([0, 0, gauge*1.299])
-        cylinder(d1=stud_od, d2=stud_od-1, h=0.5);
-      }
-    }
+    translate([0, 0, -5])
+    linear_extrude(10)
+    offset(0.2)
+    stud_2d();
   }
 }
 
-magnet_plate(male=true);
-translate([35, 0])
-magnet_plate(male=false);
+magnet_plate();
