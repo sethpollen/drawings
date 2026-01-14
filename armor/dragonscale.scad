@@ -69,7 +69,7 @@ module holes_2d() {
   hole_2d([6.6, 10.3]);
 }
 
-module plate(ridge=true) {
+module plate(ridge=true, half=false) {
   bevel_extrude(gauge)
   difference() {
     circle(d=plate_od);
@@ -81,6 +81,22 @@ module plate(ridge=true) {
     
     // Holes.
     holes_2d();
+    
+    // A half-plate for housing magnets.
+    if(half) {
+      translate([0, plate_od/2+9.6])
+      square([plate_od, plate_od], center=true);
+
+      for (a = [-1, 1])
+      scale([a, 1]) {
+        translate([32/2, 9.6])
+        rotate([0, 0, 45])
+        square(1.7, center=true);
+        
+        translate([(plate_od+32)/2, 0])
+        square([plate_od, plate_od], center=true);
+      }
+    }
   }
   
   if(ridge)
@@ -115,14 +131,48 @@ module top_plate() {
   }
 }
 
-module magnet_plate() {
-  // TODO:
-  intersection() {
-    plate();
+magnet_hole_depth = 2.2;
+magnet_hole_id = 8.3;
+magnet_hole_floor = 1;
 
-    translate([0, 50-9.5])
-    cube(100, center=true);
+stud_od = 6;
+stud_hole_id = 6.8;
+
+module magnet_plate(male=true) {
+  $fn = 60;
+
+  difference() {
+    plate(ridge=false, half=true);
+    
+    translate([0, 0, gauge/2-5-magnet_hole_floor])
+    cylinder(d=magnet_hole_id, h=5);
+    
+    if(!male)
+    for (a = [-1, 1])
+    scale([a, 1, 1]) {
+      translate([magnet_hole_id/2 + stud_hole_id/2 + 1.7, 0, 0]) {
+        translate([0, 0, -5])
+        cylinder(d=stud_hole_id, h=10);
+        
+        translate([0, 0, gauge/2-0.499])
+        cylinder(d1=stud_hole_id, d2=stud_hole_id+1, h=0.5);
+      }
+    }
+  }
+
+  if(male) {
+    for (a = [-1, 1])
+    scale([a, 1, 1]) {
+      translate([magnet_hole_id/2 + stud_hole_id/2 + 3, 0, 0]) {
+        cylinder(d=stud_od, h=gauge*1.3);
+        
+        translate([0, 0, gauge*1.299])
+        cylinder(d1=stud_od, d2=stud_od-1, h=0.5);
+      }
+    }
   }
 }
 
-top_plate();
+magnet_plate(male=true);
+translate([35, 0])
+magnet_plate(male=false);
