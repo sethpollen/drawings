@@ -201,12 +201,12 @@ module magnet_plate_cover() {
 module magnet_plate_stud() {
   hull() {
     linear_extrude(5)
-    offset(-0.7)
+    offset(-0.8)
     stud_2d();
     
-    translate([-0, 0, 0.6])
-    linear_extrude(3.8)
-    offset(-0.05)
+    translate([-0, 0, 0.7])
+    linear_extrude(3.6)
+    offset(-0.2)
     stud_2d();
   }
 }
