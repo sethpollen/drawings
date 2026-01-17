@@ -69,6 +69,8 @@ module holes_2d() {
   hole_2d([6.6, 10.3]);
 }
 
+half_plate_height = 32;
+
 module plate(ridge=true, half=false) {
   bevel_extrude(gauge)
   difference() {
@@ -89,11 +91,11 @@ module plate(ridge=true, half=false) {
 
       for (a = [-1, 1])
       scale([a, 1]) {
-        translate([32/2, 9.6])
+        translate([half_plate_height/2, 9.6])
         rotate([0, 0, 45])
         square(1.7, center=true);
         
-        translate([(plate_od+32)/2, 0])
+        translate([(plate_od+half_plate_height)/2, 0])
         square([plate_od, plate_od], center=true);
       }
     }
@@ -107,7 +109,7 @@ module plate(ridge=true, half=false) {
   square(1/sqrt(2), center=true);
 }
 
-module top_plate() {
+module shoulder_plate() {
   difference() {
     union() {
       bevel_extrude(gauge)
@@ -132,8 +134,12 @@ module top_plate() {
 }
 
 magnet_hole_depth = 2.2;
-magnet_hole_id = 9.4;  // Fits the 9mm magnet.
-magnet_hole_floor = 0.8;
+magnet_hole_id = 10.4;
+magnet_hole_floor = 0.6;
+
+cover_plate_dims = [28, 13];
+cover_plate_thickness = 1;
+cover_plate_roundoff = 3;
 
 module stud_2d() {
   $fn = 20;
@@ -143,24 +149,55 @@ module stud_2d() {
   square([4.3, 10], center=true);
 }
 
-module magnet_plate() {
+module magnet_plate(tab=false) {
   $fn = 60;
-
-  stud_pos = [magnet_hole_id/2 + 3.2, 0, 0];
+  magnet_hole_slack = 0.4;
 
   difference() {
-    plate(ridge=false, half=true);
+    union() {
+      plate(ridge=false, half=true);
+      
+      if(tab)
+      translate([0, 7.3, 0.4])
+      rotate([135, 0, 0])
+      intersection() {
+        tab_length = 6;
+
+        bevel_extrude(gauge)
+        square([half_plate_height, tab_length*2], center=true);
+        
+        translate([0, -tab_length])
+        cube([half_plate_height, tab_length*2, gauge], center=true);
+      }
+    }
     
     for (a = [-1, 1])
     scale([a, 1, 1])    
     translate([8.5, 0, gauge/2-5-magnet_hole_floor])
-    cylinder(d=magnet_hole_id, h=5);
+    cylinder(d=magnet_hole_slack+9.5+0.5*a, h=5);
     
     translate([0, 0, -5])
     linear_extrude(10)
     offset(0.2)
     stud_2d();
+    
+    translate([0, 0, cover_plate_thickness-5-gauge/2])
+    linear_extrude(5)
+    offset(cover_plate_roundoff)
+    offset(-cover_plate_roundoff)
+    square(cover_plate_dims, center=true);
   }
 }
 
-magnet_plate();
+module magnet_plate_cover() {
+  $fn = 60;
+
+  linear_extrude(cover_plate_thickness)
+  offset(cover_plate_roundoff-0.2)
+  offset(-cover_plate_roundoff)
+  square(cover_plate_dims, center=true);
+}
+
+magnet_plate(tab=true);
+translate([34, 0]) magnet_plate();
+translate([0, 20, -1+gauge/2]) magnet_plate_cover();
