@@ -86,12 +86,12 @@ module plate(ridge=true, half=false) {
     
     // A half-plate for housing magnets.
     if(half) {
-      translate([0, plate_od/2+9.6])
+      translate([0, plate_od/2+7.8])
       square([plate_od, plate_od], center=true);
 
       for (a = [-1, 1])
       scale([a, 1]) {
-        translate([half_plate_height/2, 9.6])
+        translate([half_plate_height/2, 7.8])
         rotate([0, 0, 45])
         square(1.7, center=true);
         
@@ -137,7 +137,7 @@ magnet_hole_depth = 2.2;
 magnet_hole_id = 10.4;
 magnet_hole_floor = 0.6;
 
-cover_plate_dims = [28, 13];
+cover_plate_dims = [28, 12.5];
 cover_plate_thickness = 1;
 cover_plate_roundoff = 3;
 
@@ -158,7 +158,7 @@ module magnet_plate(tab=false) {
       plate(ridge=false, half=true);
       
       if(tab)
-      translate([0, 7.3, 0.4])
+      translate([0, 5.5, 0.4])
       rotate([135, 0, 0])
       intersection() {
         tab_length = 6;
@@ -192,12 +192,11 @@ module magnet_plate(tab=false) {
 module magnet_plate_cover() {
   $fn = 60;
 
-  linear_extrude(cover_plate_thickness)
-  offset(cover_plate_roundoff-0.2)
+  linear_extrude(cover_plate_thickness-0.2)
+  offset(cover_plate_roundoff-0.35)
   offset(-cover_plate_roundoff)
   square(cover_plate_dims, center=true);
 }
 
 magnet_plate(tab=true);
 translate([34, 0]) magnet_plate();
-translate([0, 20, -1+gauge/2]) magnet_plate_cover();
