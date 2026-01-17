@@ -206,7 +206,7 @@ module magnet_plate_stud() {
     
     translate([-0, 0, 0.7])
     linear_extrude(3.6)
-    offset(-0.2)
+    offset(-0.25)
     stud_2d();
   }
 }
