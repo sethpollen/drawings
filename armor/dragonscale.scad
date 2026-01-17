@@ -198,5 +198,24 @@ module magnet_plate_cover() {
   square(cover_plate_dims, center=true);
 }
 
-magnet_plate(tab=true);
-translate([34, 0]) magnet_plate();
+module magnet_plate_stud() {
+  hull() {
+    linear_extrude(5)
+    offset(-0.7)
+    stud_2d();
+    
+    translate([-0, 0, 0.6])
+    linear_extrude(3.8)
+    offset(-0.05)
+    stud_2d();
+  }
+}
+
+module print_magnet_plates() {
+  magnet_plate(tab=true);
+  
+  translate([34, 0])
+  magnet_plate();
+}
+
+magnet_plate_stud();
