@@ -38,7 +38,7 @@ module clasp_2d() {
   for (a = [-1, 1])
   rotate([0, 0, angle*a])
   translate([id/2 + gauge/2, 0])
-  circle(d=gauge*0.66, $fn=40);
+  circle(d=gauge*0.6, $fn=40);
   
   // Connecting bar.
   intersection () {
@@ -47,7 +47,7 @@ module clasp_2d() {
     
     translate([-0.4, 0])
     difference() {
-      push = 0.7;
+      push = 0.72;
       circle(d=od-gauge*push);
       circle(d=id+gauge*push);
     }
@@ -66,4 +66,11 @@ module clasp(cavity=false) {
   }
 }
 
-ring(true);
+module print() {
+  ring(true);
+  
+  translate([-8, 0, -cavity_floor])
+  clasp();
+}
+
+print();
