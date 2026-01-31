@@ -64,6 +64,17 @@ module clasp(cavity=false) {
     if(!cavity)
     ring();
   }
+  
+  // Nub to provide extra material for welding. Only 2 layers.
+  if(!cavity)
+  translate([0, 0, -gauge/2 + cavity_floor])
+  linear_extrude(gauge - cavity_floor + 0.4)
+  intersection () {
+    clasp_2d();
+
+    translate([15, 0])
+    square([30, 3], center=true);
+  }
 }
 
 module print() {
@@ -74,3 +85,4 @@ module print() {
 }
 
 print();
+clasp();
