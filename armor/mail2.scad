@@ -29,7 +29,7 @@ module ring(split=false) {
 }
 
 cavity_floor = 1.2;
-cavity_slack = 0.15;
+cavity_slack = 0.12;
 
 module clasp_2d() {
   // Blocks on the ends.
