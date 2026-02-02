@@ -19,11 +19,11 @@ module ring(split=false) {
     octagon_2d(gauge);
     
     if(split) {
-      gap = 0.5;
+      gap = 0.3;
       translate([15, 0, 0])
       cube([30, gap, 50], center=true);
       
-      clasp(cavity=true);
+      clasp_cavity();
     }
   }
 }
@@ -32,41 +32,30 @@ cavity_floor = 1.2;
 cavity_slack = 0.25;
 
 module clasp_2d() {
-  angle = 13;
-  
-  // Cylinders on the ends.
+  // Blocks on the ends.
   for (a = [-1, 1])
-  rotate([0, 0, angle*a])
-  translate([id/2 + gauge/2, 0])
-  circle(d=gauge*0.6, $fn=40);
+  scale([1, a])
+  translate([id/2 + gauge/2 - 1.5, 2])
+  hull() {
+    square([2.4, 1]);
+    square([2, 1.4]);
+  }
   
   // Connecting bar.
-  intersection () {
-    translate([15, 0])
-    square([30, 7], center=true);
-    
-    translate([-0.4, 0])
-    difference() {
-      push = 0.72;
-      circle(d=od-gauge*push);
-      circle(d=id+gauge*push);
-    }
-  }
+  translate([id/2 + gauge/2 - 1.5, -3])
+  square([1.2, 6]);
 }
 
-module clasp(cavity=false) {
+module clasp() {
   intersection () {
     translate([0, 0, -gauge/2 + cavity_floor])
-    linear_extrude(cavity ? 10 : gauge - cavity_floor)
-    offset(cavity ? cavity_slack : 0)
+    linear_extrude(gauge - cavity_floor)
     clasp_2d();
     
-    if(!cavity)
     ring();
   }
   
   // Nub to provide extra material for welding. Only 2 layers.
-  if(!cavity)
   translate([0, 0, -gauge/2 + cavity_floor])
   linear_extrude(gauge - cavity_floor + 0.4)
   intersection () {
@@ -77,6 +66,13 @@ module clasp(cavity=false) {
   }
 }
 
+module clasp_cavity() {
+  translate([0, 0, -gauge/2 + cavity_floor])
+  linear_extrude(10)
+  offset(cavity_slack)
+  clasp_2d();
+}
+
 module print() {
   ring(true);
   
@@ -85,4 +81,3 @@ module print() {
 }
 
 print();
-clasp();
