@@ -19,7 +19,7 @@ module ring(split=false) {
     octagon_2d(gauge);
     
     if(split) {
-      gap = 0.3;
+      gap = 0.5;
       translate([15, 0, 0])
       cube([30, gap, 50], center=true);
       
@@ -29,41 +29,27 @@ module ring(split=false) {
 }
 
 cavity_floor = 1.2;
-cavity_slack = 0.25;
+cavity_slack = 0.15;
 
 module clasp_2d() {
   // Blocks on the ends.
   for (a = [-1, 1])
   scale([1, a])
-  translate([id/2 + gauge/2 - 1.5, 2])
+  translate([id/2 + gauge/2 - 1.25, 2])
   hull() {
-    square([2.4, 1]);
-    square([2, 1.4]);
+    square([2.1, 0.4]);
+    square([1.7, 1.4]);
   }
   
   // Connecting bar.
-  translate([id/2 + gauge/2 - 1.5, -3])
-  square([1.2, 6]);
+  translate([id/2 + gauge/2 - 1.25, -3])
+  square([0.9, 6]);
 }
 
 module clasp() {
-  intersection () {
-    translate([0, 0, -gauge/2 + cavity_floor])
-    linear_extrude(gauge - cavity_floor)
-    clasp_2d();
-    
-    ring();
-  }
-  
-  // Nub to provide extra material for welding. Only 2 layers.
   translate([0, 0, -gauge/2 + cavity_floor])
-  linear_extrude(gauge - cavity_floor + 0.4)
-  intersection () {
-    clasp_2d();
-
-    translate([15, 0])
-    square([30, 3], center=true);
-  }
+  linear_extrude(gauge - cavity_floor)
+  clasp_2d();
 }
 
 module clasp_cavity() {
