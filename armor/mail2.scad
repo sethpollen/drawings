@@ -37,13 +37,13 @@ module clasp_2d() {
   scale([1, a])
   translate([id/2 + gauge/2 - 1.25, 2])
   hull() {
-    square([2.1, 0.4]);
-    square([1.7, 1.4]);
+    square([2.2, 0.4]);
+    square([1, 2.6]);
   }
   
   // Connecting bar.
   translate([id/2 + gauge/2 - 1.25, -3])
-  square([0.9, 6]);
+  square([1, 6]);
 }
 
 module clasp() {
