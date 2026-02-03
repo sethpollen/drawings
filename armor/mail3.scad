@@ -38,9 +38,9 @@ module cavity_2d() {
   
   for (a = [-1, 1])
   scale([1, a])
-  rotate([0, 0, 9])
+  rotate([0, 0, 8])
   translate([id/2+gauge/2, 0])
-  scale([1, 0.8])
+  scale([1, 0.7])
   circle(d=pit_d, $fn=20);
   
   intersection() {
@@ -55,13 +55,24 @@ module cavity_2d() {
   }
 }
 
+function cavity_layer_offsets(n) =
+  n == 0 ? []
+  : concat([
+    n <= 3 ? (3-n)*-0.3
+    : n >= 9 ? 0
+    // Roughen the sides of the cavity, so that the injected PLA sticks
+    // to the walls.
+    : n % 2 == 0 ? -0.23
+    : 0
+  ], cavity_layer_offsets(n-1));
+
 module cavity() {
-  steps = 5;
+  offsets = cavity_layer_offsets(gauge*5);
   
-  for (a = [0:steps])
-  translate([0, 0, -gauge/2 + 1.7 - a*0.2])
-  linear_extrude(20)
-  offset(-0.2*a)
+  for (a = [0:len(offsets)-1])
+  translate([0, 0, -gauge/2 + 1 + a*0.4])
+  linear_extrude(0.4001)
+  offset(offsets[len(offsets)-1-a])
   cavity_2d();
 }
 
