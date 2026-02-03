@@ -2,7 +2,7 @@
 // as ring ID over wire diameter.
 
 gauge = 4.8;
-id = 23;
+id = 21;
 od = id + gauge*2;
 $fn = 80;
 
@@ -35,14 +35,14 @@ module clasp_2d() {
   // Blocks on the ends.
   for (a = [-1, 1])
   scale([1, a])
-  translate([id/2 + gauge/2 - 1.17, 2])
+  translate([id/2 + gauge/2 - 1.22, 2])
   hull() {
     square([2.2, 0.4]);
     square([1, 2.6]);
   }
   
   // Connecting bar.
-  translate([id/2 + gauge/2 - 1.17, -3])
+  translate([id/2 + gauge/2 - 1.22, -3])
   square([1, 6]);
 }
 
