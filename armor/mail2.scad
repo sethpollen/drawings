@@ -1,6 +1,10 @@
+// This ring is closed using a small printed insert. The strength is pretty good.
+// I managed to tune it so that I can't pull the ring apart. But the joint
+// does stretch appreciably, and I think there is visible fatigue showing on
+// the connector after many attempts to break it.
+
 // https://www.mailleartisans.org/weaves/weavedisplay.php?key=6 defines the AR
 // as ring ID over wire diameter.
-
 gauge = 4.8;
 id = 21;
 od = id + gauge*2;
