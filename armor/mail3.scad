@@ -32,13 +32,13 @@ module ring(split=false) {
   }
 }
 
-module cavity_2d() {
+module cavity_2d(neck=true) {
   pit_d = gauge*0.7;
-  bar_width = gauge*0.48;
+  bar_width = gauge * (neck ? 0.47 : 0.7);
   
   for (a = [-1, 1])
   scale([1, a])
-  rotate([0, 0, 8.5])
+  rotate([0, 0, 8.2])
   translate([id/2+gauge/2, 0])
   scale([1, 0.7])
   circle(d=pit_d, $fn=20);
@@ -73,12 +73,7 @@ module cavity() {
   translate([0, 0, -gauge/2 + 0.8 + a*0.4])
   linear_extrude(0.4001)
   offset(offsets[len(offsets)-1-a])
-  cavity_2d();
-  
-  translate([0, 0, gauge/2-0.6])
-  linear_extrude(1)
-  hull()
-  cavity_2d();
+  cavity_2d(neck=a<8);
 }
 
 module print() {
