@@ -77,6 +77,11 @@ module cavity() {
 }
 
 module print() {
+  ring(true);
+  
+  translate([id*3.04, -0.8])
+  ring(false);
+  
   for (a = [1:6])
   rotate([0, 0, a*60])
   translate(id * [1.52, 0]) {
