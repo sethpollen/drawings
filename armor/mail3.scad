@@ -38,7 +38,7 @@ module cavity_2d() {
   
   for (a = [-1, 1])
   scale([1, a])
-  rotate([0, 0, 8])
+  rotate([0, 0, 8.5])
   translate([id/2+gauge/2, 0])
   scale([1, 0.7])
   circle(d=pit_d, $fn=20);
@@ -70,9 +70,14 @@ module cavity() {
   offsets = cavity_layer_offsets(gauge*5);
   
   for (a = [0:len(offsets)-1])
-  translate([0, 0, -gauge/2 + 1 + a*0.4])
+  translate([0, 0, -gauge/2 + 0.8 + a*0.4])
   linear_extrude(0.4001)
   offset(offsets[len(offsets)-1-a])
+  cavity_2d();
+  
+  translate([0, 0, gauge/2-0.6])
+  linear_extrude(1)
+  hull()
   cavity_2d();
 }
 
