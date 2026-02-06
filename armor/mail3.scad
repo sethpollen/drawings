@@ -17,9 +17,17 @@ module octagon_2d(gauge) {
 
 module ring(split=false) {
   difference() {
-    rotate_extrude()
-    translate([id/2+gauge/2, 0])
-    octagon_2d(gauge);
+    intersection() {
+      rotate_extrude()
+      translate([id/2+gauge/2, 0])
+      octagon_2d(gauge);
+      
+      // Chop off the top and bottom layers, flattening the ring slightly.
+      // This makes it faster to print and easier to snap together. The
+      // profile is still close enough to a circle not to disrupt the
+      // appearance.
+      cube([id*2, id*2, gauge-0.4], center=true);
+    }
     
     if(split) {
       gap = 0.5;
@@ -93,4 +101,4 @@ module print() {
   }
 }
 
-print();
+ring(true);
