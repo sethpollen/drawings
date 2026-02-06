@@ -5,7 +5,7 @@
 // https://www.mailleartisans.org/weaves/weavedisplay.php?key=6 defines the AR
 // as ring ID over wire diameter.
 gauge = 4.8;
-id = 21;
+id = 20;
 od = id + gauge*2;
 $fn = 80;
 
@@ -41,7 +41,7 @@ module cavity_2d(neck=true) {
   rotate([0, 0, 8.2])
   translate([id/2+gauge/2, 0])
   scale([1, 0.7])
-  circle(d=pit_d, $fn=20);
+  circle(d=pit_d, $fn=30);
   
   intersection() {
     difference() {
@@ -50,8 +50,8 @@ module cavity_2d(neck=true) {
       circle(d=id+gauge-bar_width);
     }
 
-    translate([15, 0])
-    square([30, 4], center=true);
+    scale([1, 2.8])
+    polygon([[0, 0], [20, 1], [20, -1]]);
   }
 }
 
