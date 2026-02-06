@@ -5,7 +5,7 @@
 // https://www.mailleartisans.org/weaves/weavedisplay.php?key=6 defines the AR
 // as ring ID over wire diameter.
 gauge = 4.8;
-id = 20;
+id = 21; // TODO: maybe reduce to 20? The translucent rings on my desk used 21.
 od = id + gauge*2;
 $fn = 80;
 
