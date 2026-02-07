@@ -9,25 +9,37 @@ id = 20.5;
 od = id + gauge*2;
 $fn = 80;
 
-module octagon_2d(gauge) {
+module octagon_2d() {
   intersection_for(a = [0, 45])
   rotate([0, 0, a])
   square(gauge, center=true);
 }
 
+// Cross-section of the ring exterior.
+module ring_2d() {
+  // Layers to remove from the middle, to make the ring thinner
+  // while keeping its width. This makes it somewhat faster to
+  // print and easier to snap together. It remains close enough
+  // to a circular cross section not to disrupt the look of the
+  // mail.
+  chop = 0.4;
+  
+  for (a = [-1, 1])
+  scale([1, a])
+  translate([0, -chop/2])
+  intersection() {
+    octagon_2d();
+
+    translate([-5, 0])
+    square(10);
+  }
+}
+
 module ring(split=false) {
   difference() {
-    intersection() {
-      rotate_extrude()
-      translate([id/2+gauge/2, 0])
-      octagon_2d(gauge);
-      
-      // Chop off the top and bottom layers, flattening the ring slightly.
-      // This makes it faster to print and easier to snap together. The
-      // profile is still close enough to a circle not to disrupt the
-      // appearance.
-      cube([id*2, id*2, gauge-0.4], center=true);
-    }
+    rotate_extrude()
+    translate([id/2+gauge/2, 0])
+    ring_2d();
     
     if(split) {
       gap = 0.5;
@@ -63,19 +75,10 @@ module cavity_2d(neck=true) {
   }
 }
 
-function cavity_layer_offsets(n) =
-  n == 0 ? []
-  : concat([
-    n <= 3 ? (3-n)*-0.3
-    : n >= 9 ? 0
-    // Roughen the sides of the cavity, so that the injected PLA sticks
-    // to the walls.
-    : n % 2 == 0 ? -0.23
-    : 0
-  ], cavity_layer_offsets(n-1));
-
 module cavity() {
-  offsets = cavity_layer_offsets(gauge*5);
+  // Roughen the sides of the cavity, so that the injected PLA sticks
+  // to the walls.
+  offsets = [0, 0, 0, -0.23, 0, -0.23, 0, -0.23, 0, -0.3, -0.6];
   
   for (a = [0:len(offsets)-1])
   translate([0, 0, -gauge/2 + 0.8 + a*0.4])
