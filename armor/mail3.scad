@@ -98,12 +98,16 @@ module print() {
   rotate([0, 0, 180])
   ring(true);
   
+  //////////////////////////////////////
+  
   // 5 split; 1 solid.
   for (a = [1:6])
   rotate([0, 0, a*60])
   translate(id * [2.3, 1.3])
   rotate([0, 0, 210])
-  ring(a <= 5);
+  ring(a<6);
+  
+  //////////////////////////////////////
   
   // 6 solid.
   for (a = [1:6])
@@ -112,10 +116,18 @@ module print() {
   rotate([0, 0, 210])
   ring(false);
   
-  // 5 solid.
-  for (a = [1:5])
+  // 2 solid.
+  for (a = [2, 5])
   rotate([0, 0, a*60])
-  translate(id * [3.1, 2.6])
+  translate(id * [3.1, 2.7])
+  rotate([0, 0, 210])
+  ring(false);
+  
+  // 3 solid.
+  for (a = [1, 3, 4])
+  scale([1, -1])
+  rotate([0, 0, a*60])
+  translate(id * [3.1, 2.7])
   rotate([0, 0, 210])
   ring(false);
 }
