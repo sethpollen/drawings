@@ -104,4 +104,4 @@ module print() {
   }
 }
 
-ring(true);
+print();
