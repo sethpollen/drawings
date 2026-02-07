@@ -88,20 +88,36 @@ module cavity() {
 }
 
 module print() {
+  // 1 split.
   ring(true);
   
-  translate([id*3.04, -0.8])
-  ring(false);
-  
+  // 6 split.
   for (a = [1:6])
   rotate([0, 0, a*60])
-  translate(id * [1.52, 0]) {
-    rotate([0, 0, 180])
-    ring(true);
-    
-    translate(id * [0.8, 1.3])
-    ring(false);
-  }
+  translate(id * [1.52, 0])
+  rotate([0, 0, 180])
+  ring(true);
+  
+  // 5 split; 1 solid.
+  for (a = [1:6])
+  rotate([0, 0, a*60])
+  translate(id * [2.3, 1.3])
+  rotate([0, 0, 210])
+  ring(a <= 5);
+  
+  // 6 solid.
+  for (a = [1:6])
+  rotate([0, 0, a*60])
+  translate(id * [3.1, 0])
+  rotate([0, 0, 210])
+  ring(false);
+  
+  // 5 solid.
+  for (a = [1:5])
+  rotate([0, 0, a*60])
+  translate(id * [3.1, 2.6])
+  rotate([0, 0, 210])
+  ring(false);
 }
 
 print();
