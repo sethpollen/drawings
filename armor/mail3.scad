@@ -87,7 +87,7 @@ module cavity() {
   cavity_2d(neck=a<8);
 }
 
-module print() {
+module print(split_only=false) {
   // 1 split.
   ring(true);
   
@@ -105,31 +105,33 @@ module print() {
   rotate([0, 0, a*60])
   translate(id * [2.3, 1.3])
   rotate([0, 0, 210])
-  ring(a<6);
+  ring(split_only || a<6);
   
   //////////////////////////////////////
   
-  // 6 solid.
-  for (a = [1:6])
-  rotate([0, 0, a*60])
-  translate(id * [3.1, 0])
-  rotate([0, 0, 210])
-  ring(false);
-  
-  // 2 solid.
-  for (a = [2, 5])
-  rotate([0, 0, a*60])
-  translate(id * [3.1, 2.7])
-  rotate([0, 0, 210])
-  ring(false);
-  
-  // 3 solid.
-  for (a = [1, 3, 4])
-  scale([1, -1])
-  rotate([0, 0, a*60])
-  translate(id * [3.1, 2.7])
-  rotate([0, 0, 210])
-  ring(false);
+  if(!split_only) {
+    // 6 solid.
+    for (a = [1:6])
+    rotate([0, 0, a*60])
+    translate(id * [3.1, 0])
+    rotate([0, 0, 210])
+    ring(false);
+    
+    // 2 solid.
+    for (a = [2, 5])
+    rotate([0, 0, a*60])
+    translate(id * [3.1, 2.7])
+    rotate([0, 0, 210])
+    ring(false);
+    
+    // 3 solid.
+    for (a = [1, 3, 4])
+    scale([1, -1])
+    rotate([0, 0, a*60])
+    translate(id * [3.1, 2.7])
+    rotate([0, 0, 210])
+    ring(false);
+  }
 }
 
-print();
+print(true);
