@@ -2,7 +2,7 @@ gauge = 8;
 gap_width = 9.4;
 gap_length = gap_width * 2;
 
-module half_link() {
+module half_link(male=true) {
   $fn = 40;
 
   difference() {
@@ -21,49 +21,74 @@ module half_link() {
       rotate([0, 0, 360/16])
       cylinder($fn=8, d=gauge, h=gap_length+0.002);
       
+      if (male)
+      for (a = [-1, 1])
+      scale([a, 1, 1])
       interface();
     }
     
-    scale([-1, -1, 1])
-    interface(offs=0.2);
+    if(!male)
+    for (a = [-1, 1])
+    scale([a, -1, 1])
+    interface(cav=true);
   }
 }
 
-module interface(offs=0) {
+module interface(cav=false) {
   $fn = 8;
 
   d = gauge-1.9;
   h = gauge*0.93;
-  
+  tilt = 0.9;
+
   translate([-gap_length/2 - gap_width/2 - gauge/2, 0])
   rotate([90, 0, 0])
   intersection() {
-    hull() {
-      translate([0, 0, -0.001])
+    union() {
+      scale([1, 1, 0] * (cav ? 1.06 : 1) + [0, 0, 1])
+      translate([tilt, 0, -0.001])
+      linear_extrude(h, scale=(cav ? 0.15 : 0.1))
+      translate([-tilt, 0])
       rotate([0, 0, 360/16])
-      cylinder(d=d+2*offs, h=0.001);
+      circle(d=d);
       
-      translate([1, 0, h])
-      rotate([0, 0, 360/16])
-      cylinder(d=1+2*offs, h=0.001);
+      // Runnels.
+      if(cav)
+      scale([1, 1, 1] * 0.95)
+      linear_extrude(1.5, scale=0.96)
+      circle(d=d);
     }
     
     // Truncate the pyramid.
-    if(offs == 0)
-    translate([0, 0, h-50-0.8])
+    if(!cav)
+    translate([0, 0, h-50-0.6])
     cube(100, center=true);
   }
 }
 
-module print() {
+module printable_half_link(male=true) {
   intersection() {
     translate([0, 0, gauge*1.42])
     rotate([-90, 0, 0])
-    half_link();
+    half_link(male);
     
     translate([0, 0, 50])
     cube(100, center=true);
   }
+}
+
+module interface_preview() {
+  interface();
+
+  color("blue")
+  translate([1, 0])
+  interface(true);
+}
+
+module print() {
+  printable_half_link(false);
+  translate([0, gauge+0.6])
+  printable_half_link(true);
 }
 
 print();
