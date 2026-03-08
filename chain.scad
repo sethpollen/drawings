@@ -25,7 +25,7 @@ module half_link() {
     }
     
     scale([-1, -1, 1])
-    interface(offs=0.15);
+    interface(offs=0.2);
   }
 }
 
@@ -50,7 +50,7 @@ module interface(offs=0) {
     
     // Truncate the pyramid.
     if(offs == 0)
-    translate([0, 0, h-50-0.6])
+    translate([0, 0, h-50-0.8])
     cube(100, center=true);
   }
 }
