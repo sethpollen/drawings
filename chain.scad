@@ -40,6 +40,7 @@ module interface(cav=false) {
   d = gauge-1.9;
   h = gauge*0.93;
   tilt = 0.9;
+  runnel_tilt = 5;
 
   translate([-gap_length/2 - gap_width/2 - gauge/2, 0])
   rotate([90, 0, 0])
@@ -54,9 +55,10 @@ module interface(cav=false) {
       
       // Runnels.
       if(cav)
-      scale([1, 1, 1] * 0.95)
-      linear_extrude(1.5, scale=0.96)
-      circle(d=d);
+      translate([runnel_tilt, 0])
+      linear_extrude(1.2, scale=0.96)
+      translate([-runnel_tilt, 0])
+      circle(d=d, $fn=20);
     }
     
     // Truncate the pyramid.
