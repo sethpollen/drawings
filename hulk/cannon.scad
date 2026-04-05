@@ -29,7 +29,7 @@ module exterior() {
   translate([0, 0, height - base_height])
     linear_extrude(base_height)
       circle(diameter/2);
-  
+
   linear_extrude(height) {
     // Barrels.
     for (a = [0:5])

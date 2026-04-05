@@ -231,40 +231,36 @@ module terminus() {
   }
 }
 
-module room(knurl=false) {
+module room3(knurl=false) {
   separation = side + 0.2;
   
-  difference() {
-    union() {
-      // Center.
-      piece(knurl, flip_link=true);
-      
-      // Corners.
+  // Center.
+  piece(knurl, flip_link=true);
+  
+  // Corners.
+  for (a = [0:3])
+    rotate([0, 0, a*90])
+      translate([-separation, -separation])
+        piece(knurl, flip_link=true, elide_link=true);
+  
+  // Sides.
+  for (a = [0:3])
+    rotate([0, 0, 90*a])
+      translate([0, -separation])
+        piece(knurl);
+  
+  // Thick join strips.
+  translate([0, 0, chamfer])
+    linear_extrude(height - 2*chamfer)
       for (a = [0:3])
         rotate([0, 0, a*90])
-          translate([-separation, -separation])
-            piece(knurl, flip_link=true, elide_link=true);
+          translate([separation/2, 0])
+            square([2, 3*separation-2], center=true);
       
-      // Sides.
-      for (a = [0:3])
-        rotate([0, 0, 90*a])
-          translate([0, -separation])
-            piece(knurl);
-      
-      // Thick join strips.
-      translate([0, 0, chamfer])
-        linear_extrude(height - 2*chamfer)
-          for (a = [0:3])
-            rotate([0, 0, a*90])
-              translate([separation/2, 0])
-                square([2, 3*separation-2], center=true);
-          
-      // Thin join plate. Thin enough not to disrupt the knurls.
-      translate([0, 0, height/2 - 0.4])
-        linear_extrude(0.8)
-          square(2.5*separation, center=true);
-    }
-  }
+  // Thin join plate. Thin enough not to disrupt the knurls.
+  translate([0, 0, height/2 - 0.4])
+    linear_extrude(0.8)
+      square(2.5*separation, center=true);
 }
 
-piece(true);
+room3();

@@ -1,3 +1,6 @@
+// TODO: They still fit too tightly, and there could be more room for the
+// glue. Shrink the pyramid so there is more space in the cavity.
+
 gauge = 8;
 gap_width = 9.4;
 gap_length = gap_width * 2;
