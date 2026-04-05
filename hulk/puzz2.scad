@@ -231,22 +231,22 @@ module terminus() {
   }
 }
 
+room_separation = side + 0.2;
+
 module room3(knurl=false) {
-  separation = side + 0.2;
-  
   // Center.
   piece(knurl, links=[-1,-1,-1,-1]);
   
   // Corners.
   for (a = [0:3])
     rotate([0, 0, a*90])
-      translate([-separation, -separation])
+      translate([-room_separation, -room_separation])
         piece(knurl, links=[-1,-1,0,0]);
   
   // Sides.
   for (a = [0:3])
     rotate([0, 0, 90*a])
-      translate([0, -separation])
+      translate([0, -room_separation])
         piece(knurl);
   
   // Thick join strips.
@@ -254,13 +254,55 @@ module room3(knurl=false) {
     linear_extrude(height - 2*chamfer)
       for (a = [0:3])
         rotate([0, 0, a*90])
-          translate([separation/2, 0])
-            square([2, 3*separation-2], center=true);
+          translate([room_separation/2, 0])
+            square([2, 3*room_separation-2], center=true);
       
   // Thin join plate. Thin enough not to disrupt the knurls.
   translate([0, 0, height/2 - 0.4])
     linear_extrude(0.8)
-      square(2.5*separation, center=true);
+      square(2.5*room_separation, center=true);
 }
 
-room3();
+module room4() {
+  // Center four.
+  for (a = [0:3])
+    rotate([0, 0, a*90])
+      translate(0.5 * room_separation * [1, 1])
+        piece(links = (a % 2 == 0) ? [1,1,1,1] : [-1,-1,-1,-1]);
+  
+  // Corners.
+  for (a = [0:3])
+    rotate([0, 0, a*90])
+      translate(-1.5 * room_separation * [1, 1])
+        piece(links = (a % 2 == 0) ? [1,1,1,1,] : [-1,-1,0,0]);
+
+  // Sides.
+  for (a = [0:3]) {
+    rotate([0, 0, 90*a]) {
+      translate(room_separation * [0.5, 1.5])
+        piece(links = (a % 2 == 0) ? [-1,0,-1,-1] : [1,1,1,1]);
+      translate(room_separation * [-0.5, 1.5])
+        piece(links = (a % 2 == 1) ? [-1,0,-1,-1] : [1,1,1,1]);
+    }
+  }
+
+  // Thick join strips.
+  translate([0, 0, chamfer]) {
+    linear_extrude(height - 2*chamfer) {
+      for (a = [0:3])
+        rotate([0, 0, a*90])
+          translate([room_separation, 0])
+            square([2, 4*room_separation-2], center=true);
+      for (a = [0:1])
+        rotate([0, 0, a*90])
+          square([2, 4*room_separation-2], center=true);
+    }
+  }
+      
+  // Thick join plate.
+  translate([0, 0, height/2 - 0.4])
+    linear_extrude(0.8)
+      square(3.5*room_separation, center=true);
+}
+
+room4();
