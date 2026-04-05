@@ -135,25 +135,25 @@ module piece_exterior(knurl=false) {
   }
 }
 
-module piece(knurl=false, flip_link=false, elide_link=false) {
+module piece(knurl=false, links=[1,1,1,1]) {
   difference() {
     union() {
       piece_exterior(knurl);
       
       for (a = [0:3]) {
-        if (!elide_link || a < 2)
+        if (links[a] != 0)
           rotate([0, 0, a*90])
-            translate([side/2, 0, flip_link ? height : 0])
-              scale([1, 1, flip_link ? -1 : 1])
+            translate([side/2, 0, (links[a] == 1) ? 0 : height])
+              scale([1, 1, links[a]])
                 hook();
       }
     }
     
     for (a = [0:3]) {
-      if (!elide_link || a < 2)
+      if (links[a] != 0)
         rotate([0, 0, a*90])
-          translate([side/2, 0, flip_link ? height : 0])
-            scale([1, 1, flip_link ? -1 : 1])
+          translate([side/2, 0, (links[a] == 1) ? 0 : height])
+            scale([1, 1, links[a]])
               hole();
     }
   }
@@ -235,13 +235,13 @@ module room3(knurl=false) {
   separation = side + 0.2;
   
   // Center.
-  piece(knurl, flip_link=true);
+  piece(knurl, links=[-1,-1,-1,-1]);
   
   // Corners.
   for (a = [0:3])
     rotate([0, 0, a*90])
       translate([-separation, -separation])
-        piece(knurl, flip_link=true, elide_link=true);
+        piece(knurl, links=[-1,-1,0,0]);
   
   // Sides.
   for (a = [0:3])
