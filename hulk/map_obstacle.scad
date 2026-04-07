@@ -1,6 +1,8 @@
 // From puzz2.scad.
 s = 30.2;
 
+height = 14;
+
 preview = false;
 
 module raster(matrix) {
@@ -12,8 +14,18 @@ module raster(matrix) {
 }
 
 module piece(matrix) {
-  linear_extrude(6)
-  offset(delta=-4.9)
+  bottom_inset = 4;
+  top_inset = 7.5;
+  steps = height*5;
+  step_inset = (top_inset-bottom_inset)/(steps-1);
+  roundoff = 1.5;
+  
+  // Assume 0.2mm layers.
+  for (i = [0:steps-1])
+  translate([0, 0, i*0.2])
+  linear_extrude(0.20001)
+  offset(r=roundoff, $fn=30)
+  offset(delta=-bottom_inset-i*step_inset-roundoff)
   raster(matrix);
   
   if(preview)
@@ -34,14 +46,10 @@ module select(i, pos) {
 }
 
 module print() {
+  select(0, [0, 2]);
+  select(1, [1, 1]);
+  select(2, [2, 0]);
   select(3, [0, 0]);
-  select(0, [1, 1]);
-  select(3, [2, 0]);
-  select(0, [3, 1]);
-  select(1, [0, 2]);
-  select(1, [1, 2]);
-  select(2, [2, 2]);
-  select(2, [3, 2]);
 }
 
 print();
