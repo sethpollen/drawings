@@ -1,7 +1,7 @@
 // From puzz2.scad.
 s = 30.2;
 
-height = 14;
+height = 10;
 
 preview = false;
 
@@ -15,7 +15,7 @@ module raster(matrix) {
 
 module piece(matrix) {
   bottom_inset = 4;
-  top_inset = 7.5;
+  top_inset = 8;
   steps = height*5;
   step_inset = (top_inset-bottom_inset)/(steps-1);
   roundoff = 1.5;
