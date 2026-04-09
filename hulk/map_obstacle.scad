@@ -52,4 +52,15 @@ module print() {
   select(3, [0, 0]);
 }
 
-print();
+module printx2() {
+  select(0, [0, 4]);
+  select(0, [1, 1]);
+  select(1, [1, 3]);
+  select(1, [2, 3]);
+  select(2, [2, 0]);
+  select(2, [3, 0]);
+  select(3, [0, 0]);
+  select(3, [0, 2]);
+}
+
+printx2();
