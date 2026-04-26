@@ -1,9 +1,6 @@
 $fn = 60;
 
-/* TODO:
-Move pin
-Adhesion tabs 0.6mm
-*/
+/* TODO: Knob on end of handle */
 
 // Parameters for the overall shape.
 width = 194;
@@ -28,7 +25,8 @@ module whole_2d() {
   hull() {
     scale([(i+5)/10, 1])
     fan_2d();
-     // Top of the handle.
+
+    // Top of the handle.
     translate([0, handle_length - length + i*neck_factor])
     square([handle_width, 0.0001], center=true);
   }
@@ -62,15 +60,15 @@ module bottom_2d() {
 }
 
 module core_2d() {
-  roundoff = 3;
+  roundoff = 4;
   
   offset(roundoff)
   offset(-roundoff)
   intersection() {
     difference() {
       offset(-12) whole_2d();
-      translate([0, 9])
-      offset(-25) fan_2d();
+      translate([0, 5])
+      offset(-24) fan_2d();
       
       // Hole.
       translate([0, -top_length])
@@ -87,6 +85,17 @@ thickness = 10;
 lap_thickness = 0.8;
 core_thickness = thickness - 2*lap_thickness;
 
+module tab() {
+  linear_extrude(0.6)
+  circle(d=7);
+}
+
+module joint_tabs() {
+  for (a = [-1, 1])
+  translate([a*66, -top_length])
+  tab();
+}
+
 module top() {
   difference() {
     linear_extrude(thickness/2) top_2d();
@@ -96,6 +105,8 @@ module top() {
     offset(cavity_offset)
     core_2d();
   }
+  
+  joint_tabs();
 }
 
 module bottom() {
@@ -107,6 +118,13 @@ module bottom() {
     offset(cavity_offset)
     core_2d();
   }
+  
+  joint_tabs();
+  
+  // Tabs on the end of the handle.
+  for (a = [-1, 1])
+  translate([a*handle_width/2, -length])
+  tab();
 }
 
 module core() {
@@ -115,4 +133,6 @@ module core() {
   core_2d();
 }
 
-translate([0, 0, -2]) linear_extrude(1) whole_2d();
+top();
+color("blue") bottom();
+color("red") core();
