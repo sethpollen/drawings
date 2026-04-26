@@ -1,12 +1,20 @@
 $fn = 60;
 
+/* TODO:
+Slack 0.25mm
+10mm thickness
+Plate 0.8mm
+Move pin
+Adhesion tabs 0.6mm
+*/
+
 // Parameters for the overall shape.
-width = 192;
-length = 395;
+width = 194;
+length = 370;
 fan_length = 220;
 fan_roundoff = 69;
-handle_length = 122;
-handle_width = 33;
+handle_length = 105;
+handle_width = 35;
 
 module fan_2d() {
   translate([0, -fan_length/2])
@@ -18,21 +26,19 @@ module fan_2d() {
 }
 
 module whole_2d() {
-  // Position the top edge at the origin.
-    neck_factor = 2;
-    for (i = [0:5])
-    hull() {
-      scale([(i+5)/10, 1])
-      fan_2d();
-
-      // Top of the handle.
-      translate([0, handle_length - length + i*neck_factor])
-      square([handle_width, 0.0001], center=true);
-    }
-    
-    // Handle.
-    translate([0, handle_length/2 - length ])
-    square([handle_width, handle_length], center=true);
+  neck_factor = 2;
+  for (i = [0:5])
+  hull() {
+    scale([(i+5)/10, 1])
+    fan_2d();
+     // Top of the handle.
+    translate([0, handle_length - length + i*neck_factor])
+    square([handle_width, 0.0001], center=true);
+  }
+  
+  // Handle.
+  translate([0, handle_length/2 - length ])
+  square([handle_width, handle_length], center=true);
 }
 
 // Parameters for slicing into printable sections.
@@ -112,6 +118,4 @@ module core() {
   core_2d();
 }
 
-top();
-translate([0, -0.5]) bottom();
-color("red") core();
+translate([0, 0, -2]) linear_extrude(1) whole_2d();
