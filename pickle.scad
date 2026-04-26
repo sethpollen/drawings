@@ -59,6 +59,11 @@ module bottom_2d() {
   }
 }
 
+module core_window_2d() {
+  translate([0, -top_length-5])
+  square([500, 150], center=true);
+}
+
 module core_2d() {
   roundoff = 4;
   
@@ -75,8 +80,7 @@ module core_2d() {
       circle(d=20);
     }
     
-    translate([0, -top_length-5])
-    square([500, 150], center=true);
+    core_window_2d();
   }
 }
 
@@ -92,7 +96,7 @@ module tab() {
 
 module joint_tabs() {
   for (a = [-1, 1])
-  translate([a*66, -top_length])
+  translate([a*65, -top_length])
   tab();
 }
 
@@ -109,14 +113,27 @@ module top() {
   joint_tabs();
 }
 
+module handle_cutout_2d() {
+  offset(handle_width*0.12)
+  offset(-handle_width*0.4)
+  difference() {
+    square([handle_width, 2*length], center=true);
+    core_window_2d();
+  }
+}
+
 module bottom() {
   difference() {
-    linear_extrude(thickness/2) bottom_2d();
+    linear_extrude(thickness/2)
+    difference() {
+      bottom_2d();
+      handle_cutout_2d();
+    }
 
     translate([0, 0, lap_thickness])
     linear_extrude(10)
     offset(cavity_offset)
-    core_2d();
+    core_2d();    
   }
   
   joint_tabs();
@@ -133,6 +150,4 @@ module core() {
   core_2d();
 }
 
-top();
-color("blue") bottom();
-color("red") core();
+bottom();
