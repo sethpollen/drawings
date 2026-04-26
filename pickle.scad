@@ -1,10 +1,12 @@
+$fn = 60;
+
 // Parameters for the overall shape.
 width = 192;
 length = 395;
 fan_length = 220;
 fan_roundoff = 69;
 handle_length = 122;
-handle_width = 34;
+handle_width = 33;
 
 module fan_2d() {
   translate([0, -fan_length/2])
@@ -12,7 +14,7 @@ module fan_2d() {
   for (a = [-1, 1], b = [-1, 1])
   scale([a, b])
   translate(-fan_roundoff*[1,1] + [width, fan_length]/2)
-  circle(r=fan_roundoff, $fn = 100);
+  circle(r=fan_roundoff);
 }
 
 module whole_2d() {
@@ -35,6 +37,7 @@ module whole_2d() {
 
 // Parameters for slicing into printable sections.
 top_length = 210;
+cavity_offset = 0.2;
 
 module top_slice_2d() {
   translate([0, -top_length/2])
@@ -63,8 +66,8 @@ module core_2d() {
   intersection() {
     difference() {
       offset(-12) whole_2d();
-      translate([0, 5])
-      offset(-27) fan_2d();
+      translate([0, 9])
+      offset(-25) fan_2d();
       
       // Hole.
       translate([0, -top_length])
@@ -76,6 +79,39 @@ module core_2d() {
   }
 }
 
-color("red") linear_extrude(1) top_2d();
-color("blue") linear_extrude(1) bottom_2d();
-color("green") linear_extrude(2) core_2d();
+// Parameters for thickness.
+thickness = 12;
+lap_thickness = 1.2;
+core_thickness = thickness - 2*lap_thickness;
+
+module top() {
+  difference() {
+    linear_extrude(thickness/2) top_2d();
+
+    translate([0, 0, lap_thickness])
+    linear_extrude(10)
+    offset(cavity_offset)
+    core_2d();
+  }
+}
+
+module bottom() {
+  difference() {
+    linear_extrude(thickness/2) bottom_2d();
+
+    translate([0, 0, lap_thickness])
+    linear_extrude(10)
+    offset(cavity_offset)
+    core_2d();
+  }
+}
+
+module core() {
+  translate([0, 0, lap_thickness])
+  linear_extrude(core_thickness)
+  core_2d();
+}
+
+top();
+translate([0, -0.5]) bottom();
+color("red") core();
