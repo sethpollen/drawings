@@ -1,9 +1,6 @@
 $fn = 60;
 
 /* TODO:
-Slack 0.25mm
-10mm thickness
-Plate 0.8mm
 Move pin
 Adhesion tabs 0.6mm
 */
@@ -43,7 +40,7 @@ module whole_2d() {
 
 // Parameters for slicing into printable sections.
 top_length = 210;
-cavity_offset = 0.2;
+cavity_offset = 0.25;
 
 module top_slice_2d() {
   translate([0, -top_length/2])
@@ -86,8 +83,8 @@ module core_2d() {
 }
 
 // Parameters for thickness.
-thickness = 12;
-lap_thickness = 1.2;
+thickness = 10;
+lap_thickness = 0.8;
 core_thickness = thickness - 2*lap_thickness;
 
 module top() {
