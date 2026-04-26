@@ -7,7 +7,7 @@ width = 194;
 length = 370;
 fan_length = 220;
 fan_roundoff = 69;
-handle_length = 105;
+handle_length = 104;
 handle_width = 35;
 
 module fan_2d() {
