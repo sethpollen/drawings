@@ -1,7 +1,5 @@
 $fn = 60;
 
-/* TODO: Knob on end of handle */
-
 // Parameters for the overall shape.
 width = 194;
 length = 370;
@@ -19,6 +17,16 @@ module fan_2d() {
   circle(r=fan_roundoff);
 }
 
+pommel_d = 7;
+
+module pommel_2d() {
+  for (a = [-1, 1])
+  scale([a, 1])
+  translate([handle_width/2 - 0.5, pommel_d/2 - length])
+  scale([0.6, 1])
+  circle(d=pommel_d);
+}
+
 module whole_2d() {
   neck_factor = 2;
   for (i = [0:5])
@@ -34,6 +42,9 @@ module whole_2d() {
   // Handle.
   translate([0, handle_length/2 - length ])
   square([handle_width, handle_length], center=true);
+  
+  // Pommel.
+  pommel_2d();
 }
 
 // Parameters for slicing into printable sections.
@@ -89,15 +100,11 @@ thickness = 10;
 lap_thickness = 0.8;
 core_thickness = thickness - 2*lap_thickness;
 
-module tab() {
-  linear_extrude(0.6)
-  circle(d=7);
-}
-
 module joint_tabs() {
   for (a = [-1, 1])
   translate([a*65, -top_length])
-  tab();
+  linear_extrude(0.6)
+  circle(d=7);
 }
 
 module top() {
@@ -140,8 +147,10 @@ module bottom() {
   
   // Tabs on the end of the handle.
   for (a = [-1, 1])
-  translate([a*handle_width/2, -length])
-  tab();
+  scale([a, 1])
+  linear_extrude(0.6)
+  translate([handle_width/2-5, -length-4])
+  square(5.0001);
 }
 
 module core() {
