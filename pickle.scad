@@ -71,8 +71,8 @@ module bottom_2d() {
 }
 
 module core_window_2d() {
-  translate([0, -top_length-5])
-  square([500, 150], center=true);
+  translate([0, -top_length-12])
+  square([500, 164], center=true);
 }
 
 module core_2d() {
@@ -159,4 +159,5 @@ module core() {
   core_2d();
 }
 
+core();
 bottom();
