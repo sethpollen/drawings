@@ -136,7 +136,7 @@ module grip_2d() {
 }
 
 module knurled_grip_2d(angle) {
-  knurl_depth = 0.3;
+  knurl_depth = 0.25;
   knurl_width = 2;
   knurl_count = 20;
   
