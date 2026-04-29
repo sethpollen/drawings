@@ -20,7 +20,7 @@ thickness = 10;
 lap_thickness = 0.8;
 core_thickness = thickness - 2*lap_thickness;
 
-total_grip_depth = 22;
+total_grip_depth = 24;
 
 module fan_2d() {
   translate([0, -fan_length/2])
