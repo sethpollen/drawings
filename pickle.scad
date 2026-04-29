@@ -158,7 +158,7 @@ module half_grip() {
   backoff_factor = 0.1;
   
   for (i = [1:layers])
-  translate([0, 0, (i-1)*0.2])
+  translate([0, -thickness/2, (i-1)*0.2])
   linear_extrude(0.200001)
   intersection() {
     backoff = (layers-i <= backoff_layers)
@@ -170,13 +170,14 @@ module half_grip() {
     translate([0, backoff])
     knurled_grip_2d(i*0.8);
     
-    translate([0, 50])
+    translate([0, 50 + thickness/2])
     square(100, center=true);
   }
   
   // Pommels.
+  hull()
   for (a = [-1, 1])
-  scale([a, 1.25])
+  scale([a, 0.7])
   translate([handle_width/2 - pommel_d/2, 0])
   rotate_extrude(angle=90)
   translate([pommel_d/2, pommel_d/2])
@@ -189,7 +190,14 @@ module half_grip() {
   translate([0, length])
   linear_extrude(lug_depth)
   offset(-0.35)
-  handle_cutout_2d();
+  union() {
+    handle_cutout_2d();
+    
+    // TODO: remove this when done with the weird transition
+    // (https://github.com/sethpollen/drawings/commit/b9a0ca85c8563799401f8d82dedd1c4b08b1073a).
+    translate([0, 13.6])
+    handle_cutout_2d();
+  }
 }
 
 module top() {
