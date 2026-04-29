@@ -183,12 +183,12 @@ module half_grip() {
   pommel_2d();
   
   // Cutout lug.
-  lug_depth = thickness/2 - 0.25;
+  lug_depth = thickness/2 - 0.35;
 
   rotate([90, 0, 0])
   translate([0, length])
   linear_extrude(lug_depth)
-  offset(-0.25)
+  offset(-0.35)
   handle_cutout_2d();
 }
 
