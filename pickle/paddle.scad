@@ -190,14 +190,7 @@ module half_grip() {
   translate([0, length])
   linear_extrude(lug_depth)
   offset(-0.35)
-  union() {
-    handle_cutout_2d();
-    
-    // TODO: remove this when done with the weird transition
-    // (https://github.com/sethpollen/drawings/commit/b9a0ca85c8563799401f8d82dedd1c4b08b1073a).
-    translate([0, 13.6])
-    handle_cutout_2d();
-  }
+  handle_cutout_2d();
 }
 
 module top() {
