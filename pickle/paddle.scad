@@ -9,8 +9,6 @@ handle_length = 104;
 handle_width = 35;
 grip_length = handle_length + 15;
 
-pommel_d = 7;
-
 // Parameters for slicing into printable sections.
 top_length = 210;
 cavity_offset = 0.25;
@@ -31,18 +29,6 @@ module fan_2d() {
   circle(r=fan_roundoff);
 }
 
-module pommel_2d() {
-  scale([0.6, 1])
-  circle(d=pommel_d);
-}
-
-module pommel_set_2d() {
-  for (a = [-1, 1])
-  scale([a, 1])
-  translate([handle_width/2 - 0.5, pommel_d/2 - length])
-  pommel_2d();
-}
-
 module whole_2d() {
   neck_factor = 2;
   for (i = [0:5])
@@ -58,9 +44,6 @@ module whole_2d() {
   // Handle.
   translate([0, handle_length/2 - length ])
   square([handle_width, handle_length], center=true);
-  
-  // Pommel.
-  pommel_set_2d();
 }
 
 module top_slice_2d() {
@@ -174,15 +157,6 @@ module half_grip() {
     square(100, center=true);
   }
   
-  // Pommels.
-  hull()
-  for (a = [-1, 1])
-  scale([a, 0.7])
-  translate([handle_width/2 - pommel_d/2, 0])
-  rotate_extrude(angle=90)
-  translate([pommel_d/2, pommel_d/2])
-  pommel_2d();
-  
   // Cutout lug.
   lug_depth = thickness/2 - 0.35;
 
@@ -236,4 +210,4 @@ module core() {
   core_2d();
 }
 
-half_grip();
+whole_2d();
