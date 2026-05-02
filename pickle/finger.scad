@@ -2,42 +2,60 @@
 universe = 170;
 
 finger_length = 40;
-finger_width = 14;
+finger_width = 12;
+teeth_pairs = 6;
 
-slack_width = 0.4;
+slack = 0.05;
 truncate = 1.5;
 
-casing_slack = 0.1;
-
-module finger_2d() {
-    // Teeth.
-    for (b = [-8:8])
-    translate([slack_width/2 + b*(finger_width + slack_width), 0])
-    intersection() {
-      polygon([
-        [finger_width/2, finger_length/2],
-        [0, -finger_length/2],
-        [finger_width, -finger_length/2],
-      ]);
-      
-      // Chop off the tips.
-      translate([0, -truncate])
-      square([universe, finger_length], center=true);
+module finger_profile_2d(complement=false) {
+  if (complement) {
+    rotate([0, 0, 180])
+    difference() {
+      hull() finger_profile_2d();
+      finger_profile_2d();
     }
+  } else {
+    for (a = [-1 :1], b = [0:teeth_pairs-1])
+    scale([a, 1])
+    translate([b*(finger_width), 0])
+    polygon([
+      [0, -finger_length/2],
+      [finger_width, -finger_length/2],
+      // Apex.
+      [
+        finger_width/2 + (finger_width/5)*(b+1)/teeth_pairs,
+        finger_length/2
+      ],
+    ]);
+  }
 }
 
-module backing_2d() {
-  translate([-universe, -universe - finger_length/2])
-  square([universe*2, universe]);
+module finger_base_2d() {
+  translate([-universe, -universe-finger_length/2])
+  square([2*universe, universe + 0.001]);
 }
 
-module casing_2d() {
-  translate([-universe, -universe - casing_slack])
-  square([universe*2, universe]);
+module finger_2d(complement=false) {
+  difference() {
+    offset(-slack)
+    union() {
+      finger_profile_2d(complement);
+      finger_base_2d();
+    }
+    
+    // Truncation.
+    translate([-universe, finger_length/2 - truncate])
+    square([2*universe, universe]);
+    
+    finger_base_2d();
+  }
 }
 
-// TODO: stack it all together.
+module finger_cavity_2d(complement=false) {
+  offset(slack)
+  finger_profile_2d(complement);
+}
 
-linear_extrude(1) finger_2d();
-color("green") linear_extrude(3) backing_2d();
-color("red") linear_extrude(4) casing_2d();
+linear_extrude(2) finger_2d();
+color("blue") linear_extrude(1) finger_cavity_2d();

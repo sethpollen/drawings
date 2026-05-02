@@ -1,3 +1,5 @@
+use <finger.scad>
+
 $fn = 60;
 
 // Parameters for the overall shape.
@@ -9,11 +11,16 @@ handle_length = 86;
 handle_width = 35;
 grip_length = handle_length + 15;
 
-// Parameters for slicing into printable sections.
-top_length = 205;
+// Parameters for slicing into printable sections. Have
+// to save about 20mm more for the fingers.
+top_length = 193;
 
 // Parameters for thickness.
 thickness = 13;
+finger_floor = 2;
+finger_z_slack = 0.2;
+
+bottom_bevel = 2.5;
 
 module fan_2d() {
   translate([0, -fan_length/2])
@@ -42,5 +49,93 @@ module whole_2d() {
   square([handle_width, handle_length], center=true);
 }
 
-linear_extrude(thickness)
-whole_2d();
+module top_2d() {
+  intersection() {
+    whole_2d();
+    
+    translate([-100, -top_length])
+    square(250);
+  }
+}
+
+module top() {
+  difference() {
+    linear_extrude(thickness)
+    top_2d();
+
+    // Negative fingers.
+    translate([0, -top_length, finger_floor])
+    linear_extrude(thickness - 2*finger_floor)
+    finger_cavity_2d();
+  }
+  
+  // Positive fingers.
+  translate([0, -top_length, finger_floor + finger_z_slack])
+  linear_extrude(thickness - 2*finger_floor - 2*finger_z_slack)
+  rotate([0, 0, 180])
+  finger_2d(true);
+}
+
+module bottom_2d() {
+  difference() {
+    whole_2d();
+    
+    translate([-100, -top_length])
+    square(250);
+  }
+}
+
+module bottom_buff_2d() {
+  translate([-100, -top_length])
+  square(200);
+  
+  translate([-100, -length-200])
+  square(200);
+}
+
+module bottom_exterior() {
+  translate([0, 0, bottom_bevel])
+  linear_extrude(thickness - bottom_bevel*2)
+  bottom_2d();
+
+  bevel_layers = bottom_bevel*5;
+  
+  translate([0, 0, thickness/2])
+  for (a = [0:bevel_layers-1], b = [-1, 1])
+  scale([1, 1, b])
+  translate([0, 0, thickness/2 - bottom_bevel + a*0.2])
+  linear_extrude(0.20001)
+  difference() {
+    offset(-a*0.2){
+      bottom_2d();
+      bottom_buff_2d();
+    }
+    bottom_buff_2d();
+  }
+}
+
+module bottom() {
+  difference() {
+    bottom_exterior();
+
+    // Negative fingers.
+    translate([0, -top_length, finger_floor])
+    linear_extrude(thickness - 2*finger_floor)
+    rotate([0, 0, 180])
+    finger_cavity_2d(true);
+  }
+  
+  // Positive fingers.
+  translate([0, -top_length, finger_floor + finger_z_slack])
+  linear_extrude(thickness - 2*finger_floor - 2*finger_z_slack)
+  intersection() {
+    finger_2d();
+    union() {
+      bottom_2d();
+      translate([-100, 0])
+      square(200);
+    }
+  }
+}
+
+bottom();
