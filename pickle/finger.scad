@@ -39,6 +39,5 @@ module casing_2d() {
 // TODO: stack it all together.
 
 linear_extrude(1) finger_2d();
-color("blue") linear_extrude(2) finger_complement_2d();
 color("green") linear_extrude(3) backing_2d();
 color("red") linear_extrude(4) casing_2d();
