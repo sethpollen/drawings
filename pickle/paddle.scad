@@ -93,19 +93,13 @@ module bottom_2d() {
 }
 
 module bottom_exterior() {
-  translate([0, 0, bottom_bevel])
-  linear_extrude(thickness - bottom_bevel*2)
-  bottom_2d();
-
   bevel_layers = bottom_bevel*5;
   
-  translate([0, 0, thickness/2])
-  for (a = [0:bevel_layers-1], b = [-1, 1])
-  scale([1, 1, b])
-  translate([0, 0, thickness/2 - bottom_bevel + a*0.2])
-  linear_extrude(0.200001)
+  for (a = [0:bevel_layers])
+  translate([0, 0, a*0.2])
+  linear_extrude(thickness-a*0.4)
   intersection() {
-    offset(-a*0.2){
+    offset((a-bevel_layers)*0.2){
       bottom_2d();
       
       for (y = [-top_length-bottom_bevel-10, -length-200])
@@ -165,4 +159,4 @@ module test() {
   }
 }
 
-bottom();
+bottom_exterior();
