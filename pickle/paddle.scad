@@ -76,12 +76,18 @@ module extrude_fingers(cavity, complement, rot=false) {
     - (cavity ? 0 : 2*finger_z_slack)
   )
   rotate([0, 0, rot ? 180 : 0]) {
-    truncate = (bevel_layers-a)*0.1;
+    truncate = (bevel_layers-a)*0.125;
     
     if (cavity) {
       finger_cavity_2d(complement=complement, truncate=truncate);
     } else {
-      finger_2d(complement=complement, truncate=truncate);
+      intersection() {
+        finger_2d(complement=complement, truncate=truncate);
+        
+        // Prevent the backs of the teeth from sticking out.
+        translate([-200, -5])
+        square([400, 100]);
+      }
     }
   }
 }
@@ -171,4 +177,4 @@ module test() {
 }
 
 translate([0, top_length-5])
-top();
+bottom();

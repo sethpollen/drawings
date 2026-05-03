@@ -57,7 +57,7 @@ module finger_cavity_2d(complement=false, truncate=0) {
     finger_profile_2d(complement);
     
     // Truncation.
-    translate([-universe, finger_length/2 - 1 - truncate])
+    translate([-universe, finger_length/2 - 0.8 - truncate])
     square([2*universe, universe]);
   }
 }
