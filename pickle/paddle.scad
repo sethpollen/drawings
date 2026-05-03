@@ -18,7 +18,7 @@ top_length = 193;
 // Parameters for thickness.
 thickness = 13;
 finger_floor = 2;
-finger_z_slack = 0.2;
+finger_z_slack = 0.4;
 
 bottom_bevel = 2.6;
 
@@ -165,4 +165,4 @@ module test() {
   }
 }
 
-test();
+bottom();

@@ -6,7 +6,6 @@ finger_width = 12;
 teeth_pairs = 6;
 
 slack = 0.05;
-truncate = 2;
 
 module finger_profile_2d(complement=false) {
   if (complement) {
@@ -36,7 +35,7 @@ module finger_base_2d() {
   square([2*universe, universe + 0.001]);
 }
 
-module finger_2d(complement=false) {
+module finger_2d(complement=false, truncate=0) {
   difference() {
     offset(-slack)
     union() {
@@ -45,16 +44,22 @@ module finger_2d(complement=false) {
     }
     
     // Truncation.
-    translate([-universe, finger_length/2 - truncate])
+    translate([-universe, finger_length/2 - 2 - truncate])
     square([2*universe, universe]);
     
     finger_base_2d();
   }
 }
 
-module finger_cavity_2d(complement=false) {
+module finger_cavity_2d(complement=false, truncate=0) {
   offset(slack)
-  finger_profile_2d(complement);
+  difference() {
+    finger_profile_2d(complement);
+    
+    // Truncation.
+    translate([-universe, finger_length/2 - 1 - truncate])
+    square([2*universe, universe]);
+  }
 }
 
 linear_extrude(2) finger_2d();
