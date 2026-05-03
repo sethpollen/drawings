@@ -58,18 +58,32 @@ module top_2d() {
   }
 }
 
-module extrude_fingers(cavity) {
+module extrude_fingers(cavity, complement, rot=false) {
+  bevel_layers = floor(2.5*
+    (thickness - 2*finger_floor - 2*finger_z_slack - 2)
+  );
+  
+  for (a = [0:bevel_layers])
   translate([
     0,
     -top_length,
-    finger_floor + (cavity ? 0 : finger_z_slack)
+    a*0.2 + finger_floor + (cavity ? 0 : finger_z_slack)
   ])
   linear_extrude(
     thickness
+    - a*0.4
     - 2*finger_floor
     - (cavity ? 0 : 2*finger_z_slack)
   )
-  children();
+  rotate([0, 0, rot ? 180 : 0]) {
+    truncate = (bevel_layers-a)*0.1;
+    
+    if (cavity) {
+      finger_cavity_2d(complement=complement, truncate=truncate);
+    } else {
+      finger_2d(complement=complement, truncate=truncate);
+    }
+  }
 }
 
 module top() {
@@ -78,14 +92,11 @@ module top() {
     top_2d();
 
     // Negative fingers.
-    extrude_fingers(true)
-    finger_cavity_2d();
+    extrude_fingers(cavity=true);
   }
   
   // Positive fingers.
-  extrude_fingers(false)
-  rotate([0, 0, 180])
-  finger_2d(true);
+  extrude_fingers(cavity=false, complement=true, rot=true);
   
   // Tabs.
   for (a = [-1, 1])
@@ -127,21 +138,11 @@ module bottom() {
     bottom_exterior();
 
     // Negative fingers.
-    extrude_fingers(true)
-    rotate([0, 0, 180])
-    finger_cavity_2d(true);
+    extrude_fingers(cavity=true, complement=true, rot=true);
   }
   
   // Positive fingers.
-  extrude_fingers(false)
-  intersection() {
-    finger_2d();
-    union() {
-      bottom_2d();
-      translate([-100, 0])
-      square(200);
-    }
-  }
+  extrude_fingers(cavity=false, complement=false);
   
   // Tabs.
   for (a = [-1, 1])
