@@ -58,20 +58,32 @@ module top_2d() {
   }
 }
 
+module extrude_fingers(cavity) {
+  translate([
+    0,
+    -top_length,
+    finger_floor + (cavity ? 0 : finger_z_slack)
+  ])
+  linear_extrude(
+    thickness
+    - 2*finger_floor
+    - (cavity ? 0 : 2*finger_z_slack)
+  )
+  children();
+}
+
 module top() {
   difference() {
     linear_extrude(thickness)
     top_2d();
 
     // Negative fingers.
-    translate([0, -top_length, finger_floor])
-    linear_extrude(thickness - 2*finger_floor)
+    extrude_fingers(true)
     finger_cavity_2d();
   }
   
   // Positive fingers.
-  translate([0, -top_length, finger_floor + finger_z_slack])
-  linear_extrude(thickness - 2*finger_floor - 2*finger_z_slack)
+  extrude_fingers(false)
   rotate([0, 0, 180])
   finger_2d(true);
   
@@ -115,15 +127,13 @@ module bottom() {
     bottom_exterior();
 
     // Negative fingers.
-    translate([0, -top_length, finger_floor])
-    linear_extrude(thickness - 2*finger_floor)
+    extrude_fingers(true)
     rotate([0, 0, 180])
     finger_cavity_2d(true);
   }
   
   // Positive fingers.
-  translate([0, -top_length, finger_floor + finger_z_slack])
-  linear_extrude(thickness - 2*finger_floor - 2*finger_z_slack)
+  extrude_fingers(false)
   intersection() {
     finger_2d();
     union() {
@@ -159,4 +169,5 @@ module test() {
   }
 }
 
-bottom_exterior();
+translate([0, top_length-5])
+top();
