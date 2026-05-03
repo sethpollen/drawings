@@ -6,7 +6,7 @@ finger_width = 12;
 teeth_pairs = 6;
 
 slack = 0.05;
-truncate = 1.7;
+truncate = 2;
 
 module finger_profile_2d(complement=false) {
   if (complement) {

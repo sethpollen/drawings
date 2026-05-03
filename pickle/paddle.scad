@@ -154,14 +154,14 @@ module bottom() {
 module test() {
   intersection() {
     union() {
-      translate([0, 40])
+      translate([0, 30])
       top();
 
       bottom();
     }
     
-    translate([-100, -top_length-25])
-    cube([200, 90, 200]);
+    translate([-100, -top_length-22])
+    cube([200, 74, 200]);
   }
 }
 
