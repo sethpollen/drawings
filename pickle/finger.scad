@@ -12,8 +12,13 @@ module finger_profile_2d(complement=false, truncate=0) {
   if (complement) {
     rotate([0, 0, 180])
     difference() {
-      hull() finger_profile_2d(truncate=truncate);
-      finger_profile_2d(truncate=truncate);
+      // Take the complement, without any truncation.
+      hull() finger_profile_2d();
+      finger_profile_2d();
+      
+      // Apply truncation.
+      translate([-universe, truncate - universe - finger_length()/2])
+      square([2*universe, universe]);
     }
   } else {
     for (a = [-1, 1], b = [0:teeth_pairs-1])
@@ -64,5 +69,9 @@ module finger_cavity_2d(complement=false, truncate=0) {
   finger_profile_2d(complement, truncate=0.8+truncate);
 }
 
-linear_extrude(2) finger_2d();
-color("blue") linear_extrude(1) finger_cavity_2d();
+module preview(complement=false) {
+  linear_extrude(2) finger_2d(complement);
+  color("blue") linear_extrude(1) finger_cavity_2d(complement);
+}
+
+preview(true);
