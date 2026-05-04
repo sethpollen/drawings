@@ -1,3 +1,5 @@
+// TODO: lengthen fingers going into blade
+
 use <finger.scad>
 
 $fn = 60;
@@ -10,6 +12,7 @@ fan_roundoff = 69;
 handle_length = 86;
 handle_width = 35;
 grip_length = handle_length + 15;
+grip_cutout_wall = handle_width * 0.3;
 
 // Parameters for slicing into printable sections.
 top_length = 212 - finger_length()/2;
@@ -135,18 +138,32 @@ module bottom_2d() {
 module bottom_exterior() {
   bevel_layers = bottom_bevel*5;
   
-  for (a = [0:bevel_layers])
-  translate([0, 0, a*0.2])
-  linear_extrude(thickness-a*0.4)
-  intersection() {
-    offset((a-bevel_layers)*0.2) {
+  difference() {
+    for (a = [0:bevel_layers])
+    translate([0, 0, a*0.2])
+    linear_extrude(thickness-a*0.4)
+    intersection() {
+      offset((a-bevel_layers)*0.2) {
+        bottom_2d();
+        
+        for (y = [-bottom_bevel-9, top_length-length-200])
+        translate([-100, y])
+        square([200, 200]);
+      }
       bottom_2d();
-      
-      for (y = [-bottom_bevel-9, top_length-length-200])
-      translate([-100, y])
-      square([200, 200]);
     }
-    bottom_2d();
+    
+    // Cutout for grip lugs.
+    translate([
+      grip_cutout_wall - handle_width/2,
+      top_length - length + grip_cutout_wall,
+      -1
+    ])
+    linear_extrude(thickness+2)
+    square([
+      handle_width - grip_cutout_wall*2,
+      handle_length*0.5 - grip_cutout_wall,
+    ]);
   }
 }
 
@@ -189,5 +206,4 @@ module test() {
   }
 }
 
-top();
-bottom();
+bottom_exterior();
