@@ -15,8 +15,8 @@ grip_length = handle_length + 15;
 top_length = 212 - finger_length()/2;
 
 // Parameters for thickness.
-thickness = 8.4; // TODO: 13;
-finger_floor = 1.4; // TODO: 2;
+thickness = 13;
+finger_floor = 2;
 finger_z_slack = 0.4;
 
 bottom_bevel = 2.8;
@@ -33,34 +33,36 @@ module fan_2d() {
 module whole_2d() {
   neck_steps = 7;
   neck_factor = 2;
-  for (i = [0:neck_steps])
-  hull() {
-    scale([(i+neck_steps)/(2*neck_steps), 1])
-    fan_2d();
-
-    // Top of the handle.
-    translate([0, handle_length - length + i*neck_factor])
-    square([handle_width, 0.0001], center=true);
-  }
   
-  // Handle.
-  translate([0, handle_length/2 - length ])
-  square([handle_width, handle_length], center=true);
+  translate([0, top_length]) {
+    for (i = [0:neck_steps])
+    hull() {
+      scale([(i+neck_steps)/(2*neck_steps), 1])
+      fan_2d();
+
+      // Top of the handle.
+      translate([0, handle_length - length + i*neck_factor])
+      square([handle_width, 0.0001], center=true);
+    }
+    
+    // Handle.
+    translate([0, handle_length/2 - length ])
+    square([handle_width, handle_length], center=true);
+  }
 }
 
 module top_2d() {
   intersection() {
     whole_2d();
     
-    translate([-100, -top_length])
+    translate([-100, 0])
     square(250);
   }
 }
 
 module joint_chamfer() {
-  w = 0.7;
+  w = 0.35;
   
-  translate([0, -top_length])
   rotate([45, 0, 0])
   cube([250, w, w], center=true);
 }
@@ -73,7 +75,7 @@ module extrude_fingers(cavity, complement, rot=false) {
   for (a = [0:bevel_layers])
   translate([
     0,
-    -top_length,
+    0,
     a*0.2 + finger_floor + (cavity ? 0 : finger_z_slack)
   ])
   linear_extrude(
@@ -117,7 +119,7 @@ module top() {
   for (a = [-1, 1])
   linear_extrude(0.6)
   scale([a, 1])
-  translate([83, -top_length])
+  translate([83, 0])
   circle(d=8);
 }
 
@@ -125,7 +127,7 @@ module bottom_2d() {
   difference() {
     whole_2d();
     
-    translate([-100, -top_length])
+    translate([-100, 0])
     square(250);
   }
 }
@@ -137,10 +139,10 @@ module bottom_exterior() {
   translate([0, 0, a*0.2])
   linear_extrude(thickness-a*0.4)
   intersection() {
-    offset((a-bevel_layers)*0.2){
+    offset((a-bevel_layers)*0.2) {
       bottom_2d();
       
-      for (y = [-top_length-bottom_bevel-10, -length-200])
+      for (y = [-bottom_bevel-9, top_length-length-200])
       translate([-100, y])
       square([200, 200]);
     }
@@ -165,10 +167,10 @@ module bottom() {
   for (a = [-1, 1])
   linear_extrude(0.6)
   scale([a, 1]) {
-    translate([81, -top_length])
+    translate([81, 0])
     circle(d=8);
     
-    translate([handle_width/2 - bottom_bevel - 6, -length-5])
+    translate([handle_width/2 - bottom_bevel - 6, top_length-length-5])
     square(6);
   }
 }
@@ -182,9 +184,10 @@ module test() {
       bottom();
     }
     
-    translate([-75, -top_length-18])
+    translate([-75, -18])
     cube([150, 56, 200]);
   }
 }
 
-test();
+top();
+bottom();
