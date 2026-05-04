@@ -21,8 +21,8 @@ module finger_profile_2d(complement=false, truncate=0) {
     translate([b*(finger_width), 0])
     difference() {
       extra_length = (
-        b == 0 ? 16
-        : b == 1 ? 8
+        b == teeth_pairs-1 ? 12
+        : b == teeth_pairs-2 ? 6
         : 0
       );
       
@@ -52,7 +52,7 @@ module finger_2d(complement=false, truncate=0) {
   difference() {
     offset(-slack)
     union() {
-      finger_profile_2d(complement=complement, truncate=2+truncate);
+      finger_profile_2d(complement=complement, truncate=2.1+truncate);
       finger_base_2d();
     }
     finger_base_2d();
