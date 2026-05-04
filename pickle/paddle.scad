@@ -11,16 +11,15 @@ handle_length = 86;
 handle_width = 35;
 grip_length = handle_length + 15;
 
-// Parameters for slicing into printable sections. Have
-// to save about 20mm more for the fingers.
-top_length = 193;
+// Parameters for slicing into printable sections.
+top_length = 212 - finger_length()/2;
 
 // Parameters for thickness.
-thickness = 13;
-finger_floor = 2;
+thickness = 8.4; // TODO: 13;
+finger_floor = 1.4; // TODO: 2;
 finger_z_slack = 0.4;
 
-bottom_bevel = 2.6;
+bottom_bevel = 2.8;
 
 module fan_2d() {
   translate([0, -fan_length/2])
@@ -56,6 +55,14 @@ module top_2d() {
     translate([-100, -top_length])
     square(250);
   }
+}
+
+module joint_chamfer() {
+  w = 0.7;
+  
+  translate([0, -top_length])
+  rotate([45, 0, 0])
+  cube([250, w, w], center=true);
 }
 
 module extrude_fingers(cavity, complement, rot=false) {
@@ -99,6 +106,8 @@ module top() {
 
     // Negative fingers.
     extrude_fingers(cavity=true);
+    
+    joint_chamfer();
   }
   
   // Positive fingers.
@@ -145,6 +154,8 @@ module bottom() {
 
     // Negative fingers.
     extrude_fingers(cavity=true, complement=true, rot=true);
+
+    joint_chamfer();
   }
   
   // Positive fingers.
@@ -165,16 +176,15 @@ module bottom() {
 module test() {
   intersection() {
     union() {
-      translate([0, 30])
+      translate([0, 20])
       top();
 
       bottom();
     }
     
-    translate([-100, -top_length-22])
-    cube([200, 74, 200]);
+    translate([-75, -top_length-18])
+    cube([150, 56, 200]);
   }
 }
 
-translate([0, top_length-5])
-bottom();
+test();
