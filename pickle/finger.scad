@@ -20,18 +20,24 @@ module finger_profile_2d(complement=false, truncate=0) {
     scale([a, 1])
     translate([b*(finger_width), 0])
     difference() {
+      extra_length = (
+        b == 0 ? 16
+        : b == 1 ? 8
+        : 0
+      );
+      
       polygon([
         [0, -finger_length()/2],
         [finger_width, -finger_length()/2],
         // Apex.
         [
           finger_width/2 + (finger_width/5)*(b+1)/teeth_pairs,
-          finger_length()/2
+          finger_length()/2 + extra_length
         ],
       ]);
       
       // Truncation.
-      translate([-universe, finger_length()/2 - truncate])
+      translate([-universe, finger_length()/2 + extra_length - truncate])
       square([2*universe, universe]);
     }
   }

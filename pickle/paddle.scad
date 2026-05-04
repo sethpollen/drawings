@@ -1,5 +1,3 @@
-// TODO: lengthen fingers going into blade
-
 use <finger.scad>
 
 $fn = 60;
@@ -206,4 +204,4 @@ module test() {
   }
 }
 
-bottom_exterior();
+bottom();
