@@ -19,8 +19,10 @@ top_length = 212 - finger_length()/2;
 thickness = 13;
 finger_floor = 2;
 finger_z_slack = 0.4;
-
 bottom_bevel = 2.8;
+
+// Grips.
+total_grip_depth = 25;
 
 module fan_2d() {
   translate([0, -fan_length/2])
@@ -190,18 +192,71 @@ module bottom() {
   }
 }
 
-module test() {
-  intersection() {
-    union() {
-      translate([0, 20])
-      top();
-
-      bottom();
-    }
+module grip_2d(backoff=0, offs=0) {
+  flats = thickness*0.8;
+  
+  translate([0, -backoff])
+  offset(offs) {
+    square([handle_width, flats], center=true);
     
-    translate([-75, -18])
-    cube([150, 56, 200]);
+    for (a = [-1, 1])
+    scale([1, a])
+    translate([0, flats/2])
+    scale([handle_width/2, (total_grip_depth-flats)/2])
+    circle($fn=50, r=1);
   }
 }
 
-top();
+module grip(offs=0) {
+  hull()
+  // Each tuple gives the backoff depth, then height.
+  for (backoff = [[1.2, 0], [0.6, 0.8], [0, 2.4]])
+  translate([0, 0, backoff[1]])
+  linear_extrude(grip_length - backoff[1]*2)
+  grip_2d(offs=offs, backoff=backoff[0]);
+}
+
+module knurled_grip() {
+  knurl_width = 2;
+  knurl_count = 20;
+  knurl_depth = 0.25;
+  
+  grip(offs=-knurl_depth);
+
+  color("orange")
+  intersection() {
+    grip();
+    
+    linear_extrude(grip_length, twist=400, convexity=knurl_count, $fn=200)
+    for (a = [1:knurl_count])
+    rotate([0, 0, a*360/knurl_count])
+    square([knurl_width, 50], center=true);
+  }
+}
+
+module half_grip() {
+  difference() {
+    knurled_grip();
+    
+    // Fit to the rigid "bottom" piece.
+    translate([0, 0, -1])
+    linear_extrude(200)
+    difference() {
+      square([handle_width + 0.001, thickness], center=true);
+      
+      for (a = [-1, 1], b = [-1, 1])
+      translate([a*handle_width/2, b*thickness/2])
+      rotate([0, 0, 45])
+      square(bottom_bevel*sqrt(2), center=true);
+    }
+    
+    // We want only one half of the grip.
+    translate([-50, -100, -1])
+    linear_extrude(grip_length+2)
+    square(100);
+    
+    // TODO: lug cutout
+  }
+}
+
+half_grip();

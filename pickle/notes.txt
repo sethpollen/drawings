@@ -1,7 +1,7 @@
 The first paddle (with the red insert) was printed from
 https://github.com/sethpollen/drawings/commit/7c6d50800554b43e7207210d93c857a3612e8144.
 It used the following settings:
-  Top and bottom pieces:
+  Top and Bottom pieces:
     11% infill
     4 floor layers + 2 layers of 50% lines
     1 ceiling layer
@@ -10,3 +10,9 @@ It used the following settings:
     2 floor layers
     2 ceiling layers
 
+In hindsight, I should have printed the core piece with more floor and ceiling
+layers, and probably more fill. The paddle eventually broke because the core
+piece split in half.
+
+The second paddle (colorless) is 13mm thick and uses a finger joint. I printed
+it using the same settings as the Top and Bottom pieces above.
