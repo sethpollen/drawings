@@ -9,7 +9,7 @@ fan_length = 220;
 fan_roundoff = 69;
 handle_length = 86;
 handle_width = 35;
-grip_length = handle_length + 15;
+grip_length = handle_length + 25;
 grip_cutout_wall = handle_width * 0.3;
 
 // Parameters for slicing into printable sections.
@@ -226,7 +226,7 @@ module grip(offs=0) {
   hull() {
     grip_element(offs=offs, up=grip_length-4, in=2);
     grip_element(offs=offs, up=grip_length-4, in=0.8-shelf, down=0.5);
-    grip_element(offs=offs, up=grip_length-4, down=1, in=-shelf);
+    grip_element(offs=offs, up=grip_length-4, down=1.2, in=-shelf);
     grip_element(offs=offs, up=grip_length-8, down=1);
   }
 }
