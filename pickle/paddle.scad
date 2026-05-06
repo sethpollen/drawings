@@ -135,6 +135,15 @@ module bottom_2d() {
   }
 }
 
+// Socket for grip lugs.
+module grip_socket_2d() {
+  translate([grip_cutout_wall - handle_width/2, grip_cutout_wall])
+  square([
+    handle_width - grip_cutout_wall*2,
+    handle_length*0.5 - grip_cutout_wall,
+  ]);
+}
+
 module bottom_exterior() {
   bevel_layers = bottom_bevel*5;
   
@@ -153,17 +162,9 @@ module bottom_exterior() {
       bottom_2d();
     }
     
-    // Cutout for grip lugs.
-    translate([
-      grip_cutout_wall - handle_width/2,
-      top_length - length + grip_cutout_wall,
-      -1
-    ])
+    translate([0, top_length - length, -1])
     linear_extrude(thickness+2)
-    square([
-      handle_width - grip_cutout_wall*2,
-      handle_length*0.5 - grip_cutout_wall,
-    ]);
+    grip_socket_2d();
   }
 }
 
@@ -221,9 +222,10 @@ module knurled_grip() {
   knurl_count = 20;
   knurl_depth = 0.25;
   
+  color("green")
   grip(offs=-knurl_depth);
 
-  color("orange")
+  color("blue")
   intersection() {
     grip();
     
@@ -255,8 +257,43 @@ module half_grip() {
     linear_extrude(grip_length+2)
     square(100);
     
-    // TODO: lug cutout
+    // We already cut out the straight part of the handle. But we also
+    // need extra cuts at the top for the start of the blade. This
+    // intersection() grabs just the part we need, to make the
+    // difference operation more efficient.
+    intersection() {
+      rotate([90, 0, 0])
+      translate([0, length-top_length, -thickness/2])
+      bottom_exterior();
+      
+      translate([0, 0, grip_length*0.6])
+      linear_extrude(grip_length*0.4+1)
+      square(100, center=true);
+    }
+  }
+  
+  // Lug to fit into socket.
+  rotate([90, 0, 0])
+  translate([0, 0, -0.4])
+  scale([1, 1, -1])
+  linear_extrude(thickness/2 + 0.001)
+  difference() {
+    offset(-0.3)
+    grip_socket_2d();
+    
+    offset(-3)
+    grip_socket_2d();
   }
 }
 
-half_grip();
+module preview() {
+  rotate([90, 0, 0])
+  translate([0, length-top_length, -thickness/2])
+  bottom();
+  
+  for (a = [-1, 1])
+  scale([1, a, 1])
+  half_grip();
+}
+
+preview();
