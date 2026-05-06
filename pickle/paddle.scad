@@ -208,13 +208,27 @@ module grip_2d(backoff=0, offs=0) {
   }
 }
 
+module grip_element(offs=0, up=0, down=0, in=0) {
+  translate([0, 0, up])
+  linear_extrude(grip_length - up - down)
+  grip_2d(offs=offs, backoff=in);
+}
+
 module grip(offs=0) {
-  hull()
-  // Each tuple gives the backoff depth, then height.
-  for (backoff = [[1.2, 0], [0.6, 0.8], [0, 2.4]])
-  translate([0, 0, backoff[1]])
-  linear_extrude(grip_length - backoff[1]*2)
-  grip_2d(offs=offs, backoff=backoff[0]);
+  // Main part of the grip, with a little bevel on the bottom.
+  hull() {
+    grip_element(offs=offs, in=1.2, down=1);
+    grip_element(offs=offs, up=2.4, down=1);
+  }
+  
+  // Flare at the top.
+  shelf = 3;
+  hull() {
+    grip_element(offs=offs, up=grip_length-4, in=2);
+    grip_element(offs=offs, up=grip_length-4, in=0.8-shelf, down=0.5);
+    grip_element(offs=offs, up=grip_length-4, down=1, in=-shelf);
+    grip_element(offs=offs, up=grip_length-8, down=1);
+  }
 }
 
 module knurled_grip() {
@@ -296,4 +310,4 @@ module preview() {
   half_grip();
 }
 
-preview();
+half_grip();

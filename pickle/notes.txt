@@ -16,3 +16,6 @@ piece split in half.
 
 The second paddle (colorless) is 13mm thick and uses a finger joint. I printed
 it using the same settings as the Top and Bottom pieces above.
+
+I should probably to >20% infill for the grips, or they end up feeling kinda
+soft. How about 25%.
