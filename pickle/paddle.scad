@@ -291,13 +291,8 @@ module half_grip() {
   translate([0, 0, -0.4])
   scale([1, 1, -1])
   linear_extrude(thickness/2 + 0.001)
-  difference() {
-    offset(-0.3)
-    grip_socket_2d();
-    
-    offset(-3)
-    grip_socket_2d();
-  }
+  offset(-0.3)
+  grip_socket_2d();
 }
 
 module preview() {
