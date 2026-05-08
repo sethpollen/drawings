@@ -288,11 +288,18 @@ module half_grip() {
   
   // Lug to fit into socket.
   rotate([90, 0, 0])
-  translate([0, 0, -0.4])
   scale([1, 1, -1])
-  linear_extrude(thickness/2 + 0.001)
-  offset(-0.3)
-  grip_socket_2d();
+  hull() {
+    translate([0, 0, 0.4])
+    linear_extrude(thickness/2 + 0.001)
+    offset(-1.2)
+    grip_socket_2d();
+    
+    translate([0, 0, 1.3])
+    linear_extrude(thickness/2 + 0.001)
+    offset(-0.3)
+    grip_socket_2d();
+  }
 }
 
 module preview() {
