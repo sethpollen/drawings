@@ -9,7 +9,7 @@ fan_length = 220;
 fan_roundoff = 69;
 handle_length = 86;
 handle_width = 35;
-grip_length = handle_length + 25;
+grip_length = handle_length + 20;
 grip_cutout_wall = handle_width * 0.3;
 
 // Parameters for slicing into printable sections.
