@@ -312,13 +312,12 @@ module preview() {
 module bead_mink() {
   radius = 1.8;
   
-  translate([0, 0, -0.2])
   rotate_extrude($fn=8)
   intersection() {
     translate([10, 0]) square(20, center=true);
     hull() {
-      square(radius*[0.95, 2], center=true);
-      square(radius*[2, 0.75], center=true);
+      square(radius*[0.95, 1.8], center=true);
+      square(radius*[2, 0.5], center=true);
     }
   }
 }
