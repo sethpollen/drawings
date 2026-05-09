@@ -317,7 +317,7 @@ module bead_mink() {
     translate([10, 0]) square(20, center=true);
     hull() {
       square(radius*[0.95, 2], center=true);
-      square(radius*[2, 0.95], center=true);
+      square(radius*[2, 0.75], center=true);
     }
   }
 }
@@ -358,6 +358,7 @@ module edging() {
 module edging_test() {
   intersection() {
     translate([0, -top_length]) edging();
+    translate([0, 400])
     cube([50, 900, 900], center=true);
   }
 }
