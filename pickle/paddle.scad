@@ -25,14 +25,6 @@ bottom_bevel = 2.8;
 // Grips.
 total_grip_depth = 25;
 
-// Edging.
-edging_joint_lap = 5;
-edging_width_min = 1;
-edging_width_max = 1.5;
-edging_ridge_intrusion = 1.8;
-edging_ridge_height = 1.4;
-edging_z_slack = 0.2;
-
 module fan_2d() {
   translate([0, -fan_length/2])
   hull()
@@ -317,67 +309,57 @@ module preview() {
   half_grip();
 }
 
-module edging_profile_2d() {
+module bead_mink() {
+  radius = 1.8;
+  
+  rotate_extrude($fn=8)
   intersection() {
-    whole_2d();
-    
-    translate([-125, -edging_joint_lap])
-    square(250);
+    translate([10, 0]) square(20, center=true);
+    hull() {
+      square(radius*[0.95, 2], center=true);
+      square(radius*[2, 0.95], center=true);
+    }
   }
 }
 
 module edging() {
-  bulge_z = 1;
-  tuck_z = 1.5;
-  
-  difference() {
-    for (a = [-1, 1])
-    scale([1, 1, a]) {
-      hull() {
-        // Ridge top.
+  wall = 0.75;
+  inner_slack = 0.1;
+  z_slack = 0.4;
+
+  for (a = [1, -1])
+  scale([1, 1, a]) {
+    difference() {
+      union() {
+        // Bead on top.
         translate([0, 0, thickness/2])
-        linear_extrude(edging_ridge_height)
-        offset(0.8)
-        edging_profile_2d();
+        minkowski() {
+          linear_extrude(0.001)
+          difference() {
+            offset(delta=0.001) whole_2d();
+            whole_2d();
+          }
 
-        // Widest point.
-        translate([0, 0, thickness/2 - bulge_z])
-        linear_extrude(bulge_z + 0.35)
-        offset(edging_width_max, $fn=16)
-        edging_profile_2d($fn=default_fn);
-      }
-      hull() {
-        // Widest point, again.
-        translate([0, 0, thickness/2 - bulge_z])
-        linear_extrude(bulge_z + 0.35)
-        offset(edging_width_max, $fn=16)
-        edging_profile_2d($fn=default_fn);
+          bead_mink();
+        }
         
-        // Narrow waist.
-        translate([0, 0, thickness/2 - bulge_z - tuck_z])
-        linear_extrude(0.001)
-        offset(edging_width_min, $fn=16)
-        edging_profile_2d($fn=default_fn);
+        // Wall connecting the two beads.
+        linear_extrude(thickness/2 - 0.001)
+        offset(delta=inner_slack+wall) whole_2d();
       }
-      // The straight part of the narrow waist.
-      linear_extrude(thickness/2)
-      offset(edging_width_min, $fn=16)
-      edging_profile_2d($fn=default_fn);
-    }
-
-    // Inner cutout to actually fit the paddle.
-    inner_cutout_height = thickness + edging_z_slack;
-    translate([0, 0, -inner_cutout_height/2])
-    linear_extrude(inner_cutout_height)
-    offset(0.15) // A little room for glue.
-    whole_2d();
       
-    // Tall cutout to expose the face of the paddle.
-    translate([0, 0, -20])
-    linear_extrude(40)
-    offset(-edging_ridge_intrusion)
-    whole_2d();
+      translate([0, 0, -1])
+      linear_extrude(thickness/2+1+z_slack/2)
+      offset(delta=inner_slack) whole_2d();
+    }
   }
 }
 
-edging();
+module edging_test() {
+  intersection() {
+    translate([0, -top_length]) edging();
+    cube([50, 900, 900], center=true);
+  }
+}
+
+edging_test();
