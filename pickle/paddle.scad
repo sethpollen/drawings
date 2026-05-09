@@ -27,8 +27,9 @@ total_grip_depth = 25;
 
 // Edging.
 edging_joint_lap = 8;
-edging_width = 1.2;
-edging_ridge_intrusion = 1.8;
+edging_width_min = 1;
+edging_width_max = 1.5;
+edging_ridge_intrusion = 1.7;
 edging_ridge_height = 1.4;
 edging_z_slack = 0.2;
 
@@ -326,29 +327,56 @@ module edging_profile_2d() {
 }
 
 module edging() {
-  for (a = [-1, 1])
-  scale([1, 1, a])
+  bulge_z = 1;
+  tuck_z = 1.5;
+  
   difference() {
-    hull() {
-      linear_extrude(thickness/2 + 0.3)
-      offset(edging_width, $fn=16)
+    for (a = [-1, 1])
+    scale([1, 1, a]) {
+      hull() {
+        // Ridge top.
+        translate([0, 0, thickness/2])
+        linear_extrude(edging_ridge_height)
+        offset(0.8)
+        edging_profile_2d();
+
+        // Widest point.
+        translate([0, 0, thickness/2 - bulge_z])
+        linear_extrude(bulge_z + 0.35)
+        offset(edging_width_max, $fn=16)
+        edging_profile_2d($fn=default_fn);
+      }
+      hull() {
+        // Widest point, again.
+        translate([0, 0, thickness/2 - bulge_z])
+        linear_extrude(bulge_z + 0.35)
+        offset(edging_width_max, $fn=16)
+        edging_profile_2d($fn=default_fn);
+        
+        // Narrow waist.
+        translate([0, 0, thickness/2 - bulge_z - tuck_z])
+        linear_extrude(0.001)
+        offset(edging_width_min, $fn=16)
+        edging_profile_2d($fn=default_fn);
+      }
+      // The straight part of the narrow waist.
+      linear_extrude(thickness/2)
+      offset(edging_width_min, $fn=16)
       edging_profile_2d($fn=default_fn);
-      
-      linear_extrude(thickness/2 + edging_ridge_height)
-      offset(0.2)
-      edging_profile_2d();
     }
-    translate([0, 0, -1]) {
-      // Inner cutout to actually fit the paddle.
-      linear_extrude(thickness/2 + edging_z_slack/2 + 1)
-      offset(0.1) // A little room for glue.
-      whole_2d();
+
+    // Inner cutout to actually fit the paddle.
+    inner_cutout_height = thickness + edging_z_slack;
+    translate([0, 0, -inner_cutout_height/2])
+    linear_extrude(inner_cutout_height)
+    offset(0.15) // A little room for glue.
+    whole_2d();
       
-      // Tall cutout to expose the face of the paddle.
-      linear_extrude(thickness + 1)
-      offset(-edging_ridge_intrusion)
-      whole_2d();
-    }
+    // Tall cutout to expose the face of the paddle.
+    translate([0, 0, -20])
+    linear_extrude(40)
+    offset(-edging_ridge_intrusion)
+    whole_2d();
   }
 }
 
