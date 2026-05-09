@@ -1,6 +1,7 @@
 use <finger.scad>
 
-$fn = 60;
+default_fn = 60;
+$fn = default_fn;
 
 // Parameters for the overall shape.
 width = 194;
@@ -23,6 +24,13 @@ bottom_bevel = 2.8;
 
 // Grips.
 total_grip_depth = 25;
+
+// Edging.
+edging_joint_lap = 7;
+edging_width = 1.2;
+edging_ridge_intrusion = 1.8;
+edging_ridge_height = 1.4;
+edging_z_slack = 0.2;
 
 module fan_2d() {
   translate([0, -fan_length/2])
@@ -49,17 +57,8 @@ module whole_2d() {
     }
     
     // Handle.
-    translate([0, handle_length/2 - length ])
+    translate([0, handle_length/2 - length])
     square([handle_width, handle_length], center=true);
-  }
-}
-
-module top_2d() {
-  intersection() {
-    whole_2d();
-    
-    translate([-100, 0])
-    square(250);
   }
 }
 
@@ -107,7 +106,12 @@ module extrude_fingers(cavity, complement, rot=false) {
 module top() {
   difference() {
     linear_extrude(thickness)
-    top_2d();
+    intersection() {
+      whole_2d();
+      
+      translate([-125, 0])
+      square(250);
+    }
 
     // Negative fingers.
     extrude_fingers(cavity=true);
@@ -130,7 +134,7 @@ module bottom_2d() {
   difference() {
     whole_2d();
     
-    translate([-100, 0])
+    translate([-125, 0])
     square(250);
   }
 }
@@ -312,4 +316,40 @@ module preview() {
   half_grip();
 }
 
-half_grip();
+module edging_profile_2d() {
+  intersection() {
+    whole_2d();
+    
+    translate([-125, -edging_joint_lap])
+    square(250);
+  }
+}
+
+module edging() {
+  for (a = [-1, 1])
+  scale([1, 1, a])
+  difference() {
+    hull() {
+      linear_extrude(thickness/2 + 0.3)
+      offset(edging_width, $fn=16)
+      edging_profile_2d($fn=default_fn);
+      
+      linear_extrude(thickness/2 + edging_ridge_height)
+      offset(0.2)
+      edging_profile_2d();
+    }
+    translate([0, 0, -1]) {
+      // Inner cutout to actually fit the paddle.
+      linear_extrude(thickness/2 + edging_z_slack/2 + 1)
+      offset(0.1) // A little room for glue.
+      whole_2d();
+      
+      // Tall cutout to expose the face of the paddle.
+      linear_extrude(thickness + 1)
+      offset(-edging_ridge_intrusion)
+      whole_2d();
+    }
+  }
+}
+
+edging();
