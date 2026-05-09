@@ -312,6 +312,7 @@ module preview() {
 module bead_mink() {
   radius = 1.8;
   
+  translate([0, 0, -0.2])
   rotate_extrude($fn=8)
   intersection() {
     translate([10, 0]) square(20, center=true);
@@ -325,7 +326,6 @@ module bead_mink() {
 module edging() {
   wall = 0.75;
   inner_slack = 0.1;
-  z_slack = 0.4;
 
   for (a = [1, -1])
   scale([1, 1, a]) {
@@ -349,7 +349,7 @@ module edging() {
       }
       
       translate([0, 0, -1])
-      linear_extrude(thickness/2+1+z_slack/2)
+      linear_extrude(thickness/2+1)
       offset(delta=inner_slack) whole_2d();
     }
   }
