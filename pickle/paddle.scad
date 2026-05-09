@@ -350,6 +350,11 @@ module edging() {
       translate([0, 0, -1])
       linear_extrude(thickness/2+1)
       offset(delta=inner_slack) whole_2d();
+      
+      // Chop off the bottom. Lap the edging onto the bottom
+      // by 5 mm.
+      translate([0, -105])
+      cube(200, center=true);
     }
   }
 }
@@ -362,4 +367,4 @@ module edging_test() {
   }
 }
 
-edging_test();
+edging();
