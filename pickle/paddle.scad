@@ -26,10 +26,10 @@ bottom_bevel = 2.8;
 total_grip_depth = 25;
 
 // Edging.
-edging_joint_lap = 8;
+edging_joint_lap = 5;
 edging_width_min = 1;
 edging_width_max = 1.5;
-edging_ridge_intrusion = 1.7;
+edging_ridge_intrusion = 1.8;
 edging_ridge_height = 1.4;
 edging_z_slack = 0.2;
 
