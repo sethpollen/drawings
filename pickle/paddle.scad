@@ -106,14 +106,14 @@ module top_2d(offs) {
   }
 }
 
-bridge_length = handle_length - 20;
+bridge_length = handle_length;
 bridge_floor = 5;
 
 module bottom_chisel_2d() {
   translate([0, top_length-length]) {
     hull() {
-      translate([0, bridge_floor])
-      square(0.0001);
+      translate([0, bridge_floor+5])
+      circle(d=10, $fn=20);
         
       translate([-handle_width/2, bridge_length])
       square([handle_width, 0.001]);
@@ -136,9 +136,6 @@ module grip_bridge_2d() {
 
 module bottom_2d(offs=0) {
   intersection() {
-    // Round off the chisel top, so there is good contact along the sides.
-    offset(1, $fn=10)
-    offset(-1)
     bottom_chisel_2d();
 
     difference() {
@@ -234,7 +231,10 @@ module bottom() {
 
 module grip_2d(backoff=0, offs=0) {
   flats = thickness*0.8;
-  width = handle_width+1.8;
+  
+  // Add a bit so that the grip goes all the way around
+  // the bottom piece.
+  width = handle_width+1.2;
   
   offset(delta=offs)
   for (a = [-1, 1])
@@ -291,7 +291,7 @@ module knurled_grip_exterior() {
   intersection() {
     grip_exterior();
     
-    linear_extrude(grip_length, twist=400, convexity=knurl_count, $fn=200)
+    linear_extrude(grip_length, twist=400, convexity=knurl_count, $fn=150)
     for (a = [1:knurl_count])
     rotate([0, 0, a*360/knurl_count])
     square([knurl_width, 50], center=true);
@@ -302,6 +302,9 @@ module grip() {
   difference() {
     knurled_grip_exterior();
     
+    // Jiggle slightly to make the cavity.
+    for (x = 0.05 * [-1, 1], y = 0.15 * [-1, 1])
+    translate([x, y])
     rotate([90, 0, 0])
     translate([0, length-top_length, -thickness/2])
     bottom_exterior();
