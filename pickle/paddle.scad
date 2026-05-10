@@ -116,7 +116,7 @@ module bottom_chisel_2d(bulb=false) {
     hull() {
       translate([0, bridge_floor+5])
       circle(d=10, $fn=30);
-        
+      
       translate([-handle_width/2, bridge_length])
       square([handle_width, 0.001]);
     }
@@ -240,7 +240,7 @@ module grip_2d(backoff=0, offs=0) {
   
   // Add a bit so that the grip goes all the way around
   // the bottom piece.
-  width = handle_width+1.2;
+  width = handle_width + 1.2;
   
   offset(delta=offs)
   for (a = [-1, 1])
@@ -285,6 +285,8 @@ module grip_exterior(offs=0) {
   }
 }
 
+// Knurling is computationally expensive, so we provide an
+// easy way to disable it while coding.
 knurl = false;
 
 module knurled_grip_exterior() {
