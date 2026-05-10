@@ -109,15 +109,21 @@ module top_2d(offs) {
 bridge_length = handle_length;
 bridge_floor = 5;
 
-module bottom_chisel_2d() {
+// bulb=true enlarges the bottom of the cavity, to make
+// sure there is good contact along the sides.
+module bottom_chisel_2d(bulb=false) {
   translate([0, top_length-length]) {
     hull() {
       translate([0, bridge_floor+5])
-      circle(d=10, $fn=20);
+      circle(d=10, $fn=30);
         
       translate([-handle_width/2, bridge_length])
       square([handle_width, 0.001]);
     }
+    
+    if (bulb)
+    translate([0, bridge_floor+5])
+    circle(d=10.6, $fn=30);
   
     // Include everything higher up.
     translate([-200, bridge_length])
@@ -130,7 +136,7 @@ module grip_bridge_2d() {
     translate([-handle_width/2, top_length-length])
     square([handle_width, bridge_length]);
     
-    bottom_chisel_2d();
+    bottom_chisel_2d(bulb=true);
   }
 }
 
@@ -279,6 +285,8 @@ module grip_exterior(offs=0) {
   }
 }
 
+knurl = false;
+
 module knurled_grip_exterior() {
   knurl_width = 2;
   knurl_count = 20;
@@ -287,6 +295,7 @@ module knurled_grip_exterior() {
   color("green")
   grip_exterior(offs=-knurl_depth);
 
+  if(knurl)
   color("blue")
   intersection() {
     grip_exterior();
