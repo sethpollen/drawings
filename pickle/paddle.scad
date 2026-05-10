@@ -234,16 +234,25 @@ module bottom() {
 
 module grip_2d(backoff=0, offs=0) {
   flats = thickness*0.8;
+  width = handle_width+1.8;
   
-  translate([0, -backoff])
-  offset(offs) {
-    square([handle_width, flats], center=true);
+  offset(delta=offs)
+  for (a = [-1, 1])
+  scale([1, a])
+  intersection() {
+    translate([0, 100])
+    square(200, center=true);
     
-    for (a = [-1, 1])
-    scale([1, a])
-    translate([0, flats/2])
-    scale([handle_width/2, (total_grip_depth-flats)/2])
-    circle($fn=50, r=1);
+    translate([0, -backoff])
+    union() {
+      square([width, flats], center=true);
+      
+      for (a = [-1, 1])
+      scale([1, a])
+      translate([0, flats/2])
+      scale([width/2, (total_grip_depth-flats)/2])
+      circle($fn=40, r=1);
+    }
   }
 }
 
@@ -253,7 +262,7 @@ module grip_element(offs=0, up=0, down=0, in=0) {
   grip_2d(offs=offs, backoff=in);
 }
 
-module grip(offs=0) {
+module grip_exterior(offs=0) {
   // Main part of the grip, with a little bevel on the bottom.
   hull() {
     grip_element(offs=offs, in=1.2, down=1);
@@ -270,17 +279,17 @@ module grip(offs=0) {
   }
 }
 
-module knurled_grip() {
+module knurled_grip_exterior() {
   knurl_width = 2;
   knurl_count = 20;
   knurl_depth = 0.25;
   
   color("green")
-  grip(offs=-knurl_depth);
+  grip_exterior(offs=-knurl_depth);
 
   color("blue")
   intersection() {
-    grip();
+    grip_exterior();
     
     linear_extrude(grip_length, twist=400, convexity=knurl_count, $fn=200)
     for (a = [1:knurl_count])
@@ -289,40 +298,13 @@ module knurled_grip() {
   }
 }
 
-module half_grip() {
+module grip() {
   difference() {
-    knurled_grip();
+    knurled_grip_exterior();
     
-    // Fit to the rigid "bottom" piece.
-    translate([0, 0, -1])
-    linear_extrude(200)
-    difference() {
-      square([handle_width + 0.001, thickness], center=true);
-      
-      for (a = [-1, 1], b = [-1, 1])
-      translate([a*handle_width/2, b*thickness/2])
-      rotate([0, 0, 45])
-      square(bottom_bevel*sqrt(2), center=true);
-    }
-    
-    // We want only one half of the grip.
-    translate([-50, -100, -1])
-    linear_extrude(grip_length+2)
-    square(100);
-    
-    // We already cut out the straight part of the handle. But we also
-    // need extra cuts at the top for the start of the blade. This
-    // intersection() grabs just the part we need, to make the
-    // difference operation more efficient.
-    intersection() {
-      rotate([90, 0, 0])
-      translate([0, length-top_length, -thickness/2])
-      bottom_exterior();
-      
-      translate([0, 0, grip_length*0.6])
-      linear_extrude(grip_length*0.4+1)
-      square(100, center=true);
-    }
+    rotate([90, 0, 0])
+    translate([0, length-top_length, -thickness/2])
+    bottom_exterior();
   }
 }
 
@@ -336,5 +318,4 @@ module preview() {
   half_grip();
 }
 
-top_exterior();
-bottom_exterior();
+grip();
