@@ -19,7 +19,6 @@ top_length = 212 - finger_length()/2;
 thickness = 13.6; // Needs to yield an even number of 0.2mm layers.
 finger_floor = 2;
 finger_z_slack = 0.4;
-bottom_bevel = 2.8;
 
 // Grips.
 total_grip_depth = 25;
