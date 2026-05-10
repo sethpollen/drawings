@@ -131,18 +131,9 @@ module bottom_chisel_2d(bulb=false) {
   }
 }
 
-module grip_bridge_2d() {
-  difference() {
-    translate([-handle_width/2, top_length-length])
-    square([handle_width, bridge_length]);
-    
-    bottom_chisel_2d(bulb=true);
-  }
-}
-
-module bottom_2d(offs=0) {
+module bottom_2d(offs=0, bulb=false) {
   intersection() {
-    bottom_chisel_2d();
+    bottom_chisel_2d(bulb=bulb);
 
     difference() {
       offset(delta=offs)
@@ -176,7 +167,7 @@ module top_exterior() {
   }
 }
 
-module bottom_exterior() {
+module bottom_exterior(bulb=false) {
   translate([0, 0, thickness/2])
   for (a = [-1, 1])
   scale([1, 1, a])
@@ -185,7 +176,7 @@ module bottom_exterior() {
 
     translate([0, 0, z])
     linear_extrude(0.20001)
-    bottom_2d(bulge_offset(z, bottom_bulge_r));
+    bottom_2d(bulge_offset(z, bottom_bulge_r), bulb=bulb);
   }
 }
 
@@ -318,7 +309,7 @@ module grip() {
     translate([x, y])
     rotate([90, 0, 0])
     translate([0, length-top_length, -thickness/2])
-    bottom_exterior();
+    bottom_exterior(bulb=true);
   }
 }
 
