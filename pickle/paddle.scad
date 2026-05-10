@@ -97,8 +97,29 @@ module extrude_fingers(cavity, complement, rot=false) {
   }
 }
 
+module top_2d(offs) {
+  intersection() {
+    offset(delta=offs)
+    whole_2d();
+    
+    translate([-125, 0])
+    square(250);
+  }
+}
+
+module bottom_2d(offs=0) {
+  difference() {
+    offset(delta=offs)
+    whole_2d();
+    
+    translate([-125, 0])
+    square(250);
+  }
+}
+
 // The edge has a circular bulge. The center of that circle is inset
 // by this distance from the edge:
+bulge_layers = thickness/2 * 5;
 bulge_center = thickness*0.7;
 bulge_r = norm([thickness/2, bulge_center]);
 
@@ -106,22 +127,35 @@ bulge_r = norm([thickness/2, bulge_center]);
 function bulge_offset(z) = sqrt(bulge_r*bulge_r - z*z) - bulge_center;
 
 module top_exterior() {
-  layers = thickness/2 * 5;
+  translate([0, 0, thickness/2])
+  for (a = [-1, 1])
+  scale([1, 1, a])
+  for (i = [0:bulge_layers-1]) {
+    z = i*0.2;
+
+    translate([0, 0, z])
+    linear_extrude(0.2)
+    top_2d(bulge_offset(z));
+  }
+}
+
+module bottom_exterior() {
+  bevel_layers = bottom_bevel*5;
   
-  intersection() {
-    translate([0, 0, thickness/2])
-    for (a = [-1, 1])
-    scale([1, 1, a])
-    for (i = [0:layers-1]) {
-      z = i*0.2;
-      translate([0, 0, z])
-      linear_extrude(0.2)
-      offset(delta=bulge_offset(z))
-      whole_2d();
-    }
+  difference() {
+    for (a = [0:bevel_layers])
+    translate([0, 0, a*0.2])
+    linear_extrude(thickness-a*0.4)
+    intersection() {
+      offset((a-bevel_layers)*0.2) {
+        bottom_2d();
         
-    translate([-125, 0])
-    cube(250);
+        for (y = [-bottom_bevel-9, top_length-length-200])
+        translate([-100, y])
+        square([200, 200]);
+      }
+      bottom_2d();
+    }
   }
 }
 
@@ -144,35 +178,6 @@ module top() {
   scale([a, 1])
   translate([83, 0])
   circle(d=8);
-}
-
-module bottom_2d() {
-  difference() {
-    whole_2d();
-    
-    translate([-125, 0])
-    square(250);
-  }
-}
-
-module bottom_exterior() {
-  bevel_layers = bottom_bevel*5;
-  
-  difference() {
-    for (a = [0:bevel_layers])
-    translate([0, 0, a*0.2])
-    linear_extrude(thickness-a*0.4)
-    intersection() {
-      offset((a-bevel_layers)*0.2) {
-        bottom_2d();
-        
-        for (y = [-bottom_bevel-9, top_length-length-200])
-        translate([-100, y])
-        square([200, 200]);
-      }
-      bottom_2d();
-    }
-  }
 }
 
 module bottom() {
