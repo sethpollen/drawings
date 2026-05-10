@@ -4,7 +4,6 @@ default_fn = 60;
 $fn = default_fn;
 
 // Parameters for the overall shape.
-// TODO: increase size, to account for loss of flat area due to bulge.
 width = 200;
 length = 360;
 fan_length = 220;
