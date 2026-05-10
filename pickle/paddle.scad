@@ -16,7 +16,7 @@ grip_length = handle_length + 20;
 top_length = 216 - finger_length()/2;
 
 // Parameters for thickness.
-thickness = 13.6; // Needs to yield an even number of 0.2mm layers.
+thickness = 13.2; // Needs to yield an even number of 0.2mm layers.
 finger_floor = 2;
 finger_z_slack = 0.4;
 
@@ -154,8 +154,8 @@ module bottom_2d(offs=0) {
 // The edge has a circular bulge. The center of that circle is inset
 // by this distance from the edge:
 bulge_layers = thickness/2 * 5;
-top_bulge_r = thickness * 0.7;
-bottom_bulge_r = thickness * 0.62;
+top_bulge_r = thickness/(2*sin(45));
+bottom_bulge_r = thickness/(2*sin(55));
 
 // `z` is the height from the centerline.
 function bulge_offset(z, r) = sqrt(r^2 - z^2) - r;
@@ -336,7 +336,5 @@ module preview() {
   half_grip();
 }
 
-bottom();
-color("blue")
-linear_extrude(thickness)
-grip_bridge_2d();
+top_exterior();
+bottom_exterior();
