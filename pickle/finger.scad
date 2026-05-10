@@ -55,7 +55,7 @@ module finger_base_2d() {
 
 module finger_2d(complement=false, truncate=0) {
   difference() {
-    offset(-slack)
+    offset(delta=-slack)
     union() {
       finger_profile_2d(complement=complement, truncate=2.1+truncate);
       finger_base_2d();
@@ -65,7 +65,7 @@ module finger_2d(complement=false, truncate=0) {
 }
 
 module finger_cavity_2d(complement=false, truncate=0) {
-  offset(slack)
+  offset(delta=slack)
   finger_profile_2d(complement, truncate=0.8+truncate);
 }
 

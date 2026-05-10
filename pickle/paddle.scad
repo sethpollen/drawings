@@ -154,11 +154,10 @@ module bottom_exterior() {
 module top() {
   difference() {
     top_exterior();
+    joint_chamfer();
 
     // Negative fingers.
     extrude_fingers(cavity=true);
-    
-    joint_chamfer();
   }
   
   // Positive fingers.
@@ -175,11 +174,10 @@ module top() {
 module bottom() {
   difference() {
     bottom_exterior();
+    joint_chamfer();
 
     // Negative fingers.
     extrude_fingers(cavity=true, complement=true, rot=true);
-
-    joint_chamfer();
   }
   
   // Positive fingers.
@@ -188,13 +186,9 @@ module bottom() {
   // Tabs.
   for (a = [-1, 1])
   linear_extrude(0.6)
-  scale([a, 1]) {
-    translate([81, 0])
-    circle(d=8);
-    
-    translate([handle_width/2 - bottom_bevel - 6, top_length-length-5])
-    square(6);
-  }
+  scale([a, 1])
+  translate([81, 0])
+  circle(d=8);
 }
 
 module grip_2d(backoff=0, offs=0) {
@@ -301,7 +295,4 @@ module preview() {
   half_grip();
 }
 
-translate([0, -100]) {
-bottom_exterior();
-top_exterior();
-}
+bottom();
