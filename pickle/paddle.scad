@@ -16,7 +16,7 @@ grip_length = handle_length + 20;
 top_length = 212 - finger_length()/2;
 
 // Parameters for thickness.
-thickness = 13;
+thickness = 13.6; // Needs to yield an even number of 0.2mm layers.
 finger_floor = 2;
 finger_z_slack = 0.4;
 bottom_bevel = 2.8;
@@ -54,6 +54,8 @@ module whole_2d() {
   }
 }
 
+// Chamfer the bottom edge at the finger joint. This avoids elephant
+// foot in a critical area.
 module joint_chamfer() {
   w = 0.35;
   
@@ -95,15 +97,37 @@ module extrude_fingers(cavity, complement, rot=false) {
   }
 }
 
+// The edge has a circular bulge. The center of that circle is inset
+// by this distance from the edge:
+bulge_center = thickness*0.7;
+bulge_r = norm([thickness/2, bulge_center]);
+
+// `z` is the height from the centerline.
+function bulge_offset(z) = sqrt(bulge_r*bulge_r - z*z) - bulge_center;
+
+module top_exterior() {
+  layers = thickness/2 * 5;
+  
+  intersection() {
+    translate([0, 0, thickness/2])
+    for (a = [-1, 1])
+    scale([1, 1, a])
+    for (i = [0:layers-1]) {
+      z = i*0.2;
+      translate([0, 0, z])
+      linear_extrude(0.2)
+      offset(delta=bulge_offset(z))
+      whole_2d();
+    }
+        
+    translate([-125, 0])
+    cube(250);
+  }
+}
+
 module top() {
   difference() {
-    linear_extrude(thickness)
-    intersection() {
-      whole_2d();
-      
-      translate([-125, 0])
-      square(250);
-    }
+    top_exterior();
 
     // Negative fingers.
     extrude_fingers(cavity=true);
@@ -280,4 +304,4 @@ module preview() {
   half_grip();
 }
 
-preview();
+top_exterior();
