@@ -11,7 +11,6 @@ fan_roundoff = 69;
 handle_length = 86;
 handle_width = 35;
 grip_length = handle_length + 20;
-grip_cutout_wall = handle_width * 0.3;
 
 // Parameters for slicing into printable sections.
 top_length = 212 - finger_length()/2;
@@ -132,15 +131,6 @@ module bottom_2d() {
   }
 }
 
-// Socket for grip lugs.
-module grip_socket_2d() {
-  translate([grip_cutout_wall - handle_width/2, grip_cutout_wall])
-  square([
-    handle_width - grip_cutout_wall*2,
-    handle_length*0.5 - grip_cutout_wall,
-  ]);
-}
-
 module bottom_exterior() {
   bevel_layers = bottom_bevel*5;
   
@@ -158,10 +148,6 @@ module bottom_exterior() {
       }
       bottom_2d();
     }
-    
-    translate([0, top_length - length, -1])
-    linear_extrude(thickness+2)
-    grip_socket_2d();
   }
 }
 
@@ -282,21 +268,6 @@ module half_grip() {
       square(100, center=true);
     }
   }
-  
-  // Lug to fit into socket.
-  rotate([90, 0, 0])
-  scale([1, 1, -1])
-  hull() {
-    translate([0, 0, 0.4])
-    linear_extrude(thickness/2 + 0.001)
-    offset(-1.2)
-    grip_socket_2d();
-    
-    translate([0, 0, 1.3])
-    linear_extrude(thickness/2 + 0.001)
-    offset(-0.3)
-    grip_socket_2d();
-  }
 }
 
 module preview() {
@@ -308,3 +279,5 @@ module preview() {
   scale([1, a, 1])
   half_grip();
 }
+
+preview();
