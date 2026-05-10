@@ -4,6 +4,7 @@ default_fn = 60;
 $fn = default_fn;
 
 // Parameters for the overall shape.
+// TODO: increase size, to account for loss of flat area due to bulge.
 width = 194;
 length = 352;
 fan_length = 220;
@@ -120,11 +121,11 @@ module bottom_2d(offs=0) {
 // The edge has a circular bulge. The center of that circle is inset
 // by this distance from the edge:
 bulge_layers = thickness/2 * 5;
-bulge_center = thickness*0.7;
-bulge_r = norm([thickness/2, bulge_center]);
+top_bulge_r = thickness * 0.7;
+bottom_bulge_r = thickness * 0.62;
 
 // `z` is the height from the centerline.
-function bulge_offset(z) = sqrt(bulge_r*bulge_r - z*z) - bulge_center;
+function bulge_offset(z, r) = sqrt(r^2 - z^2) - r;
 
 module top_exterior() {
   translate([0, 0, thickness/2])
@@ -134,28 +135,21 @@ module top_exterior() {
     z = i*0.2;
 
     translate([0, 0, z])
-    linear_extrude(0.2)
-    top_2d(bulge_offset(z));
+    linear_extrude(0.20001)
+    top_2d(bulge_offset(z, top_bulge_r));
   }
 }
 
 module bottom_exterior() {
-  bevel_layers = bottom_bevel*5;
-  
-  difference() {
-    for (a = [0:bevel_layers])
-    translate([0, 0, a*0.2])
-    linear_extrude(thickness-a*0.4)
-    intersection() {
-      offset((a-bevel_layers)*0.2) {
-        bottom_2d();
-        
-        for (y = [-bottom_bevel-9, top_length-length-200])
-        translate([-100, y])
-        square([200, 200]);
-      }
-      bottom_2d();
-    }
+  translate([0, 0, thickness/2])
+  for (a = [-1, 1])
+  scale([1, 1, a])
+  for (i = [0:bulge_layers-1]) {
+    z = i*0.2;
+
+    translate([0, 0, z])
+    linear_extrude(0.20001)
+    bottom_2d(bulge_offset(z, bottom_bulge_r));
   }
 }
 
@@ -309,4 +303,7 @@ module preview() {
   half_grip();
 }
 
+translate([0, -100]) {
+bottom_exterior();
 top_exterior();
+}
