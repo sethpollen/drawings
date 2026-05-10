@@ -13,7 +13,7 @@ handle_width = 35;
 grip_length = handle_length + 20;
 
 // Parameters for slicing into printable sections.
-top_length = 212 - finger_length()/2;
+top_length = 216 - finger_length()/2;
 
 // Parameters for thickness.
 thickness = 13.6; // Needs to yield an even number of 0.2mm layers.
@@ -106,13 +106,48 @@ module top_2d(offs) {
   }
 }
 
-module bottom_2d(offs=0) {
+bridge_length = handle_length - 20;
+bridge_floor = 5;
+
+module bottom_chisel_2d() {
+  translate([0, top_length-length]) {
+    hull() {
+      translate([0, bridge_floor])
+      square(0.0001);
+        
+      translate([-handle_width/2, bridge_length])
+      square([handle_width, 0.001]);
+    }
+  
+    // Include everything higher up.
+    translate([-200, bridge_length])
+    square(400);
+  }
+}
+
+module grip_bridge_2d() {
   difference() {
-    offset(delta=offs)
-    whole_2d();
+    translate([-handle_width/2, top_length-length])
+    square([handle_width, bridge_length]);
     
-    translate([-125, 0])
-    square(250);
+    bottom_chisel_2d();
+  }
+}
+
+module bottom_2d(offs=0) {
+  intersection() {
+    // Round off the chisel top, so there is good contact along the sides.
+    offset(1, $fn=10)
+    offset(-1)
+    bottom_chisel_2d();
+
+    difference() {
+      offset(delta=offs)
+      whole_2d();
+      
+      translate([-125, 0])
+      square(250);
+    }
   }
 }
 
@@ -184,11 +219,17 @@ module bottom() {
   extrude_fingers(cavity=false, complement=false);
   
   // Tabs.
-  for (a = [-1, 1])
-  linear_extrude(0.6)
-  scale([a, 1])
-  translate([81, 0])
-  circle(d=8);
+  color("orange") {
+    for (a = [-1, 1])
+    linear_extrude(0.6)
+    scale([a, 1])
+    translate([78, 0])
+    circle(d=8);
+    
+    linear_extrude(0.6)
+    translate([0, top_length-length+bridge_floor+3])
+    circle(d=8);
+  }
 }
 
 module grip_2d(backoff=0, offs=0) {
@@ -296,3 +337,6 @@ module preview() {
 }
 
 bottom();
+color("blue")
+linear_extrude(thickness)
+grip_bridge_2d();
