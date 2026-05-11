@@ -1,4 +1,4 @@
-// A long enough distance in every direction from the originl.
+// A long enough distance in every direction from the origin.
 universe = 170;
 
 function finger_length() = 36;
@@ -7,6 +7,9 @@ finger_width = 12.15;
 teeth_pairs = 6;
 
 slack = 0.05;
+
+z_slack = 0.4;
+finger_floor = 2;
 
 module finger_profile_2d(complement=false, truncate=0) {
   if (complement) {
@@ -69,9 +72,36 @@ module finger_cavity_2d(complement=false, truncate=0) {
   finger_profile_2d(complement, truncate=0.8+truncate);
 }
 
-module preview(complement=false) {
-  linear_extrude(2) finger_2d(complement);
-  color("blue") linear_extrude(1) finger_cavity_2d(complement);
+module extrude_fingers(thickness, cavity, complement, rot=false) {
+  bevel_layers = floor(2.5*
+    (thickness - 2*finger_floor - 2*z_slack - 2)
+  );
+  
+  for (a = [0:bevel_layers])
+  translate([
+    0,
+    0,
+    a*0.2 + finger_floor + (cavity ? 0 : z_slack)
+  ])
+  linear_extrude(
+    thickness
+    - a*0.4
+    - 2*finger_floor
+    - (cavity ? 0 : 2*z_slack)
+  )
+  rotate([0, 0, rot ? 180 : 0]) {
+    truncate = (bevel_layers-a)*0.125;
+    
+    if (cavity) {
+      finger_cavity_2d(complement=complement, truncate=truncate);
+    } else {
+      intersection() {
+        finger_2d(complement=complement, truncate=truncate);
+        
+        // Prevent the backs of the teeth from sticking out.
+        translate([-200, -5])
+        square([400, 100]);
+      }
+    }
+  }
 }
-
-preview(true);

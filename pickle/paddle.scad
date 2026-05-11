@@ -17,8 +17,6 @@ top_length = 216 - finger_length()/2;
 
 // Parameters for thickness.
 thickness = 13.2; // Needs to yield an even number of 0.2mm layers.
-finger_floor = 2;
-finger_z_slack = 0.4;
 
 // Grips.
 total_grip_depth = 25;
@@ -60,40 +58,6 @@ module joint_chamfer() {
   
   rotate([45, 0, 0])
   cube([250, w, w], center=true);
-}
-
-module extrude_fingers(cavity, complement, rot=false) {
-  bevel_layers = floor(2.5*
-    (thickness - 2*finger_floor - 2*finger_z_slack - 2)
-  );
-  
-  for (a = [0:bevel_layers])
-  translate([
-    0,
-    0,
-    a*0.2 + finger_floor + (cavity ? 0 : finger_z_slack)
-  ])
-  linear_extrude(
-    thickness
-    - a*0.4
-    - 2*finger_floor
-    - (cavity ? 0 : 2*finger_z_slack)
-  )
-  rotate([0, 0, rot ? 180 : 0]) {
-    truncate = (bevel_layers-a)*0.125;
-    
-    if (cavity) {
-      finger_cavity_2d(complement=complement, truncate=truncate);
-    } else {
-      intersection() {
-        finger_2d(complement=complement, truncate=truncate);
-        
-        // Prevent the backs of the teeth from sticking out.
-        translate([-200, -5])
-        square([400, 100]);
-      }
-    }
-  }
 }
 
 module top_2d(offs) {
@@ -186,17 +150,19 @@ module top() {
     joint_chamfer();
 
     // Negative fingers.
-    extrude_fingers(cavity=true);
+    extrude_fingers(thickness=thickness,
+                    cavity=true);
   }
   
   // Positive fingers.
-  extrude_fingers(cavity=false, complement=true, rot=true);
+  extrude_fingers(thickness=thickness,
+                  cavity=false, complement=true, rot=true);
   
   // Tabs.
   for (a = [-1, 1])
   linear_extrude(0.6)
   scale([a, 1])
-  translate([83, 0])
+  translate([79, 0])
   circle(d=8);
 }
 
@@ -206,11 +172,13 @@ module bottom() {
     joint_chamfer();
 
     // Negative fingers.
-    extrude_fingers(cavity=true, complement=true, rot=true);
+    extrude_fingers(thickness=thickness,
+                    cavity=true, complement=true, rot=true);
   }
   
   // Positive fingers.
-  extrude_fingers(cavity=false, complement=false);
+  extrude_fingers(thickness=thickness,
+                  cavity=false, complement=false);
   
   // Tabs.
   color("orange") {
@@ -323,4 +291,4 @@ module preview() {
   half_grip();
 }
 
-grip();
+top();
