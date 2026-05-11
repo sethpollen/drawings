@@ -20,6 +20,9 @@ thickness = 13.2; // Needs to yield an even number of 0.2mm layers.
 
 // Grips.
 total_grip_depth = 25;
+// How much of the total length is just the grip, with no intrustion
+// from the `bottom` piece.
+grip_floor = 8;
 
 module fan_2d() {
   translate([0, -fan_length/2])
@@ -46,8 +49,14 @@ module whole_2d() {
     }
     
     // Handle.
-    translate([0, handle_length/2 - length])
-    square([handle_width, handle_length], center=true);
+    translate([0, -length])
+    hull() {
+      translate([0, grip_floor])
+      square([8, 0.0001], center=true);
+      
+      translate([-handle_width/2, handle_length])
+      square([handle_width, 0.0001]);
+    }
   }
 }
 
@@ -70,42 +79,13 @@ module top_2d(offs) {
   }
 }
 
-bridge_length = handle_length;
-bridge_floor = 5;
-
-// bulb=true enlarges the bottom of the cavity, to make
-// sure there is good contact along the sides.
-module bottom_chisel_2d(bulb=false) {
-  translate([0, top_length-length]) {
-    hull() {
-      translate([0, bridge_floor+5])
-      circle(d=10, $fn=30);
-      
-      translate([-handle_width/2, bridge_length])
-      square([handle_width, 0.001]);
-    }
-    
-    if (bulb)
-    translate([0, bridge_floor+5])
-    circle(d=10.6, $fn=30);
-  
-    // Include everything higher up.
-    translate([-200, bridge_length])
-    square(400);
-  }
-}
-
 module bottom_2d(offs=0, bulb=false) {
-  intersection() {
-    bottom_chisel_2d(bulb=bulb);
-
-    difference() {
-      offset(delta=offs)
-      whole_2d();
-      
-      translate([-125, 0])
-      square(250);
-    }
+  difference() {
+    offset(delta=offs)
+    whole_2d();
+    
+    translate([-125, 0])
+    square(250);
   }
 }
 
@@ -291,4 +271,4 @@ module preview() {
   half_grip();
 }
 
-top();
+bottom_exterior();
