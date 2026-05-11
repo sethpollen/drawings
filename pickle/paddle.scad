@@ -270,6 +270,9 @@ module grip() {
   }
 }
 
+////////////////////////////////////////////////////////////////////////
+// Preview and test packages.
+
 module grip_fit_preview() {
   color("green")
   rotate([90, 0, 0])
@@ -290,4 +293,11 @@ module finger_joint_test() {
   }
 }
 
-finger_joint_test();
+module bulge_test() {
+  intersection() {
+    cube(90, center=true);
+
+    translate([0, length-top_length])
+    bottom();
+  }
+}
