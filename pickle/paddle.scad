@@ -1,3 +1,4 @@
+use <chain.scad>
 use <finger.scad>
 
 default_fn = 60;
@@ -19,7 +20,7 @@ top_length = 216 - finger_length()/2;
 thickness = 13.2; // Needs to yield an even number of 0.2mm layers.
 
 // Grips.
-total_grip_depth = 25;
+total_grip_depth = 25.2;
 // How much of the total length is just the grip, with no intrustion
 // from the `bottom` piece.
 grip_floor = 8;
@@ -104,6 +105,7 @@ module top_exterior() {
   scale([1, 1, a])
   for (i = [0:bulge_layers-1]) {
     z = i*0.2;
+    echo(z);
 
     translate([0, 0, z])
     linear_extrude(0.20001)
@@ -139,6 +141,7 @@ module top() {
                   cavity=false, complement=true, rot=true);
   
   // Tabs.
+  color("orange")
   for (a = [-1, 1])
   linear_extrude(0.6)
   scale([a, 1])
@@ -169,75 +172,67 @@ module bottom() {
     circle(d=8);
     
     linear_extrude(0.6)
-    translate([0, top_length-length+bridge_floor+3])
-    circle(d=8);
+    translate([0, top_length-length+grip_floor+2])
+    circle(d=10);
   }
 }
 
-module grip_2d(backoff=0, offs=0) {
+// Only produces half of the profile.
+module grip_2d(widen=0, offs=0) {
   flats = thickness*0.8;
+  width = handle_width;
   
-  // Add a bit so that the grip goes all the way around
-  // the bottom piece.
-  width = handle_width + 1.2;
-  
-  offset(delta=offs)
-  for (a = [-1, 1])
-  scale([1, a])
-  intersection() {
-    translate([0, 100])
-    square(200, center=true);
-    
-    translate([0, -backoff])
-    union() {
-      square([width, flats], center=true);
+  offset(delta=offs) {
+    // Back it into the negative y-coordinate so that the
+    // `offset` above doesn't cause is to detach from the
+    // x-axis.
+    translate([-width/2, -1])
+    square([width, flats/2 + widen + 1]);
+
+    translate([0, flats/2 + widen])
+    scale([width/2, (total_grip_depth-flats)/2])
+    intersection() {
+      circle($fn=30, r=1);
       
-      for (a = [-1, 1])
-      scale([1, a])
-      translate([0, flats/2])
-      scale([width/2, (total_grip_depth-flats)/2])
-      circle($fn=40, r=1);
+      translate([0, 2])
+      square(4, center=true);
     }
   }
 }
 
-module grip_element(offs=0, up=0, down=0, in=0) {
-  translate([0, 0, up])
-  linear_extrude(grip_length - up - down)
-  grip_2d(offs=offs, backoff=in);
-}
-
 module grip_exterior(offs=0) {
-  // Main part of the grip, with a little bevel on the bottom.
-  hull() {
-    grip_element(offs=offs, in=1.2, down=1);
-    grip_element(offs=offs, up=2.4, down=1);
-  }
-  
-  // Flare at the top.
-  shelf = 3;
-  hull() {
-    grip_element(offs=offs, up=grip_length-4, in=2);
-    grip_element(offs=offs, up=grip_length-4, in=0.8-shelf, down=0.5);
-    grip_element(offs=offs, up=grip_length-4, down=1.2, in=-shelf);
-    grip_element(offs=offs, up=grip_length-8, down=1);
+  for (a = [-1, 1])
+  scale([1, a])
+  chain() {
+    // Bevelled bottom.
+    makelayer(0) grip_2d(offs=offs, widen=-1.2);
+    
+    // Main column.
+    makelayer(2.4) grip_2d(offs=offs);
+    makelayer(grip_length-8) grip_2d(offs=offs);
+    
+    // Shelf.
+    makelayer(grip_length-4) grip_2d(offs=offs, widen=3);
+    makelayer(grip_length-1.2) grip_2d(offs=offs, widen=3);
+    makelayer(grip_length-0.5) grip_2d(offs=offs, widen=2.2);
+    makelayer(grip_length) grip_2d(offs=offs, widen=-2);
   }
 }
 
-// Knurling is computationally expensive, so we provide an
-// easy way to disable it while coding.
-knurl = false;
+// These steps are computationally expensive, so we provide a convenient
+// way to disable them during development.
+knurl = false;  // Knurling.
+cut_grip = false;  // Grip cavity to receive `bottom`.
 
 module knurled_grip_exterior() {
   knurl_width = 2;
   knurl_count = 20;
   knurl_depth = 0.25;
   
-  color("green")
   grip_exterior(offs=-knurl_depth);
 
   if(knurl)
-  color("blue")
+  color("orange")
   intersection() {
     grip_exterior();
     
@@ -248,16 +243,32 @@ module knurled_grip_exterior() {
   }
 }
 
+
 module grip() {
   difference() {
     knurled_grip_exterior();
     
     // Jiggle slightly to make the cavity.
-    for (x = 0.05 * [-1, 1], y = 0.15 * [-1, 1])
-    translate([x, y])
-    rotate([90, 0, 0])
-    translate([0, length-top_length, -thickness/2])
-    bottom_exterior(bulb=true);
+    for (y = 0.15 * [-1, 1])
+    translate([0, y]){
+      if (cut_grip)
+      rotate([90, 0, 0])
+      translate([0, length-top_length, -thickness/2])
+      bottom_exterior(bulb=true);
+
+      // Cut some material from the edges, to avoid a very thin area.
+      translate([0, 0, handle_length-4]) {
+        translate([0, 0, thickness])
+        scale([1, 1, 2])
+        rotate([0, 90, 0])
+        translate([0, 0, -handle_width])
+        cylinder(h=2*handle_width, d=thickness, $fn=80);
+        
+        // Add some flat to make sure there are no extra intrusions.
+        translate([-handle_width, -thickness/2, thickness])
+        cube([handle_width*2, thickness, 40]);
+      }
+    }
   }
 }
 
@@ -266,9 +277,7 @@ module preview() {
   translate([0, length-top_length, -thickness/2])
   bottom();
   
-  for (a = [-1, 1])
-  scale([1, a, 1])
-  half_grip();
+  grip();
 }
 
-bottom_exterior();
+bottom();
