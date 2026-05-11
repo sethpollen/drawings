@@ -19,3 +19,10 @@ it using the same settings as the Top and Bottom pieces above.
 
 I should probably to >20% infill for the grips, or they end up feeling kinda
 soft. How about 25%.
+
+############################################################################
+Printing with PETG
+
+An elephant foot compensation of 0.3mm seems too much, at least for the
+parts that bulge outwards. Try 0.1mm, with an accompanying slight increase
+to the joint chamfer.
