@@ -105,8 +105,6 @@ module top_exterior() {
   scale([1, 1, a])
   for (i = [0:bulge_layers-1]) {
     z = i*0.2;
-    echo(z);
-
     translate([0, 0, z])
     linear_extrude(0.20001)
     top_2d(bulge_offset(z, top_bulge_r));
@@ -221,7 +219,7 @@ module grip_exterior(offs=0) {
 
 // These steps are computationally expensive, so we provide a convenient
 // way to disable them during development.
-knurl = false;  // Knurling.
+knurl = true;  // Knurling.
 cut_grip = false;  // Grip cavity to receive `bottom`.
 
 module knurled_grip_exterior() {
@@ -272,12 +270,24 @@ module grip() {
   }
 }
 
-module preview() {
+module grip_fit_preview() {
+  color("green")
   rotate([90, 0, 0])
   translate([0, length-top_length, -thickness/2])
-  bottom();
+  bottom_exterior();
   
   grip();
 }
 
-bottom();
+module finger_joint_test() {
+  intersection() {
+    cube([56, 77, 100], center=true);
+    translate([0, 18]) top();
+  }
+  intersection() {
+    cube([68, 77, 100], center=true);
+    translate([0, -18]) bottom();
+  }
+}
+
+finger_joint_test();
