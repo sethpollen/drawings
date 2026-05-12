@@ -19,6 +19,9 @@ Bottom layer inset: 0.15mm. I tested 0.3mm and it was too much for
 
 // TODO: Transition to 0.15mm layers.
 
+// TODO: Change z_slack (finger.scad) from 0.4 (2 layers of 0.2mm)
+// to 0.45 (3 layers of 0.15mm).
+
 use <chain.scad>
 use <finger.scad>
 

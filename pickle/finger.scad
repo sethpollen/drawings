@@ -6,9 +6,11 @@ function finger_length() = 36;
 finger_width = 12.15;
 teeth_pairs = 6;
 
-slack = 0.05;
+xy_slack = 0.05;
 
-z_slack = 0.4;
+layer_height = 0.15;
+
+z_slack = 0.45;
 finger_floor = 2;
 
 module finger_profile_2d(complement=false, truncate=0) {
@@ -58,7 +60,7 @@ module finger_base_2d() {
 
 module finger_2d(complement=false, truncate=0) {
   difference() {
-    offset(delta=-slack)
+    offset(delta=-xy_slack)
     union() {
       finger_profile_2d(complement=complement, truncate=2.1+truncate);
       finger_base_2d();
@@ -68,29 +70,29 @@ module finger_2d(complement=false, truncate=0) {
 }
 
 module finger_cavity_2d(complement=false, truncate=0) {
-  offset(delta=slack)
+  offset(delta=xy_slack)
   finger_profile_2d(complement, truncate=0.8+truncate);
 }
 
-module extrude_fingers(thickness, cavity, complement, rot=false) {
-  bevel_layers = floor(2.5*
-    (thickness - 2*finger_floor - 2*z_slack - 2)
-  );
+module extrude_fingers(thickness, cavity, complement, rot=false) {  
+  flat_tip = 2;
+  bevel_height = (thickness - 2*finger_floor - 2*z_slack - flat_tip)/2;
+  bevel_layers = floor(bevel_height / layer_height);
   
   for (a = [0:bevel_layers])
   translate([
     0,
     0,
-    a*0.2 + finger_floor + (cavity ? 0 : z_slack)
+    a*layer_height + finger_floor + (cavity ? 0 : z_slack)
   ])
   linear_extrude(
     thickness
-    - a*0.4
+    - a*layer_height*2
     - 2*finger_floor
     - (cavity ? 0 : 2*z_slack)
   )
   rotate([0, 0, rot ? 180 : 0]) {
-    truncate = (bevel_layers-a)*0.125;
+    truncate = (bevel_layers-a)*0.094;
     
     if (cavity) {
       finger_cavity_2d(complement=complement, truncate=truncate);
