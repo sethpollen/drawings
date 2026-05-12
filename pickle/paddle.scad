@@ -7,7 +7,7 @@ Layer height: 0.15mm. Mk.2 used 0.2mm. Thinner layers will give better
   bonding (which seems like it might be tougher with PETG). It also
   enables finer adjustments to the finger fit.
   
-Top and bottom: 6 layers of 100% plus 2 layers of 50%. Mk.2 (with
+Top and bottom: 5 layers of 100% plus 3 layers of 50%. Mk.2 (with
   0.2mm layers) used 4 layers of 100% plus 2 layers of 50%.
   
 Walls: 3 lines. Mk.2 used 2 lines and had some trouble with denting on
