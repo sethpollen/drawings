@@ -15,12 +15,12 @@ Walls: 3 lines. Mk.2 used 2 lines and had some trouble with denting on
   
 Bottom layer inset: 0.15mm. I tested 0.3mm and it was too much for
   the bulging parts.
-*/
+  
+Head temp: 240 C (right in the middle of the stated range for my
+  PETG roll).
 
-// TODO: On 2026-05-11, I am printing finger_test with the above
-// settings, plus this:
-//   Head temp: 240 C
-//   Print speed: 40 mm/s
+Print speed: 40 mm/s (also right in the middle of the nominal range).
+*/
 
 use <chain.scad>
 use <finger.scad>
@@ -91,7 +91,7 @@ module whole_2d() {
 // Chamfer the bottom edge at the finger joint. This avoids elephant
 // foot in a critical area.
 module joint_chamfer() {
-  w = 0.46;
+  w = 0.54;
   
   rotate([45, 0, 0])
   cube([250, w, w], center=true);
