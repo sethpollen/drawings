@@ -15,9 +15,12 @@ Walls: 3 lines. Mk.2 used 2 lines and had some trouble with denting on
   
 Bottom layer inset: 0.15mm. I tested 0.3mm and it was too much for
   the bulging parts.
-  
-Also consider slowing down the print speed for better layer adhesion.
 */
+
+// TODO: On 2026-05-11, I am printing finger_test with the above
+// settings, plus this:
+//   Head temp: 240 C
+//   Print speed: 40 mm/s
 
 use <chain.scad>
 use <finger.scad>
