@@ -12,6 +12,9 @@ Top and bottom: 6 layers of 100% plus 2 layers of 50%. Mk.2 (with
   
 Walls: 3 lines. Mk.2 used 2 lines and had some trouble with denting on
   the outer edges.
+  
+Bottom layer inset: 0.15mm. I tested 0.3mm and it was too much for
+  the bulging parts.
 */
 
 // TODO: Transition to 0.15mm layers.
@@ -82,7 +85,7 @@ module whole_2d() {
 // Chamfer the bottom edge at the finger joint. This avoids elephant
 // foot in a critical area.
 module joint_chamfer() {
-  w = 0.49;
+  w = 0.46;
   
   rotate([45, 0, 0])
   cube([250, w, w], center=true);
