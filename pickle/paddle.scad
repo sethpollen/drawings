@@ -24,6 +24,7 @@ default_fn = 60;
 $fn = default_fn;
 
 layer_height = 0.15;
+tab_height = 2*layer_height;
 
 // Parameters for the overall shape.
 width = 200;
@@ -162,7 +163,7 @@ module top() {
   // Tabs.
   color("orange")
   for (a = [-1, 1])
-  linear_extrude(0.6)
+  linear_extrude(tab_height)
   scale([a, 1])
   translate([79, 0])
   circle(d=8);
@@ -185,12 +186,12 @@ module bottom() {
   // Tabs.
   color("orange") {
     for (a = [-1, 1])
-    linear_extrude(0.6)
+    linear_extrude(tab_height)
     scale([a, 1])
     translate([78, 0])
     circle(d=8);
     
-    linear_extrude(0.6)
+    linear_extrude(tab_height)
     translate([0, top_length-length+grip_floor+2])
     circle(d=10);
   }
