@@ -24,7 +24,7 @@ default_fn = 60;
 $fn = default_fn;
 
 layer_height = 0.15;
-tab_height = 2*layer_height;
+tab_height = 3*layer_height;
 
 // Parameters for the overall shape.
 width = 200;
