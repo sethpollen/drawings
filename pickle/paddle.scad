@@ -33,7 +33,7 @@ tab_height = 3*layer_height;
 
 // Parameters for the overall shape.
 width = 200;
-length = 356;
+length = 359;
 fan_length = 220;
 fan_roundoff = 69;
 handle_length = 86;
@@ -335,4 +335,4 @@ module bulge_test() {
   }
 }
 
-finger_joint_test();
+top();
