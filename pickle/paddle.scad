@@ -1,3 +1,21 @@
+/* Printing this in PETG (Mk.3)
+
+Infill: 10% grid. Mk.2 used 11% (PLA). 10% is probably fine, especially
+  with the vaunted material properties of PETG.
+  
+Layer height: 0.15mm. Mk.2 used 0.2mm. Thinner layers will give better
+  bonding (which seems like it might be tougher with PETG). It also
+  enables finer adjustments to the finger fit.
+  
+Top and bottom: 6 layers of 100% plus 2 layers of 50%. Mk.2 (with
+  0.2mm layers) used 4 layers of 100% plus 2 layers of 50%.
+  
+Walls: 3 lines. Mk.2 used 2 lines and had some trouble with denting on
+  the outer edges.
+*/
+
+// TODO: Transition to 0.15mm layers.
+
 use <chain.scad>
 use <finger.scad>
 
@@ -64,7 +82,7 @@ module whole_2d() {
 // Chamfer the bottom edge at the finger joint. This avoids elephant
 // foot in a critical area.
 module joint_chamfer() {
-  w = 0.35;
+  w = 0.49;
   
   rotate([45, 0, 0])
   cube([250, w, w], center=true);
@@ -301,3 +319,5 @@ module bulge_test() {
     bottom();
   }
 }
+
+bottom();
