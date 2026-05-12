@@ -15,6 +15,8 @@ Walls: 3 lines. Mk.2 used 2 lines and had some trouble with denting on
   
 Bottom layer inset: 0.15mm. I tested 0.3mm and it was too much for
   the bulging parts.
+  
+Also consider slowing down the print speed for better layer adhesion.
 */
 
 use <chain.scad>
@@ -306,12 +308,18 @@ module grip_fit_preview() {
 
 module finger_joint_test() {
   intersection() {
-    cube([56, 77, 100], center=true);
-    translate([0, 18]) top();
+    translate([49, 0])
+    cube([56, 95, 100], center=true);
+    
+    translate([0, 15])
+    top();
   }
   intersection() {
+    translate([49, 0])
     cube([68, 77, 100], center=true);
-    translate([0, -18]) bottom();
+    
+    translate([0, -15])
+    bottom();
   }
 }
 
@@ -324,4 +332,4 @@ module bulge_test() {
   }
 }
 
-bottom();
+finger_joint_test();
