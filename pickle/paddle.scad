@@ -17,16 +17,13 @@ Bottom layer inset: 0.15mm. I tested 0.3mm and it was too much for
   the bulging parts.
 */
 
-// TODO: Transition to 0.15mm layers.
-
-// TODO: Change z_slack (finger.scad) from 0.4 (2 layers of 0.2mm)
-// to 0.45 (3 layers of 0.15mm).
-
 use <chain.scad>
 use <finger.scad>
 
 default_fn = 60;
 $fn = default_fn;
+
+layer_height = 0.15;
 
 // Parameters for the overall shape.
 width = 200;
@@ -40,8 +37,8 @@ grip_length = handle_length + 20;
 // Parameters for slicing into printable sections.
 top_length = 216 - finger_length()/2;
 
-// Parameters for thickness.
-thickness = 13.2; // Needs to yield an even number of 0.2mm layers.
+// Round up to an even number of layers.
+thickness = ceil(13 / (2*layer_height)) * 2*layer_height;
 
 // Grips.
 total_grip_depth = 25.2;
@@ -116,7 +113,7 @@ module bottom_2d(offs=0, bulb=false) {
 
 // The edge has a circular bulge. The center of that circle is inset
 // by this distance from the edge:
-bulge_layers = thickness/2 * 5;
+bulge_layers = thickness/(2*layer_height);
 top_bulge_r = thickness/(2*sin(45));
 bottom_bulge_r = thickness/(2*sin(55));
 
@@ -128,9 +125,9 @@ module top_exterior() {
   for (a = [-1, 1])
   scale([1, 1, a])
   for (i = [0:bulge_layers-1]) {
-    z = i*0.2;
+    z = i*layer_height;
     translate([0, 0, z])
-    linear_extrude(0.20001)
+    linear_extrude(layer_height + 0.0001)
     top_2d(bulge_offset(z, top_bulge_r));
   }
 }
@@ -140,10 +137,10 @@ module bottom_exterior(bulb=false) {
   for (a = [-1, 1])
   scale([1, 1, a])
   for (i = [0:bulge_layers-1]) {
-    z = i*0.2;
+    z = i*layer_height;
 
     translate([0, 0, z])
-    linear_extrude(0.20001)
+    linear_extrude(layer_height + 0.0001)
     bottom_2d(bulge_offset(z, bottom_bulge_r), bulb=bulb);
   }
 }
