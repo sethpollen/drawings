@@ -22,6 +22,10 @@ Head temp: 240 C (right in the middle of the stated range for my
 Print speed: 40 mm/s (also right in the middle of the nominal range).
 */
 
+// TODO: add one more layer of 50% fill to the ceiling. The first couple
+// of 50% layers struggle to bridge, so they probably don't provide as
+// much strength.
+
 use <chain.scad>
 use <finger.scad>
 
