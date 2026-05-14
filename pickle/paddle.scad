@@ -54,7 +54,7 @@ thickness = ceil(13 / (2*layer_height)) * 2*layer_height;
 total_grip_depth = 25.2;
 // How much of the total length is just the grip, with no intrustion
 // from the `bottom` piece.
-grip_floor = 8;
+grip_floor = 5;
 
 module fan_2d() {
   translate([0, -fan_length/2])
@@ -65,7 +65,7 @@ module fan_2d() {
   circle(r=fan_roundoff);
 }
 
-module whole_2d() {
+module whole_2d(widen_cut=false) {
   neck_steps = 7;
   neck_factor = 2;
   
@@ -77,17 +77,20 @@ module whole_2d() {
 
       // Top of the handle.
       translate([0, handle_length - length + i*neck_factor])
-      square([handle_width, 0.0001], center=true);
+      square([handle_width + (widen_cut ? 20 : 0), 0.0001],
+             center=true);
     }
     
-    // Handle.
+    // Handle tang.
+    tang_width = handle_width - 8;
     translate([0, -length])
-    hull() {
+    hull() {      
+      translate([-tang_width/2, handle_length])
+      square([tang_width, 0.0001]);
+ 
+      // Slightly tapered, to make it fit easier.
       translate([0, grip_floor])
-      square([8, 0.0001], center=true);
-      
-      translate([-handle_width/2, handle_length])
-      square([handle_width, 0.0001]);
+      square([tang_width*0.8, 0.0001], center=true);
     }
   }
 }
@@ -111,10 +114,10 @@ module top_2d(offs) {
   }
 }
 
-module bottom_2d(offs=0, bulb=false) {
+module bottom_2d(offs=0, widen_cut=false) {
   difference() {
     offset(delta=offs)
-    whole_2d();
+    whole_2d(widen_cut=widen_cut);
     
     translate([-125, 0])
     square(250);
@@ -138,11 +141,11 @@ module top_exterior() {
     z = i*layer_height;
     translate([0, 0, z])
     linear_extrude(layer_height + 0.0001)
-    top_2d(bulge_offset(z, top_bulge_r));
+    top_2d(offs=bulge_offset(z, top_bulge_r));
   }
 }
 
-module bottom_exterior(bulb=false) {
+module bottom_exterior(widen_cut=false) {
   translate([0, 0, thickness/2])
   for (a = [-1, 1])
   scale([1, 1, a])
@@ -151,7 +154,8 @@ module bottom_exterior(bulb=false) {
 
     translate([0, 0, z])
     linear_extrude(layer_height + 0.0001)
-    bottom_2d(bulge_offset(z, bottom_bulge_r), bulb=bulb);
+    bottom_2d(offs=bulge_offset(z, bottom_bulge_r),
+              widen_cut=widen_cut);
   }
 }
 
@@ -251,7 +255,7 @@ module grip_exterior(offs=0) {
 // These steps are computationally expensive, so we provide a convenient
 // way to disable them during development.
 knurl = true;  // Knurling.
-cut_grip = false;  // Grip cavity to receive `bottom`.
+cut_grip = true;  // Grip cavity to receive `bottom`.
 
 module knurled_grip_exterior() {
   knurl_width = 2;
@@ -272,32 +276,17 @@ module knurled_grip_exterior() {
   }
 }
 
-
 module grip() {
   difference() {
     knurled_grip_exterior();
     
+    if (cut_grip)
     // Jiggle slightly to make the cavity.
     for (y = 0.15 * [-1, 1])
-    translate([0, y]){
-      if (cut_grip)
-      rotate([90, 0, 0])
-      translate([0, length-top_length, -thickness/2])
-      bottom_exterior(bulb=true);
-
-      // Cut some material from the edges, to avoid a very thin area.
-      translate([0, 0, handle_length-4]) {
-        translate([0, 0, thickness])
-        scale([1, 1, 2])
-        rotate([0, 90, 0])
-        translate([0, 0, -handle_width])
-        cylinder(h=2*handle_width, d=thickness, $fn=80);
-        
-        // Add some flat to make sure there are no extra intrusions.
-        translate([-handle_width, -thickness/2, thickness])
-        cube([handle_width*2, thickness, 40]);
-      }
-    }
+    translate([0, y])
+    rotate([90, 0, 0])
+    translate([0, length-top_length, -thickness/2])
+    bottom_exterior(widen_cut=true);
   }
 }
 
@@ -339,4 +328,4 @@ module bulge_test() {
   }
 }
 
-top();
+grip_fit_preview();
