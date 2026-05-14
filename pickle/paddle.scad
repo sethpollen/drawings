@@ -128,7 +128,7 @@ module bottom_2d(offs=0, widen_cut=false) {
 // by this distance from the edge:
 bulge_layers = thickness/(2*layer_height);
 top_bulge_r = thickness/(2*sin(45));
-bottom_bulge_r = thickness/(2*sin(55));
+bottom_bulge_r = thickness/(2*sin(50));
 
 // `z` is the height from the centerline.
 function bulge_offset(z, r) = sqrt(r^2 - z^2) - r;
@@ -198,15 +198,15 @@ module bottom() {
   
   // Tabs.
   color("orange") {
+    linear_extrude(tab_height)
     for (a = [-1, 1])
-    linear_extrude(tab_height)
-    scale([a, 1])
-    translate([78, 0])
-    circle(d=8);
+    scale([a, 1]) {
+      translate([78, 0])
+      circle(d=8);
     
-    linear_extrude(tab_height)
-    translate([0, top_length-length+grip_floor+2])
-    circle(d=10);
+      translate([11, top_length-length+grip_floor+2])
+      circle(d=10);
+    }
   }
 }
 
@@ -282,8 +282,8 @@ module grip() {
     
     if (cut_grip)
     // Jiggle slightly to make the cavity.
-    for (y = 0.15 * [-1, 1])
-    translate([0, y])
+    for (x = 0.1 * [-1, 1], y = 0.15 * [-1, 1])
+    translate([x, y])
     rotate([90, 0, 0])
     translate([0, length-top_length, -thickness/2])
     bottom_exterior(widen_cut=true);
@@ -328,4 +328,4 @@ module bulge_test() {
   }
 }
 
-grip();
+bottom();
