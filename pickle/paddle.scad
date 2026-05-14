@@ -60,7 +60,7 @@ grip_floor = 5;
 tang_width_max = handle_width - 5;
 tang_width_min = tang_width_max * 0.65;
 
-module fan_2d() {
+module fan_2d(grip_cut=false) {
   translate([0, -fan_length/2])
   hull()
   for (a = [-1, 1], b = [-1, 1])
@@ -70,14 +70,17 @@ module fan_2d() {
 }
 
 module whole_2d(grip_cut=false) {
-  neck_steps = 7;
+  // When making the grip_cut, we only care about the bottom part.
+  // Simplify the rest to cut computational cost.
+  neck_steps = grip_cut ? 1 : 7;
   neck_factor = 2;
   
   translate([0, top_length]) {
     for (i = [0:neck_steps])
     hull() {
       scale([(i+neck_steps)/(2*neck_steps), 1])
-      fan_2d();
+      fan_2d(grip_cut=grip_cut,
+             $fn=(grip_cut ? 10 : default_fn));
 
       // Top of the handle.
       translate([0, handle_length - length + i*neck_factor])
