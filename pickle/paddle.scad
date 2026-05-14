@@ -82,7 +82,7 @@ module whole_2d(widen_cut=false) {
     }
     
     // Handle tang.
-    tang_width = handle_width - 8;
+    tang_width = handle_width - 5;
     translate([0, -length])
     hull() {      
       translate([-tang_width/2, handle_length])
@@ -90,7 +90,7 @@ module whole_2d(widen_cut=false) {
  
       // Slightly tapered, to make it fit easier.
       translate([0, grip_floor])
-      square([tang_width*0.8, 0.0001], center=true);
+      square([tang_width - 4, 0.0001], center=true);
     }
   }
 }
@@ -254,7 +254,7 @@ module grip_exterior(offs=0) {
 
 // These steps are computationally expensive, so we provide a convenient
 // way to disable them during development.
-knurl = true;  // Knurling.
+knurl = false;  // Knurling.
 cut_grip = true;  // Grip cavity to receive `bottom`.
 
 module knurled_grip_exterior() {
@@ -328,4 +328,4 @@ module bulge_test() {
   }
 }
 
-grip_fit_preview();
+grip();
