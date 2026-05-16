@@ -1,31 +1,3 @@
-/* Printing this in PETG (Mk.3)
-
-Infill: 10% grid. Mk.2 used 11% (PLA). 10% is probably fine, especially
-  with the vaunted material properties of PETG.
-  
-Layer height: 0.15mm. Mk.2 used 0.2mm. Thinner layers will give better
-  bonding (which seems like it might be tougher with PETG). It also
-  enables finer adjustments to the finger fit.
-  
-Top and bottom: 5 layers of 100% plus 3 layers of 50%. Mk.2 (with
-  0.2mm layers) used 4 layers of 100% plus 2 layers of 50%.
-  
-Walls: 3 lines. Mk.2 used 2 lines and had some trouble with denting on
-  the outer edges.
-  
-Bottom layer inset: 0.2mm. I tested 0.3mm and it was too much for
-  the bulging parts. 0.15mm was not quite enough.
-  
-Head temp: 240 C (right in the middle of the stated range for my
-  PETG roll).
-
-Print speed: 40 mm/s (also right in the middle of the nominal range).
-*/
-
-// TODO: add one more layer of 50% fill to the ceiling. The first couple
-// of 50% layers struggle to bridge, so they probably don't provide as
-// much strength.
-
 use <chain.scad>
 use <finger.scad>
 
