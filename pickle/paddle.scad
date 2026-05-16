@@ -1,3 +1,5 @@
+// TODO: switch back to 0.2mm layers, with 0.4mm finger Z slack.
+
 use <chain.scad>
 use <finger.scad>
 
@@ -212,27 +214,42 @@ module grip_2d(flare=0, narrow=0, offs=0) {
 }
 
 module grip_exterior(offs=0) {
+  // Disable curvature.
+  radius = 200;
+  
+  main_column_start = 2.4;
+  main_column_end = grip_length-8;
+  
   for (a = [-1, 1])
-  scale([1, a])
+  scale([1, a, -1])
   chain() {
     // Bevelled bottom.
-    makelayer(0) grip_2d(offs=offs, flare=-1.2);
+    mklayer(grip_length, radius) grip_2d(offs=offs, flare=-1.2);
     
     // Main column.
-    makelayer(2.4) grip_2d(offs=offs);
-    makelayer(grip_length-8) grip_2d(offs=offs);
+    mklayer(grip_length-main_column_start, radius) grip_2d(offs=offs);
+    mklayer(grip_length-main_column_start*0.9-main_column_end*0.1, radius) grip_2d(offs=offs);
+    mklayer(grip_length-main_column_start*0.8-main_column_end*0.2, radius) grip_2d(offs=offs);
+    mklayer(grip_length-main_column_start*0.7-main_column_end*0.3, radius) grip_2d(offs=offs);
+    mklayer(grip_length-main_column_start*0.6-main_column_end*0.4, radius) grip_2d(offs=offs);
+    mklayer(grip_length-main_column_start*0.5-main_column_end*0.5, radius) grip_2d(offs=offs);
+    mklayer(grip_length-main_column_start*0.4-main_column_end*0.6, radius) grip_2d(offs=offs);
+    mklayer(grip_length-main_column_start*0.3-main_column_end*0.7, radius) grip_2d(offs=offs);
+    mklayer(grip_length-main_column_start*0.2-main_column_end*0.8, radius) grip_2d(offs=offs);
+    mklayer(grip_length-main_column_start*0.1-main_column_end*0.9, radius) grip_2d(offs=offs);
+    mklayer(grip_length-main_column_end, radius) grip_2d(offs=offs);
     
     // Shelf.
-    makelayer(grip_length-4) grip_2d(offs=offs, flare=3);
-    makelayer(grip_length-1.2) grip_2d(offs=offs, flare=3);
-    makelayer(grip_length-0.5) grip_2d(offs=offs, flare=2.2, narrow=0.6);
-    makelayer(grip_length) grip_2d(offs=offs, flare=-2, narrow=2);
+    mklayer(4, radius) grip_2d(offs=offs, flare=3);
+    mklayer(1.2, radius) grip_2d(offs=offs, flare=3);
+    mklayer(0.5, radius) grip_2d(offs=offs, flare=2.2, narrow=0.6);
+    mklayer(0, radius) grip_2d(offs=offs, flare=-2, narrow=2);
   }
 }
 
 // These steps are computationally expensive, so we provide a convenient
 // way to disable them during development.
-knurl = true;  // Knurling.
+knurl = false;  // Knurling.
 cut_grip = true;  // Grip cavity to receive `bottom`.
 
 module knurled_grip_exterior() {
@@ -261,18 +278,10 @@ module grip() {
     if (cut_grip)
     // Jiggle slightly to make the cavity.
     for (x = 0.1 * [-1, 1], y = 0.15 * [-1, 1])
-    translate([x, y])
+    translate([x, y, -grip_length])
     rotate([90, 0, 0])
     translate([0, length-top_length, -thickness/2])
     bottom_exterior(grip_cut=true);
-    
-    // Version marking.
-    translate([-7, -5, -0.01])
-    linear_extrude(1.5)
-    offset(delta=0.4, chamfer=true)
-    rotate([0, 0, 90])
-    scale([1, -1])
-    text("3", size=15);
   }
 }
 
@@ -281,6 +290,7 @@ module grip() {
 
 module grip_fit_preview() {
   color("green")
+  translate([0, 0, -grip_length])
   rotate([90, 0, 0])
   translate([0, length-top_length, -thickness/2])
   bottom_exterior();
@@ -288,30 +298,4 @@ module grip_fit_preview() {
   grip();
 }
 
-module finger_joint_test() {
-  intersection() {
-    translate([49, 0])
-    cube([56, 95, 100], center=true);
-    
-    translate([0, 15])
-    top();
-  }
-  intersection() {
-    translate([49, 0])
-    cube([68, 77, 100], center=true);
-    
-    translate([0, -15])
-    bottom();
-  }
-}
-
-module bulge_test() {
-  intersection() {
-    cube(90, center=true);
-
-    translate([0, length-top_length])
-    bottom();
-  }
-}
-
-grip();
+knurled_grip_exterior();
