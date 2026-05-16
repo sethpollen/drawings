@@ -18,11 +18,19 @@ handle_length = 86;
 handle_width = 35;
 grip_length = handle_length + 20;
 
-// Parameters for slicing into printable sections.
-top_length = 216 - finger_length()/2;
+bridge_length = length - fan_length - handle_length;
 
 // Round up to an even number of layers.
+//
+// TODO: the above constraint should not be needed.
 thickness = ceil(13 / (2*layer_height)) * 2*layer_height;
+
+// The curve should intersect the build plate at an angle of 45 degrees.
+bulge_r = thickness / sqrt(2);
+bulge_fn = 24;
+
+// Parameters for slicing into printable sections.
+top_length = 216 - finger_length()/2;
 
 // Grips.
 total_grip_depth = 25.2;
@@ -34,6 +42,60 @@ grip_floor = 5;
 tang_width_max = handle_width - 5;
 tang_width_min = tang_width_max * 0.65;
 
+module bulge_2d() {
+  translate([-bulge_r, 0])
+  intersection() {
+    circle($fn=bulge_fn, r=bulge_r);
+    
+    translate([0, -thickness/2])
+    square(thickness);
+  }
+}
+
+// A truncated sphere which can be hulled into the fan.
+module bulge_element() {
+  rotate_extrude($fn=bulge_fn, angle=90)
+  translate([bulge_r, 0])
+  bulge_2d();
+}
+
+module fan() {  
+  hull()
+  translate([0, -fan_length/2])
+  for (a = [-1, 1], b = [-1, 1])
+  scale([a, b])
+  translate(-fan_roundoff*[1,1] + [width, fan_length]/2)
+  rotate_extrude($fn=36, angle=90)
+  translate([fan_roundoff, 0])
+  bulge_2d();
+}
+
+module bridge_middle() {
+  for (a = [-1, 1])
+  scale([a, 1])
+  translate([handle_width/2 + 10, bulge_r - fan_length - bridge_length/2])
+  rotate([0, 0, -90])
+  bulge_element();
+}
+
+module bridge_bottom() {
+  for (a = [-1, 1])
+  scale([a, 1])
+  translate([handle_width/2, bulge_r - fan_length - bridge_length])
+  rotate([0, 0, -90])
+  bulge_element();
+}
+
+hull() {
+  fan();
+  bridge_middle();
+}
+hull() {
+  bridge_middle();
+  bridge_bottom();
+}
+
+// TODO: remove when not used
 module fan_2d(grip_cut=false) {
   translate([0, -fan_length/2])
   hull()
@@ -297,5 +359,3 @@ module grip_fit_preview() {
   
   grip();
 }
-
-knurled_grip_exterior();
