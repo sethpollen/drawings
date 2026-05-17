@@ -89,30 +89,52 @@ module bridge(i) {
   bulge_2d(intercept_angle);
 }
 
-module tang() {
+module tang_2d(width, z) {
   chamfer = thickness * 0.4;
-  
-  translate([0, -length])
-  rotate([-90, 0, 0])
-  hull()
-  for (width_z = [[tang_width_min, grip_floor], [tang_width_max, handle_length+5]])
-  translate([0, 0, width_z[1]])
-  linear_extrude(0.001)
+
+  translate([0, 0, z])
+  linear_extrude(1)
   offset(delta=chamfer, chamfer=true)
-  square([width_z[0], thickness] - 2*chamfer*[1,1], center=true);
+  square([width, thickness] - 2*chamfer*[1,1], center=true);
 }
 
-module whole() {
+module tang(extend=false) {
+  translate([0, -length])
+  rotate([-90, 0, 0]) {
+    hull()
+    for (width_z = [[tang_width_min, grip_floor], [tang_width_max, handle_length+5]])
+    tang_2d(width_z[0], width_z[1]);
+    
+    if (extend)
+    tang_2d(tang_width_min, grip_floor-0.2);
+  }
+}
+
+module whole(grip_cut=false) {
   translate([0, top_length, thickness/2]) {
-    chain() {
-      fan();
-      bridge(0);
-      bridge(1);
-      bridge(2);
-      bridge(3);
-      bridge(4);
+    if (grip_cut) {
+      // Just enough for the grip cut, scaled out to make a flat cut.
+      scale([5, 1, 1])
+      chain() {
+        bridge(1);
+        bridge(2);
+        bridge(3);
+        bridge(4);
+      }
+    } else {
+      // The full paddle.
+      chain() {
+        fan();
+        bridge(0);
+        bridge(1);
+        bridge(2);
+        bridge(3);
+        bridge(4);
+      }
     }
-    tang();
+
+    // For the grip cut, extend the tang to deepen the hole slightly.
+    tang(extend=grip_cut);
   }
 }
 
@@ -243,7 +265,7 @@ module grip_exterior(offs=0) {
 
 // These steps are computationally expensive, so we provide a convenient
 // way to disable them during development.
-knurl = false;  // Knurling.
+knurl = true;  // Knurling.
 
 module knurled_grip_exterior() {
   knurl_width = 2;
@@ -257,6 +279,7 @@ module knurled_grip_exterior() {
   intersection() {
     grip_exterior();
     
+    translate([0, 0, -grip_length])
     linear_extrude(grip_length, twist=400, convexity=knurl_count, $fn=150)
     for (a = [1:knurl_count])
     rotate([0, 0, a*360/knurl_count])
@@ -273,7 +296,7 @@ module grip() {
     translate([x, y, -grip_length])
     rotate([90, 0, 0])
     translate([0, length-top_length, -thickness/2])
-    whole();
+    whole(grip_cut=true);
   }
 }
 
@@ -281,7 +304,3 @@ module grip() {
 
 grip();
 
-    translate([0, 0, -grip_length])
-    rotate([90, 0, 0])
-    translate([0, length-top_length, -thickness/2])
-    whole();
