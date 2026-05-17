@@ -271,7 +271,7 @@ module grip() {
     
     if (cut_grip)
     // Jiggle slightly to make the cavity.
-    for (x = 0.1 * [-1, 1], y = 0.15 * [-1, 1])
+    for (x = 0.1 * [-1, 1], y = .15 * [-1, 1])
     translate([x, y, -grip_length])
     rotate([90, 0, 0])
     translate([0, length-top_length, -thickness/2])
@@ -281,4 +281,4 @@ module grip() {
 
 //////////////////////////////////////////////////////////////////////////
 
-top();
+bottom();

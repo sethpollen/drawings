@@ -62,7 +62,7 @@ module finger_2d(complement=false, truncate=0) {
   difference() {
     offset(delta=-xy_slack)
     union() {
-      finger_profile_2d(complement=complement, truncate=2.1+truncate);
+      finger_profile_2d(complement=complement, truncate=2.2+truncate);
       finger_base_2d();
     }
     finger_base_2d();
@@ -92,7 +92,7 @@ module extrude_fingers(thickness, cavity, complement, rot=false) {
     - (cavity ? 0 : 2*z_slack)
   )
   rotate([0, 0, rot ? 180 : 0]) {
-    truncate = (bevel_layers-a)*0.094;
+    truncate = (bevel_layers-a)*0.06;
     
     if (cavity) {
       finger_cavity_2d(complement=complement, truncate=truncate);
