@@ -3,6 +3,9 @@
 use <chain.scad>
 use <finger.scad>
 
+// TODO: clean out unused stuff
+
+// TODO: remove this; it just leads to trouble. Specify $fn every time.
 default_fn = 60;
 $fn = default_fn;
 
@@ -11,8 +14,8 @@ tab_height = 3*layer_height;
 
 // Parameters for the overall shape.
 width = 200;
-length = 359;
-fan_length = 220;
+length = 357;
+fan_length = 223;
 fan_roundoff = 69;
 handle_length = 86;
 handle_width = 35;
@@ -52,13 +55,6 @@ module bulge_2d() {
   }
 }
 
-// A truncated sphere which can be hulled into the fan.
-module bulge_element() {
-  rotate_extrude($fn=bulge_fn, angle=90)
-  translate([bulge_r, 0])
-  bulge_2d();
-}
-
 module fan() {  
   hull()
   translate([0, -fan_length/2])
@@ -70,30 +66,48 @@ module fan() {
   bulge_2d();
 }
 
-module bridge_middle() {
+// `i` should be in the range [0, 4).
+module bridge(i) {
+  x_frac = [0.28, 0.16, 0.081, 0.034][i];
+  y_frac = [0.38 , 0.6 , 0.8 , 1.0  ][i];
+
   for (a = [-1, 1])
   scale([a, 1])
-  translate([handle_width/2 + 10, bulge_r - fan_length - bridge_length/2])
+  translate([
+    handle_width/2 - bulge_r + x_frac*0.5*(width-handle_width),
+    bulge_r - fan_length - y_frac*bridge_length
+  ])
   rotate([0, 0, -90])
-  bulge_element();
+  rotate_extrude($fn=bulge_fn, angle=90)
+  translate([bulge_r, 0])
+  bulge_2d();
 }
 
-module bridge_bottom() {
-  for (a = [-1, 1])
-  scale([a, 1])
-  translate([handle_width/2, bulge_r - fan_length - bridge_length])
-  rotate([0, 0, -90])
-  bulge_element();
+module tang() {
+  chamfer = thickness * 0.4;
+  
+  translate([0, -length])
+  rotate([-90, 0, 0])
+  hull()
+  for (width_z = [[tang_width_min, grip_floor], [tang_width_max, handle_length+5]])
+  translate([0, 0, width_z[1]])
+  linear_extrude(0.001)
+  offset(delta=chamfer, chamfer=true)
+  square([width_z[0], thickness] - 2*chamfer*[1,1], center=true);
 }
 
-hull() {
-  fan();
-  bridge_middle();
+module whole() {
+  chain() {
+    fan();
+    bridge(0);
+    bridge(1);
+    bridge(2);
+    bridge(3);
+  }
+  tang();
 }
-hull() {
-  bridge_middle();
-  bridge_bottom();
-}
+
+whole();
 
 // TODO: remove when not used
 module fan_2d(grip_cut=false) {
