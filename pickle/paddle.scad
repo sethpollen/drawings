@@ -1,5 +1,3 @@
-// TODO: switch back to 0.2mm layers, with 0.4mm finger Z slack.
-
 use <chain.scad>
 use <finger.scad>
 
@@ -8,9 +6,9 @@ use <finger.scad>
 // TODO: remove this; it just leads to trouble. Specify $fn every time.
 default_fn = 60;
 $fn = default_fn;
+bulge_fn = 24;
 
-layer_height = 0.15;
-tab_height = 3*layer_height;
+tab_height = 0.6;
 
 // Parameters for the overall shape.
 width = 200;
@@ -19,18 +17,17 @@ fan_length = 223;
 fan_roundoff = 69;
 handle_length = 86;
 handle_width = 35;
+// TODO: make this '20' is own named constant. This is how much further up
+// the paddle the shelf is.
 grip_length = handle_length + 20;
 
+// TODO: refactor this to allow more intuitive adjustments
 bridge_length = length - fan_length - handle_length;
 
 // Round up to an even number of layers.
 //
-// TODO: the above constraint should not be needed.
-thickness = ceil(13 / (2*layer_height)) * 2*layer_height;
-
-// The curve should intersect the build plate at an angle of 45 degrees.
-bulge_r = thickness / sqrt(2);
-bulge_fn = 24;
+// TODO: This was the Mk. 3 thickness. Maybe even thicker?
+thickness = 13.2;
 
 // Parameters for slicing into printable sections.
 top_length = 216 - finger_length()/2;
@@ -45,10 +42,14 @@ grip_floor = 5;
 tang_width_max = handle_width - 5;
 tang_width_min = tang_width_max * 0.65;
 
-module bulge_2d() {
-  translate([-bulge_r, 0])
+function bulge_radius(intercept_angle) = thickness / (2*sin(intercept_angle));
+
+module bulge_2d(intercept_angle) {
+  r = bulge_radius(intercept_angle);
+  
+  translate([-r, 0])
   intersection() {
-    circle($fn=bulge_fn, r=bulge_r);
+    circle($fn=bulge_fn, r=r);
     
     translate([0, -thickness/2])
     square(thickness);
@@ -56,6 +57,8 @@ module bulge_2d() {
 }
 
 module fan() {  
+  intercept_angle = 45;
+
   hull()
   translate([0, -fan_length/2])
   for (a = [-1, 1], b = [-1, 1])
@@ -63,24 +66,27 @@ module fan() {
   translate(-fan_roundoff*[1,1] + [width, fan_length]/2)
   rotate_extrude($fn=36, angle=90)
   translate([fan_roundoff, 0])
-  bulge_2d();
+  bulge_2d(intercept_angle);
 }
 
-// `i` should be in the range [0, 4).
+// `i` should be in the range [0, 4].
 module bridge(i) {
-  x_frac = [0.28, 0.16, 0.081, 0.034][i];
-  y_frac = [0.38 , 0.6 , 0.8 , 1.0  ][i];
+  intercept_angle = 52;
+  x_frac = [0.46, 0.28, 0.16, 0.081, 0.034][i];
+  y_frac = [0.1 , 0.38 , 0.6 , 0.8 , 1.0  ][i];
+
+  r = bulge_radius(intercept_angle);
 
   for (a = [-1, 1])
   scale([a, 1])
   translate([
-    handle_width/2 - bulge_r + x_frac*0.5*(width-handle_width),
-    bulge_r - fan_length - y_frac*bridge_length
+    handle_width/2 - r + x_frac*0.5*(width-handle_width),
+    r - fan_length - y_frac*bridge_length
   ])
   rotate([0, 0, -90])
   rotate_extrude($fn=bulge_fn, angle=90)
-  translate([bulge_r, 0])
-  bulge_2d();
+  translate([r, 0])
+  bulge_2d(intercept_angle);
 }
 
 module tang() {
@@ -103,120 +109,27 @@ module whole() {
     bridge(1);
     bridge(2);
     bridge(3);
+    bridge(4);
   }
   tang();
-}
-
-whole();
-
-// TODO: remove when not used
-module fan_2d(grip_cut=false) {
-  translate([0, -fan_length/2])
-  hull()
-  for (a = [-1, 1], b = [-1, 1])
-  scale([a, b])
-  translate(-fan_roundoff*[1,1] + [width, fan_length]/2)
-  circle(r=fan_roundoff);
-}
-
-module whole_2d(grip_cut=false) {
-  // When making the grip_cut, we only care about the bottom part.
-  // Simplify the rest to cut computational cost.
-  neck_steps = grip_cut ? 1 : 7;
-  neck_factor = 2;
-  
-  translate([0, top_length]) {
-    for (i = [0:neck_steps])
-    hull() {
-      scale([(i+neck_steps)/(2*neck_steps), 1])
-      fan_2d(grip_cut=grip_cut,
-             $fn=(grip_cut ? 10 : default_fn));
-
-      // Top of the handle.
-      translate([0, handle_length - length + i*neck_factor])
-      square([handle_width + (grip_cut ? 20 : 0), 0.0001],
-             center=true);
-    }
-    
-    // Handle tang.
-    translate([0, -length])
-    hull() {      
-      translate([0, handle_length])
-      square([tang_width_max, 0.001], center=true);
- 
-      translate([0, grip_floor])
-      square([tang_width_min, 0.001], center=true);
-    }
-  }
 }
 
 // Chamfer the bottom edge at the finger joint. This avoids elephant
 // foot in a critical area.
 module joint_chamfer() {
   w = 0.49;
-  
   rotate([45, 0, 0])
   cube([250, w, w], center=true);
 }
 
-module top_2d(offs) {
-  intersection() {
-    offset(delta=offs)
-    whole_2d();
-    
-    translate([-125, 0])
-    square(250);
-  }
-}
-
-module bottom_2d(offs=0, grip_cut=false) {
-  difference() {
-    offset(delta=offs)
-    whole_2d(grip_cut=grip_cut);
-    
-    translate([-125, 0])
-    square(250);
-  }
-}
-
-// The edge has a circular bulge. The center of that circle is inset
-// by this distance from the edge:
-bulge_layers = thickness/(2*layer_height);
-top_bulge_r = thickness/(2*sin(45));
-bottom_bulge_r = thickness/(2*sin(50));
-
-// `z` is the height from the centerline.
-function bulge_offset(z, r) = sqrt(r^2 - z^2) - r;
-
-module top_exterior() {
-  translate([0, 0, thickness/2])
-  for (a = [-1, 1])
-  scale([1, 1, a])
-  for (i = [0:bulge_layers-1]) {
-    z = i*layer_height;
-    translate([0, 0, z])
-    linear_extrude(layer_height + 0.0001)
-    top_2d(offs=bulge_offset(z, top_bulge_r));
-  }
-}
-
-module bottom_exterior(grip_cut=false) {
-  translate([0, 0, thickness/2])
-  for (a = [-1, 1])
-  scale([1, 1, a])
-  for (i = [0:bulge_layers-1]) {
-    z = i*layer_height;
-
-    translate([0, 0, z])
-    linear_extrude(layer_height + 0.0001)
-    bottom_2d(offs=bulge_offset(z, bottom_bulge_r),
-              grip_cut=grip_cut);
-  }
-}
-
 module top() {
   difference() {
-    top_exterior();
+    translate([0, top_length, thickness/2])
+    whole();
+    
+    translate([0, -200])
+    cube([400, 400, 100], center=true);
+
     joint_chamfer();
 
     // Negative fingers.
@@ -233,13 +146,18 @@ module top() {
   for (a = [-1, 1])
   linear_extrude(tab_height)
   scale([a, 1])
-  translate([79, 0])
+  translate([82, 0])
   circle(d=8);
 }
 
 module bottom() {
   difference() {
-    bottom_exterior();
+    translate([0, top_length, thickness/2])
+    whole();
+    
+    translate([0, 200])
+    cube([400, 400, 100], center=true);
+
     joint_chamfer();
 
     // Negative fingers.
@@ -256,10 +174,10 @@ module bottom() {
     linear_extrude(tab_height)
     for (a = [-1, 1])
     scale([a, 1]) {
-      translate([78, 0])
+      translate([81, 0])
       circle(d=8);
     
-      translate([tang_width_min/2, top_length-length+grip_floor+2])
+      translate([tang_width_min/2-1, top_length-length+grip_floor])
       circle(d=10);
     }
   }
@@ -361,15 +279,6 @@ module grip() {
   }
 }
 
-////////////////////////////////////////////////////////////////////////
-// Preview and test packages.
+//////////////////////////////////////////////////////////////////////////
 
-module grip_fit_preview() {
-  color("green")
-  translate([0, 0, -grip_length])
-  rotate([90, 0, 0])
-  translate([0, length-top_length, -thickness/2])
-  bottom_exterior();
-  
-  grip();
-}
+top();

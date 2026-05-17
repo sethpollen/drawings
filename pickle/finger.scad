@@ -8,9 +8,9 @@ teeth_pairs = 6;
 
 xy_slack = 0.05;
 
-layer_height = 0.15;
+layer_height = 0.2;
 
-z_slack = 0.45;
+z_slack = 0.4;
 finger_floor = 2;
 
 module finger_profile_2d(complement=false, truncate=0) {
