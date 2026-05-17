@@ -72,7 +72,7 @@ module fan() {
 // `i` should be in the range [0, 4].
 module bridge(i) {
   intercept_angle = 52;
-  x_frac = [0.46, 0.28, 0.16, 0.081, 0.034][i];
+  x_frac = [0.46, 0.28, 0.16, 0.083, 0.027][i];
   y_frac = [0.1 , 0.38 , 0.6 , 0.8 , 1.0  ][i];
 
   r = bulge_radius(intercept_angle);
@@ -103,15 +103,17 @@ module tang() {
 }
 
 module whole() {
-  chain() {
-    fan();
-    bridge(0);
-    bridge(1);
-    bridge(2);
-    bridge(3);
-    bridge(4);
+  translate([0, top_length, thickness/2]) {
+    chain() {
+      fan();
+      bridge(0);
+      bridge(1);
+      bridge(2);
+      bridge(3);
+      bridge(4);
+    }
+    tang();
   }
-  tang();
 }
 
 // Chamfer the bottom edge at the finger joint. This avoids elephant
@@ -124,7 +126,6 @@ module joint_chamfer() {
 
 module top() {
   difference() {
-    translate([0, top_length, thickness/2])
     whole();
     
     translate([0, -200])
@@ -208,8 +209,7 @@ module grip_2d(flare=0, narrow=0, offs=0) {
 }
 
 module grip_exterior(offs=0) {
-  // Disable curvature.
-  radius = 200;
+  radius = 0;
   
   main_column_start = 2.4;
   main_column_end = grip_length-8;
@@ -244,7 +244,6 @@ module grip_exterior(offs=0) {
 // These steps are computationally expensive, so we provide a convenient
 // way to disable them during development.
 knurl = false;  // Knurling.
-cut_grip = true;  // Grip cavity to receive `bottom`.
 
 module knurled_grip_exterior() {
   knurl_width = 2;
@@ -269,16 +268,20 @@ module grip() {
   difference() {
     knurled_grip_exterior();
     
-    if (cut_grip)
     // Jiggle slightly to make the cavity.
     for (x = 0.1 * [-1, 1], y = .15 * [-1, 1])
     translate([x, y, -grip_length])
     rotate([90, 0, 0])
     translate([0, length-top_length, -thickness/2])
-    bottom_exterior(grip_cut=true);
+    whole();
   }
 }
 
 //////////////////////////////////////////////////////////////////////////
 
-bottom();
+grip();
+
+    translate([0, 0, -grip_length])
+    rotate([90, 0, 0])
+    translate([0, length-top_length, -thickness/2])
+    whole();
