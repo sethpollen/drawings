@@ -30,7 +30,7 @@ total_grip_depth = 25.2;
 grip_floor = 5;
 
 // The tang is slightly tapered, to make it fit easier.
-tang_width_max = handle_width - 5;
+tang_width_max = handle_width - 4;
 tang_width_min = tang_width_max * 0.65;
 
 function bulge_radius(intercept_angle) =
@@ -81,7 +81,7 @@ module bridge(i) {
   bulge_2d(intercept_angle);
 }
 
-module tang_2d(width, z) {
+module tang_piece(width, z) {
   chamfer = thickness * 0.4;
 
   translate([0, 0, z])
@@ -94,39 +94,57 @@ module tang(extend=false) {
   translate([0, -length])
   rotate([-90, 0, 0]) {
     hull()
-    for (width_z = [[tang_width_min, grip_floor], [tang_width_max, handle_length+5]])
-    tang_2d(width_z[0], width_z[1]);
+    for (width_z = [
+      [tang_width_min, grip_floor],
+      [tang_width_max, handle_length+5]
+    ])
+    tang_piece(width_z[0], width_z[1]);
     
+    // Slightly deepen the grip cut.
     if (extend)
-    tang_2d(tang_width_min, grip_floor-0.2);
+    tang_piece(tang_width_min, grip_floor-0.2);
   }
 }
 
 module whole(grip_cut=false) {
   translate([0, top_length, thickness/2]) {
-    if (grip_cut) {
-      // Just enough for the grip cut, scaled out to make a flat cut.
-      scale([5, 1, 1])
-      chain() {
-        bridge(1);
-        bridge(2);
-        bridge(3);
-        bridge(4);
+    difference() {
+      union() {
+        if (grip_cut) {
+          // Just enough for the grip cut, scaled out to make a flat cut.
+          scale([5, 1, 1])
+          chain() {
+            bridge(1);
+            bridge(2);
+            bridge(3);
+            bridge(4);
+          }
+        } else {
+          // The full paddle.
+          chain() {
+            fan();
+            bridge(0);
+            bridge(1);
+            bridge(2);
+            bridge(3);
+            bridge(4);
+          }
+        }
+
+        // For the grip cut, extend the tang to deepen the hole slightly.
+        tang(extend=grip_cut);
       }
-    } else {
-      // The full paddle.
-      chain() {
-        fan();
-        bridge(0);
-        bridge(1);
-        bridge(2);
-        bridge(3);
-        bridge(4);
+      
+      translate([0, -length])
+      rotate([-90, 0, 0]) {
+        // Slice to strengthen the grip against bending forces when
+        // hitting.
+        translate([0, 0, -10])
+        // Slightly deepen the grip cut.
+        linear_extrude(grip_length+10 - (grip_cut ? 1.2 : 0.8))
+        square([2.5, 30], center=true);
       }
     }
-
-    // For the grip cut, extend the tang to deepen the hole slightly.
-    tang(extend=grip_cut);
   }
 }
 
@@ -167,7 +185,6 @@ module top() {
 
 module bottom() {
   difference() {
-    translate([0, top_length, thickness/2])
     whole();
     
     translate([0, 200])
@@ -185,16 +202,15 @@ module bottom() {
                   cavity=false, complement=false);
   
   // Tabs.
-  color("orange") {
-    linear_extrude(tab_height)
-    for (a = [-1, 1])
-    scale([a, 1]) {
-      translate([81, 0])
-      circle(d=8);
-    
-      translate([tang_width_min/2-1, top_length-length+grip_floor])
-      circle(d=10);
-    }
+  color("orange")
+  linear_extrude(tab_height)
+  for (a = [-1, 1])
+  scale([a, 1]) {
+    translate([81, 0])
+    circle(d=8);
+  
+    translate([6.3, top_length-length+grip_floor])
+    circle(d=10);
   }
 }
 
@@ -267,5 +283,5 @@ module grip() {
 
 //////////////////////////////////////////////////////////////////////////
 
-grip();
+bottom();
 
