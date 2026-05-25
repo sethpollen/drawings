@@ -1,15 +1,6 @@
 use <chain.scad>
 use <finger.scad>
 
-// TODO: clean out unused stuff
-
-// TODO: remove this; it just leads to trouble. Specify $fn every time.
-default_fn = 60;
-$fn = default_fn;
-bulge_fn = 24;
-
-tab_height = 0.6;
-
 // Parameters for the overall shape.
 width = 200;
 length = 357;
@@ -17,17 +8,17 @@ fan_length = 223;
 fan_roundoff = 69;
 handle_length = 86;
 handle_width = 35;
-// TODO: make this '20' is own named constant. This is how much further up
-// the paddle the shelf is.
 grip_length = handle_length + 20;
 
-// TODO: refactor this to allow more intuitive adjustments
 bridge_length = length - fan_length - handle_length;
 
 // Round up to an even number of layers.
 //
 // TODO: This was the Mk. 3 thickness. Maybe even thicker?
 thickness = 13.2;
+
+bulge_fn = 24;
+tab_height = 0.6;
 
 // Parameters for slicing into printable sections.
 top_length = 216 - finger_length()/2;
@@ -42,7 +33,8 @@ grip_floor = 5;
 tang_width_max = handle_width - 5;
 tang_width_min = tang_width_max * 0.65;
 
-function bulge_radius(intercept_angle) = thickness / (2*sin(intercept_angle));
+function bulge_radius(intercept_angle) =
+  thickness / (2 * sin(intercept_angle));
 
 module bulge_2d(intercept_angle) {
   r = bulge_radius(intercept_angle);
@@ -207,17 +199,13 @@ module bottom() {
 }
 
 // Only produces half of the profile.
-module grip_2d(flare=0, narrow=0, offs=0) {
+module grip_2d(flare=0, narrow=0) {
   flats = thickness*0.8;
   width = handle_width;
   
-  offset(delta=offs)
   scale([(width-narrow)/width, 1]) {
-    // Back it into the negative y-coordinate so that the
-    // `offset` above doesn't cause us to detach from the
-    // x-axis.
-    translate([-width/2, -1])
-    square([width, flats/2 + flare + 1]);
+    translate([-width/2, 0])
+    square([width, flats/2 + flare]);
 
     translate([0, flats/2 + flare])
     scale([width/2, (total_grip_depth-flats)/2])
@@ -230,7 +218,7 @@ module grip_2d(flare=0, narrow=0, offs=0) {
   }
 }
 
-module grip_exterior(offs=0) {
+module grip_exterior() {
   radius = 0;
   
   main_column_start = 2.4;
@@ -240,26 +228,26 @@ module grip_exterior(offs=0) {
   scale([1, a, -1])
   chain() {
     // Bevelled bottom.
-    mklayer(grip_length, radius) grip_2d(offs=offs, flare=-1.2);
+    mklayer(grip_length, radius) grip_2d(flare=-1.2);
     
     // Main column.
-    mklayer(grip_length-main_column_start, radius) grip_2d(offs=offs);
-    mklayer(grip_length-main_column_start*0.9-main_column_end*0.1, radius) grip_2d(offs=offs);
-    mklayer(grip_length-main_column_start*0.8-main_column_end*0.2, radius) grip_2d(offs=offs);
-    mklayer(grip_length-main_column_start*0.7-main_column_end*0.3, radius) grip_2d(offs=offs);
-    mklayer(grip_length-main_column_start*0.6-main_column_end*0.4, radius) grip_2d(offs=offs);
-    mklayer(grip_length-main_column_start*0.5-main_column_end*0.5, radius) grip_2d(offs=offs);
-    mklayer(grip_length-main_column_start*0.4-main_column_end*0.6, radius) grip_2d(offs=offs);
-    mklayer(grip_length-main_column_start*0.3-main_column_end*0.7, radius) grip_2d(offs=offs);
-    mklayer(grip_length-main_column_start*0.2-main_column_end*0.8, radius) grip_2d(offs=offs);
-    mklayer(grip_length-main_column_start*0.1-main_column_end*0.9, radius) grip_2d(offs=offs);
-    mklayer(grip_length-main_column_end, radius) grip_2d(offs=offs);
+    mklayer(grip_length-main_column_start, radius) grip_2d();
+    mklayer(grip_length-main_column_start*0.9-main_column_end*0.1, radius) grip_2d();
+    mklayer(grip_length-main_column_start*0.8-main_column_end*0.2, radius) grip_2d();
+    mklayer(grip_length-main_column_start*0.7-main_column_end*0.3, radius) grip_2d();
+    mklayer(grip_length-main_column_start*0.6-main_column_end*0.4, radius) grip_2d();
+    mklayer(grip_length-main_column_start*0.5-main_column_end*0.5, radius) grip_2d();
+    mklayer(grip_length-main_column_start*0.4-main_column_end*0.6, radius) grip_2d();
+    mklayer(grip_length-main_column_start*0.3-main_column_end*0.7, radius) grip_2d();
+    mklayer(grip_length-main_column_start*0.2-main_column_end*0.8, radius) grip_2d();
+    mklayer(grip_length-main_column_start*0.1-main_column_end*0.9, radius) grip_2d();
+    mklayer(grip_length-main_column_end, radius) grip_2d();
     
     // Shelf.
-    mklayer(4, radius) grip_2d(offs=offs, flare=3);
-    mklayer(1.2, radius) grip_2d(offs=offs, flare=3);
-    mklayer(0.5, radius) grip_2d(offs=offs, flare=2.2, narrow=0.6);
-    mklayer(0, radius) grip_2d(offs=offs, flare=-2, narrow=2);
+    mklayer(4, radius) grip_2d(flare=3);
+    mklayer(1.2, radius) grip_2d(flare=3);
+    mklayer(0.5, radius) grip_2d(flare=2.2, narrow=0.6);
+    mklayer(0, radius) grip_2d(flare=-2, narrow=2);
   }
 }
 
