@@ -263,33 +263,10 @@ module grip_exterior(offs=0) {
   }
 }
 
-// These steps are computationally expensive, so we provide a convenient
-// way to disable them during development.
-knurl = true;  // Knurling.
-
-module knurled_grip_exterior() {
-  knurl_width = 2;
-  knurl_count = 20;
-  knurl_depth = 0.25;
-  
-  grip_exterior(offs=-knurl_depth);
-
-  if(knurl)
-  color("orange")
-  intersection() {
-    grip_exterior();
-    
-    translate([0, 0, -grip_length])
-    linear_extrude(grip_length, twist=400, convexity=knurl_count, $fn=150)
-    for (a = [1:knurl_count])
-    rotate([0, 0, a*360/knurl_count])
-    square([knurl_width, 50], center=true);
-  }
-}
 
 module grip() {
   difference() {
-    knurled_grip_exterior();
+    grip_exterior();
     
     // Jiggle slightly to make the cavity.
     for (x = 0.1 * [-1, 1], y = .15 * [-1, 1])
