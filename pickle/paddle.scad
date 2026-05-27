@@ -215,10 +215,11 @@ module bottom() {
 }
 
 // Only produces half of the profile.
-module grip_2d(flare=0, narrow=0) {
+module grip_2d(flare=0, narrow=0, offs=0) {
   flats = thickness*0.8;
   width = handle_width;
   
+  offset(delta=offs)
   scale([(width-narrow)/width, 1]) {
     translate([-width/2, 0])
     square([width, flats/2 + flare]);
@@ -231,6 +232,22 @@ module grip_2d(flare=0, narrow=0) {
       translate([0, 2])
       square(4, center=true);
     }
+  }
+}
+
+knurl_depth = 0.25;
+knurl_peak = 2;
+knurl_slope = 0.4;
+knurl_valley = 0.8;
+knurl_segment_length = knurl_slope + knurl_peak + knurl_slope + knurl_valley;
+
+module knurl_segment() {  
+  chain() {
+    mklayer(0) grip_2d();
+    mklayer(knurl_slope) grip_2d(offs=knurl_depth);
+    mklayer(knurl_slope + knurl_peak) grip_2d(offs=knurl_depth);
+    mklayer(knurl_slope + knurl_peak + knurl_slope) grip_2d();
+    mklayer(knurl_slope + knurl_peak + knurl_slope + knurl_valley) grip_2d();
   }
 }
 
@@ -248,15 +265,6 @@ module grip_exterior() {
     
     // Main column.
     mklayer(grip_length-main_column_start, radius) grip_2d();
-    mklayer(grip_length-main_column_start*0.9-main_column_end*0.1, radius) grip_2d();
-    mklayer(grip_length-main_column_start*0.8-main_column_end*0.2, radius) grip_2d();
-    mklayer(grip_length-main_column_start*0.7-main_column_end*0.3, radius) grip_2d();
-    mklayer(grip_length-main_column_start*0.6-main_column_end*0.4, radius) grip_2d();
-    mklayer(grip_length-main_column_start*0.5-main_column_end*0.5, radius) grip_2d();
-    mklayer(grip_length-main_column_start*0.4-main_column_end*0.6, radius) grip_2d();
-    mklayer(grip_length-main_column_start*0.3-main_column_end*0.7, radius) grip_2d();
-    mklayer(grip_length-main_column_start*0.2-main_column_end*0.8, radius) grip_2d();
-    mklayer(grip_length-main_column_start*0.1-main_column_end*0.9, radius) grip_2d();
     mklayer(grip_length-main_column_end, radius) grip_2d();
     
     // Shelf.
@@ -266,7 +274,6 @@ module grip_exterior() {
     mklayer(0, radius) grip_2d(flare=-2, narrow=2);
   }
 }
-
 
 module grip() {
   difference() {
@@ -283,5 +290,6 @@ module grip() {
 
 //////////////////////////////////////////////////////////////////////////
 
-bottom();
-
+for (a = [0:10])
+translate([0, 0, a*knurl_segment_length])
+knurl_segment();
