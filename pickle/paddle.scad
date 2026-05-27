@@ -235,19 +235,22 @@ module grip_2d(flare=0, narrow=0, offs=0) {
   }
 }
 
-knurl_depth = 0.25;
+knurl_depth = 0.3;
 knurl_peak = 2;
 knurl_slope = 0.4;
 knurl_valley = 0.8;
 knurl_segment_length = knurl_slope + knurl_peak + knurl_slope + knurl_valley;
 
-module knurl_segment() {  
+module knurl_segment(i) {
+  z = i*knurl_segment_length;
+  bend_radius = 140;
+  
   chain() {
-    mklayer(0) grip_2d();
-    mklayer(knurl_slope) grip_2d(offs=knurl_depth);
-    mklayer(knurl_slope + knurl_peak) grip_2d(offs=knurl_depth);
-    mklayer(knurl_slope + knurl_peak + knurl_slope) grip_2d();
-    mklayer(knurl_slope + knurl_peak + knurl_slope + knurl_valley) grip_2d();
+    mklayer(z, bend_radius) grip_2d();
+    mklayer(z + knurl_slope, bend_radius) grip_2d(offs=knurl_depth);
+    mklayer(z + knurl_slope + knurl_peak, bend_radius) grip_2d(offs=knurl_depth);
+    mklayer(z + knurl_slope + knurl_peak + knurl_slope, bend_radius) grip_2d();
+    mklayer(z + knurl_slope + knurl_peak + knurl_slope + knurl_valley, bend_radius) grip_2d();
   }
 }
 
@@ -290,6 +293,5 @@ module grip() {
 
 //////////////////////////////////////////////////////////////////////////
 
-for (a = [0:10])
-translate([0, 0, a*knurl_segment_length])
-knurl_segment();
+for (a = [0:33])
+knurl_segment(a);
