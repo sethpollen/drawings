@@ -12,12 +12,8 @@ grip_length = handle_length + 20;
 
 bridge_length = length - fan_length - handle_length;
 
-// Round up to an even number of layers.
-//
-// TODO: This was the Mk. 3 thickness. Maybe even thicker?
+// Make a wedge shape.
 thickness = 20;
-
-// TODO: work on this
 end_thickness = 10;
 
 // Slightly reduce the thickness we claim when building the fingers, to
@@ -32,14 +28,14 @@ tab_height = 0.6;
 top_length = 216 - finger_length()/2;
 
 // Grips.
-total_grip_depth = 25.2;
+total_grip_depth = 26;
 // How much of the total length is just the grip, with no intrustion
 // from the `bottom` piece.
 grip_floor = 5;
 
 // The tang is slightly tapered, to make it fit easier.
 tang_width_max = handle_width - 4;
-tang_width_min = tang_width_max * 0.65;
+tang_width_min = tang_width_max * 0.6;
 
 function bulge_radius(intercept_angle) =
   thickness / (2 * sin(intercept_angle));
@@ -118,6 +114,29 @@ module tang(extend=false) {
   }
 }
 
+module tang_slot_straight(grip_cut=false) {
+  translate([0, -length])
+  rotate([-90, 0, 0]) {
+    // Slice to strengthen the grip against bending forces when
+    // hitting.
+    translate([0, 0, -10])
+    // Slightly deepen the grip cut.
+    linear_extrude(grip_length+10 - (grip_cut ? 1.2 : 0.8))
+    square([2.5, 30], center=true);
+  }
+}
+
+// TODO: don't start the bend until you are actually into the tang.
+module tang_slot_bent(grip_cut=false) {
+  bend_radius = 180;
+  tang_slot_length = grip_length + 10 - (grip_cut ? 1.2 : 0.8);
+
+  translate([bend_radius, tang_slot_length-length-10])
+  rotate_extrude(angle=360*tang_slot_length/(2*PI*bend_radius), $fn=200)
+  translate([-bend_radius, 0])
+  square([2.5, 30], center=true);
+}
+
 module whole(grip_cut=false) {
   translate([0, top_length, thickness/2]) {
     difference() {
@@ -147,15 +166,7 @@ module whole(grip_cut=false) {
         tang(extend=grip_cut);
       }
       
-      translate([0, -length])
-      rotate([-90, 0, 0]) {
-        // Slice to strengthen the grip against bending forces when
-        // hitting.
-        translate([0, 0, -10])
-        // Slightly deepen the grip cut.
-        linear_extrude(grip_length+10 - (grip_cut ? 1.2 : 0.8))
-        square([2.5, 30], center=true);
-      }
+      tang_slot_bent(grip_cut=grip_cut);
     
       // Cut the wedge shape.
       for (a = [-1, 1])
@@ -300,10 +311,10 @@ module grip_exterior() {
     mklayer(grip_length-main_column_end, radius) grip_2d();
     
     // Shelf.
-    mklayer(4, radius) grip_2d(flare=3);
-    mklayer(1.2, radius) grip_2d(flare=3);
-    mklayer(0.5, radius) grip_2d(flare=2.2, narrow=0.6);
-    mklayer(0, radius) grip_2d(flare=-2, narrow=2);
+    mklayer(4, radius) grip_2d(flare=5.4);
+    mklayer(1.2, radius) grip_2d(flare=5.4);
+    mklayer(0.5, radius) grip_2d(flare=4.6, narrow=0.6);
+    mklayer(0, radius) grip_2d(flare=-1, narrow=2);
   }
 }
 
@@ -322,4 +333,4 @@ module grip() {
 
 //////////////////////////////////////////////////////////////////////////
 
-top();
+whole();
