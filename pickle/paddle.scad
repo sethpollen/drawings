@@ -15,7 +15,10 @@ bridge_length = length - fan_length - handle_length;
 // Round up to an even number of layers.
 //
 // TODO: This was the Mk. 3 thickness. Maybe even thicker?
-thickness = 13.2;
+thickness = 20;
+
+// TODO: work on this
+end_thickness = 10;
 
 bulge_fn = 24;
 tab_height = 0.6;
@@ -48,13 +51,17 @@ module bulge_2d(intercept_angle) {
   }
 }
 
-module fan() {  
+module fan() {
   intercept_angle = 45;
-
+  
   hull()
   translate([0, -fan_length/2])
   for (a = [-1, 1], b = [-1, 1])
-  scale([a, b])
+  scale([
+    a, b,
+    // Adjust the bulge at the tip of the wedge.
+    1-(b+1)*0.15
+  ])
   translate(-fan_roundoff*[1,1] + [width, fan_length]/2)
   rotate_extrude($fn=36, angle=90)
   translate([fan_roundoff, 0])
@@ -143,6 +150,19 @@ module whole(grip_cut=false) {
         // Slightly deepen the grip cut.
         linear_extrude(grip_length+10 - (grip_cut ? 1.2 : 0.8))
         square([2.5, 30], center=true);
+      }
+    
+      // Cut the wedge shape.
+      for (a = [-1, 1])
+      scale([1, 1, a])
+      hull() {
+        translate([0, 0, end_thickness/2])
+        linear_extrude(50)
+        square([300, 0.01], center=true);
+
+        translate([0, grip_length-length, thickness/2])
+        linear_extrude(50)
+        square([300, 0.01], center=true);
       }
     }
   }
@@ -293,5 +313,4 @@ module grip() {
 
 //////////////////////////////////////////////////////////////////////////
 
-for (a = [0:33])
-knurl_segment(a);
+whole();
