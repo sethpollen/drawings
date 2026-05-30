@@ -20,6 +20,11 @@ thickness = 20;
 // TODO: work on this
 end_thickness = 10;
 
+// Slightly reduce the thickness we claim when building the fingers, to
+// account for the wedge.
+thickness_for_fingers_adjustment = 0.8;
+thickness_for_fingers = thickness - thickness_for_fingers_adjustment;
+
 bulge_fn = 24;
 tab_height = 0.6;
 
@@ -186,12 +191,14 @@ module top() {
     joint_chamfer();
 
     // Negative fingers.
-    extrude_fingers(thickness=thickness,
+    translate([0, 0, thickness_for_fingers_adjustment/2])
+    extrude_fingers(thickness=thickness_for_fingers,
                     cavity=true);
   }
   
   // Positive fingers.
-  extrude_fingers(thickness=thickness,
+  translate([0, 0, thickness_for_fingers_adjustment/2])
+  extrude_fingers(thickness=thickness_for_fingers,
                   cavity=false, complement=true, rot=true);
   
   // Tabs.
@@ -213,12 +220,14 @@ module bottom() {
     joint_chamfer();
 
     // Negative fingers.
-    extrude_fingers(thickness=thickness,
+    translate([0, 0, thickness_for_fingers_adjustment/2])
+    extrude_fingers(thickness=thickness_for_fingers,
                     cavity=true, complement=true, rot=true);
   }
   
   // Positive fingers.
-  extrude_fingers(thickness=thickness,
+  translate([0, 0, thickness_for_fingers_adjustment/2])
+  extrude_fingers(thickness=thickness_for_fingers,
                   cavity=false, complement=false);
   
   // Tabs.
@@ -313,4 +322,4 @@ module grip() {
 
 //////////////////////////////////////////////////////////////////////////
 
-whole();
+top();
