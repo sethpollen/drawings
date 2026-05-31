@@ -16,16 +16,6 @@ bridge_length = length - fan_length - handle_length;
 thickness = 20;
 end_thickness = 10;
 
-<<<<<<< HEAD
-// Slightly reduce the thickness we claim when building the fingers, to
-// account for the wedge.
-//
-// TODO: just factor this into finger_floor instead.
-thickness_for_fingers_adjustment = 0.8;
-thickness_for_fingers = thickness - thickness_for_fingers_adjustment;
-
-=======
->>>>>>> faaff74 ()
 bulge_fn = 24;
 tab_height = 0.6;
 
@@ -334,8 +324,4 @@ module grip() {
 
 //////////////////////////////////////////////////////////////////////////
 
-<<<<<<< HEAD
-top();
-=======
 bottom();
->>>>>>> faaff74 ()
