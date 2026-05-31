@@ -13,7 +13,7 @@ grip_length = handle_length + 20;
 bridge_length = length - fan_length - handle_length;
 
 // Make a wedge shape.
-thickness = 20;
+thickness = 21;
 end_thickness = 10;
 
 bulge_fn = 24;
@@ -27,10 +27,6 @@ total_grip_depth = 26;
 // How much of the total length is just the grip, with no intrustion
 // from the `bottom` piece.
 grip_floor = 5;
-
-// The tang is slightly tapered, to make it fit easier.
-tang_width_max = handle_width - 4;
-tang_width_min = tang_width_max * 0.6;
 
 function bulge_radius(intercept_angle) =
   thickness / (2 * sin(intercept_angle));
@@ -84,85 +80,18 @@ module bridge(i) {
   bulge_2d(intercept_angle);
 }
 
-module tang_piece(width, z) {
-  chamfer = thickness * 0.4;
-
-  translate([0, 0, z])
-  linear_extrude(1)
-  offset(delta=chamfer, chamfer=true)
-  square([width, thickness] - 2*chamfer*[1,1], center=true);
-}
-
-module tang(extend=false) {
-  translate([0, -length])
-  rotate([-90, 0, 0]) {
-    hull()
-    for (width_z = [
-      [tang_width_min, grip_floor],
-      [tang_width_max, handle_length+5]
-    ])
-    tang_piece(width_z[0], width_z[1]);
-    
-    // Slightly deepen the grip cut.
-    if (extend)
-    tang_piece(tang_width_min, grip_floor-0.2);
-  }
-}
-
-module tang_slot_straight(grip_cut=false) {
-  translate([0, -length])
-  rotate([-90, 0, 0]) {
-    // Slice to strengthen the grip against bending forces when
-    // hitting.
-    translate([0, 0, -10])
-    // Slightly deepen the grip cut.
-    linear_extrude(grip_length+10 - (grip_cut ? 1.2 : 0.8))
-    square([2.5, 30], center=true);
-  }
-}
-
-// TODO: don't start the bend until you are actually into the tang.
-module tang_slot_bent(grip_cut=false) {
-  bend_radius = 180;
-  tang_slot_length = grip_length + 10 - (grip_cut ? 1.2 : 0.8);
-
-  translate([bend_radius, tang_slot_length-length-10])
-  rotate_extrude(angle=360*tang_slot_length/(2*PI*bend_radius), $fn=200)
-  translate([-bend_radius, 0])
-  square([2.5, 30], center=true);
-}
-
-module whole(grip_cut=false) {
+module whole() {
   translate([0, top_length, thickness/2]) {
     difference() {
-      union() {
-        if (grip_cut) {
-          // Just enough for the grip cut, scaled out to make a flat cut.
-          scale([5, 1, 1])
-          chain() {
-            bridge(1);
-            bridge(2);
-            bridge(3);
-            bridge(4);
-          }
-        } else {
-          // The full paddle.
-          chain() {
-            fan();
-            bridge(0);
-            bridge(1);
-            bridge(2);
-            bridge(3);
-            bridge(4);
-          }
-        }
+      chain() {
+        fan();
+        bridge(0);
+        bridge(1);
+        bridge(2);
+        bridge(3);
+        bridge(4);
+      }      
 
-        // For the grip cut, extend the tang to deepen the hole slightly.
-        tang(extend=grip_cut);
-      }
-      
-      tang_slot_bent(grip_cut=grip_cut);
-    
       // Cut the wedge shape.
       for (a = [-1, 1])
       scale([1, 1, a])
@@ -236,13 +165,9 @@ module bottom() {
   color("orange")
   linear_extrude(tab_height)
   for (a = [-1, 1])
-  scale([a, 1]) {
-    translate([81, 0])
-    circle(d=8);
-  
-    translate([6.3, top_length-length+grip_floor])
-    circle(d=10);
-  }
+  scale([a, 1])
+  translate([81, 0])
+  circle(d=8);
 }
 
 // Only produces half of the profile.
@@ -272,10 +197,11 @@ knurl_slope = 0.4;
 knurl_valley = 0.8;
 knurl_segment_length = knurl_slope + knurl_peak + knurl_slope + knurl_valley;
 
-module knurl_segment(i) {
+module knurl_segment(bend_radius, i) {
   z = i*knurl_segment_length;
-  bend_radius = 140;
   
+  for (a = [-1, 1])
+  scale([1, a, -1])
   chain() {
     mklayer(z, bend_radius) grip_2d();
     mklayer(z + knurl_slope, bend_radius) grip_2d(offs=knurl_depth);
@@ -285,43 +211,35 @@ module knurl_segment(i) {
   }
 }
 
-module grip_exterior() {
-  radius = 0;
-  
-  main_column_start = 2.4;
-  main_column_end = grip_length-8;
-  
+module grip() {
+  shelf_height = 8;
+
+  // Shelf.
   for (a = [-1, 1])
   scale([1, a, -1])
   chain() {
-    // Bevelled bottom.
-    mklayer(grip_length, radius) grip_2d(flare=-1.2);
-    
-    // Main column.
-    mklayer(grip_length-main_column_start, radius) grip_2d();
-    mklayer(grip_length-main_column_end, radius) grip_2d();
-    
-    // Shelf.
-    mklayer(4, radius) grip_2d(flare=5.4);
-    mklayer(1.2, radius) grip_2d(flare=5.4);
-    mklayer(0.5, radius) grip_2d(flare=4.6, narrow=0.6);
-    mklayer(0, radius) grip_2d(flare=-1, narrow=2);
+    mklayer(shelf_height) grip_2d();
+    mklayer(4) grip_2d(flare=5.4);
+    mklayer(1.2) grip_2d(flare=5.4);
+    mklayer(0.5) grip_2d(flare=4.6, narrow=0.6);
+    mklayer(0) grip_2d(flare=-1, narrow=2);
   }
+  
+  bend_radius = 130;
+  
+  // Curved part of grip.
+  translate([0, 0, knurl_segment_length - shelf_height])
+  for (i = [0:33])
+  knurl_segment(bend_radius, i);
 }
 
-module grip() {
-  difference() {
-    grip_exterior();
-    
-    // Jiggle slightly to make the cavity.
-    for (x = 0.1 * [-1, 1], y = .15 * [-1, 1])
-    translate([x, y, -grip_length])
-    rotate([90, 0, 0])
-    translate([0, length-top_length, -thickness/2])
-    whole(grip_cut=true);
-  }
-}
 
 //////////////////////////////////////////////////////////////////////////
 
+top();
 bottom();
+
+translate([0, top_length - length + grip_length, thickness/2])
+rotate([-90, 0, 0])
+grip();
+
