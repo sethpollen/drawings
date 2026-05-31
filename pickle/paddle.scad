@@ -14,7 +14,7 @@ grip_length = handle_length + 20;
 bridge_length = length - fan_length - handle_length;
 
 // Make a wedge shape.
-thickness = 21;
+thickness = 20;
 end_thickness = 10;
 
 bulge_fn = 24;
@@ -178,19 +178,26 @@ module bottom_impl(part=0) {
     if (part == 0)
     extrude_fingers(thickness=thickness,
                     cavity=false, complement=false);
-    
-    translate([0, top_length - length + grip_length, thickness/2])
-    rotate([-90, 0, 0]) {
-      grip();
-    }
   }
+  
+  // The grip is not inside the "unwedge", so it is not aligned with the center
+  // axis of the paddle. I think that is OK. The grip is aligned with the
+  // "backhand" surface of the paddle.
+  translate([0, 0, thickness/2 + 1])
+  rotate([-90, 0, 0])
+  grip();
+
 
   // TODO: tabs?
 }
 
-// TODO: move this down, away from the top.
+// TODO: actually there is no part 1. For now I will just print part 0 and see how
+// it works. It yields a slightly weird grip shape, but it is very simple. It avoids
+// any joints in the critical area. It avoids the added weight of another glue
+// joint. And it avoids any rough, supported surfaces on the grip (which might
+// not feel good in the hand).
 module bottom_part_cut() {
-  translate([0, -200, 5-200])
+  translate([0, -200, -200])
   cube(400, center=true);
 }
 
@@ -214,7 +221,7 @@ module bottom(part=0) {
 
 // Only produces half of the profile.
 module grip_2d(flare=0, narrow=0, offs=0) {
-  flats = thickness*0.63;
+  flats = thickness*0.5;
   width = handle_width;
   
   offset(delta=offs)
@@ -283,5 +290,6 @@ module grip() {
 
 //////////////////////////////////////////////////////////////////////////
 
-bottom();
+scale([1, 1, -1])
+bottom(0);
 
