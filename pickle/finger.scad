@@ -41,7 +41,7 @@ module finger_profile_2d(complement=false, truncate=0) {
       ]);
       
       // Truncation.
-      translate([-universe, finger_length()/2 + truncate])
+      translate([-universe, finger_length()/2 - truncate])
       square([2*universe, universe]);
     }
   }
@@ -69,7 +69,7 @@ module finger_cavity_2d(complement=false, truncate=0) {
 }
 
 module extrude_fingers(thickness, cavity, complement, rot=false) {  
-  flat_tip = 2;
+  flat_tip = 7;
   bevel_height = (thickness - 2*finger_floor - 2*z_slack - flat_tip)/2;
   bevel_layers = floor(bevel_height / layer_height);
   
