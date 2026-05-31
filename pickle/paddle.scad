@@ -172,13 +172,15 @@ module bottom() {
 
 // Only produces half of the profile.
 module grip_2d(flare=0, narrow=0, offs=0) {
-  flats = thickness*0.8;
+  flats = thickness*0.63;
   width = handle_width;
   
   offset(delta=offs)
   scale([(width-narrow)/width, 1]) {
-    translate([-width/2, 0])
-    square([width, flats/2 + flare]);
+    // Back it up by 2mm so the chamfer offset below doesn't create a
+    // groove down the middle.
+    translate([-width/2, -2])
+    square([width, flats/2 + flare + 2]);
 
     translate([0, flats/2 + flare])
     scale([width/2, (total_grip_depth-flats)/2])
@@ -197,7 +199,7 @@ knurl_slope = 0.4;
 knurl_valley = 0.8;
 knurl_segment_length = knurl_slope + knurl_peak + knurl_slope + knurl_valley;
 
-module knurl_segment(bend_radius, i) {
+module knurl_segment(bend_radius, i, chamfer=false) {
   z = i*knurl_segment_length;
   
   for (a = [-1, 1])
@@ -207,7 +209,10 @@ module knurl_segment(bend_radius, i) {
     mklayer(z + knurl_slope, bend_radius) grip_2d(offs=knurl_depth);
     mklayer(z + knurl_slope + knurl_peak, bend_radius) grip_2d(offs=knurl_depth);
     mklayer(z + knurl_slope + knurl_peak + knurl_slope, bend_radius) grip_2d();
-    mklayer(z + knurl_slope + knurl_peak + knurl_slope + knurl_valley, bend_radius) grip_2d();
+    
+    mklayer(z + knurl_slope + knurl_peak + knurl_slope + knurl_valley, bend_radius)
+    offset(delta=(chamfer ? -1 : 0))
+    grip_2d();
   }
 }
 
@@ -226,11 +231,12 @@ module grip() {
   }
   
   bend_radius = 130;
+  bend_segments = 34;
   
   // Curved part of grip.
   translate([0, 0, knurl_segment_length - shelf_height])
-  for (i = [0:33])
-  knurl_segment(bend_radius, i);
+  for (i = [0:bend_segments-1])
+  knurl_segment(bend_radius, i, chamfer=(i == bend_segments-1));
 }
 
 
