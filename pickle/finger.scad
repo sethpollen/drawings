@@ -11,7 +11,7 @@ xy_slack = 0.05;
 layer_height = 0.2;
 
 z_slack = 0.4;
-finger_floor = 2.4;
+finger_floor = 2.6;
 
 module finger_profile_2d(complement=false, truncate=0) {
   if (complement) {
@@ -86,7 +86,7 @@ module extrude_fingers(thickness, cavity, complement, rot=false) {
     - (cavity ? 0 : 2*z_slack)
   )
   rotate([0, 0, rot ? 180 : 0]) {
-    truncate = (bevel_layers-a)*0.06;
+    truncate = (bevel_layers-a)*0.07;
     
     if (cavity) {
       finger_cavity_2d(complement=complement, truncate=truncate);

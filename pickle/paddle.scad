@@ -6,6 +6,7 @@ width = 200;
 length = 357;
 fan_length = 223;
 fan_roundoff = 69;
+// TODO: I think some of these are unused now. We can simplify this arithmetic.
 handle_length = 86;
 handle_width = 35;
 grip_length = handle_length + 20;
@@ -80,9 +81,31 @@ module bridge(i) {
   bulge_2d(intercept_angle);
 }
 
+module wedge_cut() {
+  translate([0, top_length, thickness/2])
+  for (a = [-1, 1])
+  scale([1, 1, a])
+  hull() {
+    translate([0, 0, end_thickness/2])
+    linear_extrude(50)
+    square([300, 0.01], center=true);
+
+    translate([0, grip_length-length, thickness/2])
+    linear_extrude(50)
+    square([300, 0.01], center=true);
+  }
+}
+
+module unwedge() {
+  wedge_angle = atan((thickness-end_thickness) / (2*(length-grip_length)));
+  rotate([-wedge_angle, 0, 0])
+  translate([0, length-top_length-grip_length, 0])
+  children();
+}
+
 module whole() {
-  translate([0, top_length, thickness/2]) {
-    difference() {
+  difference() {
+    translate([0, top_length, thickness/2]) {
       chain() {
         fan();
         bridge(0);
@@ -91,22 +114,13 @@ module whole() {
         bridge(3);
         bridge(4);
       }      
-
-      // Cut the wedge shape.
-      for (a = [-1, 1])
-      scale([1, 1, a])
-      hull() {
-        translate([0, 0, end_thickness/2])
-        linear_extrude(50)
-        square([300, 0.01], center=true);
-
-        translate([0, grip_length-length, thickness/2])
-        linear_extrude(50)
-        square([300, 0.01], center=true);
-      }
     }
+    
+    wedge_cut();
   }
 }
+
+// TODO: This no longer works because of the wedge cut
 
 // Chamfer the bottom edge at the finger joint. This avoids elephant
 // foot in a critical area.
@@ -123,6 +137,7 @@ module top() {
     translate([0, -200])
     cube([400, 400, 100], center=true);
 
+    // TODO: This probably does not work.
     joint_chamfer();
 
     // Negative fingers.
@@ -143,31 +158,58 @@ module top() {
   circle(d=8);
 }
 
-module bottom() {
-  difference() {
-    whole();
+// `part` should be 0 or 1. Part 0 has the fingers. Part 1 has the underside
+// of the grip.
+module bottom_impl(part=0) {
+  unwedge() {
+    difference() {
+      whole();
+      
+      translate([0, 200])
+      cube([400, 400, 100], center=true);
+
+      // Negative fingers.
+      if (part == 0)
+      extrude_fingers(thickness=thickness,
+                      cavity=true, complement=true, rot=true);
+    }
     
-    translate([0, 200])
-    cube([400, 400, 100], center=true);
-
-    joint_chamfer();
-
-    // Negative fingers.
+    // Positive fingers.
+    if (part == 0)
     extrude_fingers(thickness=thickness,
-                    cavity=true, complement=true, rot=true);
+                    cavity=false, complement=false);
+    
+    translate([0, top_length - length + grip_length, thickness/2])
+    rotate([-90, 0, 0]) {
+      grip();
+    }
   }
-  
-  // Positive fingers.
-  extrude_fingers(thickness=thickness,
-                  cavity=false, complement=false);
-  
-  // Tabs.
-  color("orange")
-  linear_extrude(tab_height)
-  for (a = [-1, 1])
-  scale([a, 1])
-  translate([81, 0])
-  circle(d=8);
+
+  // TODO: tabs?
+}
+
+// TODO: move this down, away from the top.
+module bottom_part_cut() {
+  translate([0, -200, 5-200])
+  cube(400, center=true);
+}
+
+module bottom(part=0) {
+  if (part == 0) {
+    difference() {
+      bottom_impl(part);
+      
+      // TODO: need to line this up correctly.
+      joint_chamfer();
+      
+      bottom_part_cut();
+    }
+  } else {
+    intersection() {
+      bottom_impl(part);
+      bottom_part_cut();
+    }
+  }
 }
 
 // Only produces half of the profile.
@@ -220,8 +262,7 @@ module grip() {
   shelf_height = 8;
 
   // Shelf.
-  for (a = [-1, 1])
-  scale([1, a, -1])
+  scale([1, -1, -1])
   chain() {
     mklayer(shelf_height) grip_2d();
     mklayer(4) grip_2d(flare=5.4);
@@ -242,10 +283,5 @@ module grip() {
 
 //////////////////////////////////////////////////////////////////////////
 
-top();
 bottom();
-
-translate([0, top_length - length + grip_length, thickness/2])
-rotate([-90, 0, 0])
-grip();
 
