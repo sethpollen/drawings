@@ -11,7 +11,7 @@ xy_slack = 0.05;
 layer_height = 0.2;
 
 z_slack = 0.4;
-finger_floor = 2;
+finger_floor = 2.4;
 
 module finger_profile_2d(complement=false, truncate=0) {
   if (complement) {
@@ -28,26 +28,20 @@ module finger_profile_2d(complement=false, truncate=0) {
   } else {
     for (a = [-1, 1], b = [0:teeth_pairs-1])
     scale([a, 1])
-    translate([b*(finger_width), 0])
-    difference() {
-      extra_length = (
-        b == teeth_pairs-1 ? 12
-        : b == teeth_pairs-2 ? 6
-        : 0
-      );
-      
+    translate([b*finger_width, 0])
+    difference() {      
       polygon([
         [0, -finger_length()/2],
         [finger_width, -finger_length()/2],
         // Apex.
         [
           finger_width/2 + (finger_width/5)*(b+1)/teeth_pairs,
-          finger_length()/2 + extra_length
+          finger_length()/2
         ],
       ]);
       
       // Truncation.
-      translate([-universe, finger_length()/2 + extra_length - truncate])
+      translate([-universe, finger_length()/2 + truncate])
       square([2*universe, universe]);
     }
   }

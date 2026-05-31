@@ -16,6 +16,7 @@ bridge_length = length - fan_length - handle_length;
 thickness = 20;
 end_thickness = 10;
 
+<<<<<<< HEAD
 // Slightly reduce the thickness we claim when building the fingers, to
 // account for the wedge.
 //
@@ -23,6 +24,8 @@ end_thickness = 10;
 thickness_for_fingers_adjustment = 0.8;
 thickness_for_fingers = thickness - thickness_for_fingers_adjustment;
 
+=======
+>>>>>>> faaff74 ()
 bulge_fn = 24;
 tab_height = 0.6;
 
@@ -204,14 +207,12 @@ module top() {
     joint_chamfer();
 
     // Negative fingers.
-    translate([0, 0, thickness_for_fingers_adjustment/2])
-    extrude_fingers(thickness=thickness_for_fingers,
+    extrude_fingers(thickness=thickness,
                     cavity=true);
   }
   
   // Positive fingers.
-  translate([0, 0, thickness_for_fingers_adjustment/2])
-  extrude_fingers(thickness=thickness_for_fingers,
+  extrude_fingers(thickness=thickness,
                   cavity=false, complement=true, rot=true);
   
   // Tabs.
@@ -233,14 +234,12 @@ module bottom() {
     joint_chamfer();
 
     // Negative fingers.
-    translate([0, 0, thickness_for_fingers_adjustment/2])
-    extrude_fingers(thickness=thickness_for_fingers,
+    extrude_fingers(thickness=thickness,
                     cavity=true, complement=true, rot=true);
   }
   
   // Positive fingers.
-  translate([0, 0, thickness_for_fingers_adjustment/2])
-  extrude_fingers(thickness=thickness_for_fingers,
+  extrude_fingers(thickness=thickness,
                   cavity=false, complement=false);
   
   // Tabs.
@@ -335,4 +334,8 @@ module grip() {
 
 //////////////////////////////////////////////////////////////////////////
 
+<<<<<<< HEAD
 top();
+=======
+bottom();
+>>>>>>> faaff74 ()
