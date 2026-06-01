@@ -15,7 +15,7 @@ bridge_grip_overlap = 20;
 
 // Make a wedge shape.
 max_thickness = 20;
-min_thickness = 10;
+min_thickness = 9;
 
 grip_thickness = 27;
 
@@ -266,6 +266,12 @@ module top() {
   // Positive fingers.
   extrude_fingers(thickness=finger_thickness,
                   cavity=false, complement=true, rot=true);
+  
+  // Tabs.
+  linear_extrude(0.4)
+  for (a = [-1, 1])
+  translate([a*77, 0])
+  circle(d=10);
 }
 
 module bottom() {
@@ -286,6 +292,12 @@ module bottom() {
   // Positive fingers.
   extrude_fingers(thickness=finger_thickness,
                   cavity=false, complement=false);
+  
+  // Tabs.
+  linear_extrude(0.4)
+  for (a = [-1, 1])
+  translate([a*77, 0])
+  circle(d=10);
 }
 
-bottom();
+top();
