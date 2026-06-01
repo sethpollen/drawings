@@ -17,11 +17,14 @@ bridge_grip_overlap = 20;
 max_thickness = 21;
 min_thickness = 9;
 
+// Has to be tweaked manually.
+finger_thickness = 18.4;
+
 wedge_angle = atan(
   (max_thickness - min_thickness) / (2 * wedge_length));
 
 // Parameters for slicing into printable sections.
-top_length = 216 - finger_length()/2;
+top_length = 211 - finger_length()/2;
 
 handle_width = 35;
 
@@ -117,38 +120,7 @@ module wedge() {
   }
 }
 
-// Chamfer the bottom edge at the finger joint. This avoids elephant
-// foot in a critical area.
-//
-// TODO: use
-module joint_chamfer() {
-  w = 0.49;
-  rotate([45, 0, 0])
-  cube([250, w, w], center=true);
-}
-
-// TODO:
 /*
-
-module top() {
-  difference() {
-    whole();
-    
-    translate([0, -200])
-    cube([400, 400, 100], center=true);
-
-    // TODO: This probably does not work.
-    joint_chamfer();
-
-    // Negative fingers.
-    extrude_fingers(thickness=thickness,
-                    cavity=true);
-  }
-  
-  // Positive fingers.
-  extrude_fingers(thickness=thickness,
-                  cavity=false, complement=true, rot=true);
-}
 
 // `part` should be 0 or 1. Part 0 has the fingers. Part 1 has the underside
 // of the grip.
@@ -280,7 +252,7 @@ module grip() {
   p1 = 2;
   
   r2 = 130;
-  p2 = 24;
+  p2 = 25;
   
   // Form the shelf.
   hull() {
@@ -304,4 +276,55 @@ module whole() {
   grip();
 }
 
-whole();
+// Chamfer the bottom edge at the finger joint. This avoids elephant
+// foot in a critical area.
+//
+// TODO: use
+module joint_chamfer() {
+  w = 0.49;
+  rotate([45, 0, 0])
+  cube([250, w, w], center=true);
+}
+
+module top() {
+  difference() {
+    translate([0, top_length-wedge_length])
+    wedge();
+    
+    translate([0, -200])
+    cube([400, 400, 100], center=true);
+
+    joint_chamfer();
+
+    // Negative fingers.
+    extrude_fingers(thickness=finger_thickness,
+                    cavity=true);
+  }
+  
+  // Positive fingers.
+  extrude_fingers(thickness=finger_thickness,
+                  cavity=false, complement=true, rot=true);
+}
+
+module bottom(part=0) {
+  difference() {
+    translate([0, top_length-wedge_length])
+    whole();
+    
+    translate([0, 200])
+    cube([400, 400, 100], center=true);
+
+    joint_chamfer();
+
+    // Negative fingers.
+    extrude_fingers(thickness=finger_thickness,
+                    cavity=true, complement=true, rot=true);
+  }
+  
+  // Positive fingers.
+  extrude_fingers(thickness=finger_thickness,
+                  cavity=false, complement=false);
+}
+
+//top();
+bottom();
