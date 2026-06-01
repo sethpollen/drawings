@@ -1,121 +1,118 @@
 use <chain.scad>
 use <finger.scad>
 
-// TODO: clean up unused variables.
+// TODO: remove this: length = 357;
 
 // Parameters for the overall shape.
 width = 200;
-length = 357;
 fan_length = 223;
 fan_roundoff = 69;
-handle_width = 35;
 
 // The length of the flat striking surface, before it hits the grip
-// shelf.
-flat_surface_length = length - 106;
+// shelf. This is the part that has a tapered "wedge" shape.
+wedge_length = 251;
 
-// 20mm of overlap between grip and the main body of the paddle.
-bridge_length = flat_surface_length + 20 - fan_length;
+bridge_grip_overlap = 20;
 
 // Make a wedge shape.
-thickness = 20;
-end_thickness = 10;
+max_thickness = 20;
+min_thickness = 10;
 
-bulge_fn = 24;
+wedge_angle = atan(
+  (max_thickness - min_thickness) / (2 * wedge_length));
 
 // Parameters for slicing into printable sections.
 top_length = 216 - finger_length()/2;
 
-function bulge_radius(intercept_angle) =
+handle_width = 35;
+
+function bulge_radius(thickness, intercept_angle) =
   thickness / (2 * sin(intercept_angle));
 
-module bulge_2d(intercept_angle) {
-  r = bulge_radius(intercept_angle);
-  
-  translate([-r, 0])
+module bulge_piece(r) {
+  // A quarter slice of a sphere.
+  translate([-r, -r])
+  rotate_extrude($fn=16, angle=90)
   intersection() {
-    circle($fn=bulge_fn, r=r);
+    circle($fn=24, r=r);
     
-    translate([0, -thickness/2])
-    square(thickness);
+    translate([r, 0])
+    square(r*2, center=true);
   }
 }
 
-module fan() {
-  intercept_angle = 45;
-  
+module fan_piece(flip, x, y) {
+  y_frac = y/wedge_length;
+  thickness = (1 - y_frac)*max_thickness + y_frac*min_thickness;
+
+  for (a = [-1, 1])
+  scale([a, 1])
+  translate([x, y])
+  scale([1, flip ? -1 : 1])
+  bulge_piece(bulge_radius(thickness, 45));
+}
+
+module fan(base_only=false) {  
   hull()
-  translate([0, -fan_length/2])
-  for (a = [-1, 1], b = [-1, 1])
-  scale([
-    a, b,
-    // Adjust the bulge at the tip of the wedge.
-    1-(b+1)*0.15
-  ])
-  translate(-fan_roundoff*[1,1] + [width, fan_length]/2)
-  rotate_extrude($fn=36, angle=90)
-  translate([fan_roundoff, 0])
-  bulge_2d(intercept_angle);
+  for (angle = [0:10:90]) {
+    x = width/2 + fan_roundoff*(sin(angle)-1);
+    
+    // Top edges.
+    if (!base_only)
+    fan_piece(false, x,
+      wedge_length + fan_roundoff*(cos(angle)-1));
+    
+    // Bottom edges.
+    if (angle >= 50)
+    fan_piece(true, x,
+      wedge_length - fan_length + fan_roundoff*(1-cos(angle)));
+  }
 }
 
 // `i` should be in the range [0, 4].
 module bridge(i) {
   intercept_angle = 52;
-  x_frac = [0.46, 0.28, 0.16, 0.083, 0.027][i];
-  y_frac = [0.1 , 0.38 , 0.6 , 0.8 , 1.0  ][i];
+  x_frac = [0.28, 0.16, 0.083, 0.027][i];
+  y_frac = [0.38 , 0.6 , 0.8 , 1.0  ][i];
 
-  r = bulge_radius(intercept_angle);
+  bridge_length = wedge_length + bridge_grip_overlap - fan_length;
 
-  for (a = [-1, 1])
-  scale([a, 1])
-  translate([
-    handle_width/2 - r + x_frac*0.5*(width-handle_width),
-    r - fan_length - y_frac*bridge_length
-  ])
-  rotate([0, 0, -90])
-  rotate_extrude($fn=bulge_fn, angle=90)
-  translate([r, 0])
-  bulge_2d(intercept_angle);
+  fan_piece(true,
+    handle_width/2 + x_frac*0.5*(width-handle_width),
+    bridge_length*(1-y_frac) - bridge_grip_overlap);
 }
 
-module wedge_cut() {
-  translate([0, top_length, thickness/2])
-  for (a = [-1, 1])
-  scale([1, 1, a])
-  hull() {
-    translate([0, 0, end_thickness/2])
-    linear_extrude(50)
-    square([300, 0.01], center=true);
-
-    translate([0, -flat_surface_length, thickness/2])
-    linear_extrude(50)
-    square([300, 0.01], center=true);
-  }
-}
-
-module unwedge() {
-  wedge_angle = atan((thickness-end_thickness) / (2*flat_surface_length));
+module wedge() {
+  // "Unwedge" the piece, so that one surface coincides with the xy-plane.
   rotate([-wedge_angle, 0, 0])
-  translate([0, flat_surface_length-top_length, 0])
-  children();
-}
-
-module whole() {
+  translate([0, 0, max_thickness/2])
   difference() {
-    translate([0, top_length, thickness/2]) {
+    union() {
+      fan();
+      
       chain() {
-        fan();
+        fan(base_only=true);
         bridge(0);
         bridge(1);
         bridge(2);
         bridge(3);
-        bridge(4);
-      }      
-    }
-    
-    wedge_cut();
+      }
+    }   
+  
+    // Cut in the wedge surface.
+    for (a = [-1, 1])
+    scale([1, 1, a])
+    translate([0, 0, max_thickness/2])
+    rotate([-wedge_angle, 0, 0])
+    translate([0, 0, 20])
+    cube([width, 600, 40], center=true);
   }
 }
+
+wedge();
+
+
+/*
 
 // TODO: This no longer works because of the wedge cut
 
@@ -273,8 +270,6 @@ module grip() {
   knurl_segment(bend_radius, i, chamfer=(i == bend_segments-1));
 }
 
-
 //////////////////////////////////////////////////////////////////////////
 
-bottom();
-translate([0, 80]) top();
+*/
