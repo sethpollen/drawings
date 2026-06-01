@@ -12,8 +12,14 @@ wedge_length = 251;
 bridge_grip_overlap = 20;
 
 // Make a wedge shape.
-max_thickness = 21;
+max_thickness = 19;
 min_thickness = 9;
+
+grip_thickness = 27;
+
+// The grip is offset from the center of the wedge base. This "lifts" the grip
+// away from the build plate, allowing more of its full profile to be printed.
+grip_offset = 1.8;
 
 // Parameter for slicing into printable sections.
 top_length = 210.8 - finger_length()/2;
@@ -26,6 +32,7 @@ finger_thickness =
 wedge_angle = atan(
   (max_thickness - min_thickness) / (2 * wedge_length));
 
+// TODO: Rename to grip_width
 handle_width = 35;
 
 function bulge_radius(thickness, intercept_angle) =
@@ -128,12 +135,7 @@ knurl_segment_length = knurl_slope + knurl_peak + knurl_slope + knurl_valley;
 
 module grip_2d(offs=0) {
   flats = 10;
-  grip_thickness = 26;
-  
-  // The grip is offset from the center of the wedge base. This "lifts" the grip
-  // away from the build plate, allowing more of its full profile to be printed.
-  grip_offset = 1;
-  
+    
   offset(delta=offs)
   intersection() {
     // Main profile, rounded on both sides.
@@ -192,9 +194,11 @@ module grip() {
   r2 = 130;
   p2 = 25;
   
+  shelf_width = 8.8;
+  
   // Form the shelf.
   hull() {
-    translate([0, -5])
+    translate([0, grip_thickness - max_thickness - grip_offset - shelf_width])
     knurl_segment(r1, 0);
   
     knurl_segment(r1, 1);
@@ -263,3 +267,4 @@ module bottom() {
 }
 
 bottom();
+top();
