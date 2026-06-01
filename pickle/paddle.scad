@@ -32,8 +32,7 @@ finger_thickness =
 wedge_angle = atan(
   (max_thickness - min_thickness) / (2 * wedge_length));
 
-// TODO: Rename to grip_width
-handle_width = 35;
+grip_width = 35;
 
 function bulge_radius(thickness, intercept_angle) =
   thickness / (2 * sin(intercept_angle));
@@ -96,7 +95,7 @@ module bridge(i) {
   bridge_length = wedge_length + bridge_grip_overlap - fan_length;
 
   fan_piece(true,
-    handle_width/2 + x_frac*0.5*(width-handle_width),
+    grip_width/2 + x_frac*0.5*(width-grip_width),
     bridge_length*(1-y_frac) - bridge_grip_overlap);
 }
 
@@ -144,7 +143,7 @@ module grip_2d(offs=0) {
     for (a = [-1, 1])
     scale([1, a])
     translate([0, flats/2])
-    scale([handle_width/2, (grip_thickness-flats)/2])
+    scale([grip_width/2, (grip_thickness-flats)/2])
     intersection() {
       circle($fn=30, r=1);
       
@@ -171,7 +170,7 @@ module mklayer(r, z) {
   children();
 }
 
-module knurl_segment(bend_radius, i, chamfer=false) {
+module knurl_segment(bend_radius, i, end=false) {
   z = i*knurl_segment_length;
   
   scale([1, 1, -1])
@@ -182,7 +181,7 @@ module knurl_segment(bend_radius, i, chamfer=false) {
     mklayer(bend_radius, z + knurl_slope + knurl_peak + knurl_slope) grip_2d();
     
     mklayer(bend_radius, z + knurl_slope + knurl_peak + knurl_slope + knurl_valley)
-    offset(delta=(chamfer ? -0.9 : 0))
+    offset(delta=(end ? -0.9 : 0))
     grip_2d();
   }
 }
@@ -191,8 +190,11 @@ module grip() {
   r1 = 1000;
   p1 = 2;
   
-  r2 = 130;
-  p2 = 25;
+  r2 = 120;
+  p2 = 17;
+  
+  r3 = 1000;
+  p3 = 8;
   
   shelf_width = 8.8;
   
@@ -206,7 +208,11 @@ module grip() {
   
   bend_translate(r1, -p1*knurl_segment_length) {
     for (i = [0:p2-1])
-    knurl_segment(r2, i, chamfer=(i==p2-1));
+    knurl_segment(r2, i);
+    
+    bend_translate(r2, -p2*knurl_segment_length)
+    for (i = [0:p3-1])
+    knurl_segment(r3, i, end=(i==p3-1));
   }
 }
 
