@@ -300,4 +300,18 @@ module bottom() {
   circle(d=10);
 }
 
-top();
+// Sheets to modify infill.
+module sheets() {
+  sheet_width = width + 50;
+  sheet_length = 400;
+  sheet_thickness = 3;
+  
+  translate([-sheet_width/2, 0, -sheet_thickness])
+  cube([sheet_width, sheet_length, sheet_thickness]);
+  
+  translate([0, 0, max_thickness])
+  rotate([-wedge_angle*2, 0, 0])
+  translate([-sheet_width/2, 0, 0])
+  cube([sheet_width, sheet_length, sheet_thickness]);
+}
+
