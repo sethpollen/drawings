@@ -22,8 +22,6 @@ top_length = 211 - finger_length()/2;
 finger_thickness =
   min_thickness*(wedge_length - top_length)/wedge_length +
   max_thickness*top_length/wedge_length;
-  
-echo(finger_thickness);
 
 wedge_angle = atan(
   (max_thickness - min_thickness) / (2 * wedge_length));
@@ -264,4 +262,4 @@ module bottom(part=0) {
                   cavity=false, complement=false);
 }
 
-top();
+bottom();
