@@ -1,4 +1,3 @@
-use <chain.scad>
 use <finger.scad>
 
 // TODO: remove this: length = 357;
@@ -15,8 +14,8 @@ wedge_length = 251;
 bridge_grip_overlap = 20;
 
 // Make a wedge shape.
-max_thickness = 20;
-min_thickness = 10;
+max_thickness = 21;
+min_thickness = 9;
 
 wedge_angle = atan(
   (max_thickness - min_thickness) / (2 * wedge_length));
@@ -28,6 +27,15 @@ handle_width = 35;
 
 function bulge_radius(thickness, intercept_angle) =
   thickness / (2 * sin(intercept_angle));
+
+module chain() {
+  if ($children >= 2)
+  for (i = [0:$children-2])
+  hull() {
+    children(i);
+    children(i+1);
+  }
+}
 
 module bulge_piece(r) {
   // A quarter slice of a sphere.
@@ -69,11 +77,11 @@ module fan(base_only=false) {
   }
 }
 
-// `i` should be in the range [0, 4].
+// `i` should be in the range [0, 3].
 module bridge(i) {
   intercept_angle = 52;
-  x_frac = [0.28, 0.18, 0.083, 0.027][i];
-  y_frac = [0.38, 0.57, 0.8  , 1.0  ][i];
+  x_frac = [0.28, 0.18, 0.083, 0.03][i];
+  y_frac = [0.38, 0.57, 0.8  , 0.95 ][i];
 
   bridge_length = wedge_length + bridge_grip_overlap - fan_length;
 
@@ -109,20 +117,18 @@ module wedge() {
   }
 }
 
-wedge();
-
-
-/*
-
-// TODO: This no longer works because of the wedge cut
-
 // Chamfer the bottom edge at the finger joint. This avoids elephant
 // foot in a critical area.
+//
+// TODO: use
 module joint_chamfer() {
   w = 0.49;
   rotate([45, 0, 0])
   cube([250, w, w], center=true);
 }
+
+// TODO:
+/*
 
 module top() {
   difference() {
@@ -202,19 +208,30 @@ module bottom(part=0) {
   }
 }
 
-// Only produces half of the profile.
-module grip_2d(flare=0, narrow=0, offs=0) {
-  flats = thickness*0.5;
+*/
+
+knurl_depth = 0.5;
+knurl_peak = 3.1;
+knurl_slope = 0.5;
+knurl_valley = 0.8;
+knurl_segment_length = knurl_slope + knurl_peak + knurl_slope + knurl_valley;
+
+module grip_2d(offs=0) {
+  flats = 10;
   grip_thickness = 26;
   
+  // The grip is offset from the center of the wedge base. This "lifts" the grip
+  // away from the build plate, allowing more of its full profile to be printed.
+  grip_offset = 1;
+  
   offset(delta=offs)
-  scale([(handle_width-narrow)/handle_width, 1]) {
-    // Back it up by 2mm so the chamfer offset below doesn't create a
-    // groove down the middle.
-    translate([-handle_width/2, -2])
-    square([handle_width, flats/2 + flare + 2]);
-
-    translate([0, flats/2 + flare])
+  intersection() {
+    // Main profile, rounded on both sides.
+    translate([0, -grip_offset])
+    hull()
+    for (a = [-1, 1])
+    scale([1, a])
+    translate([0, flats/2])
     scale([handle_width/2, (grip_thickness-flats)/2])
     intersection() {
       circle($fn=30, r=1);
@@ -222,54 +239,69 @@ module grip_2d(flare=0, narrow=0, offs=0) {
       translate([0, 2])
       square(4, center=true);
     }
+    
+    // Cut off to meet the build plate.
+    translate([-50, max_thickness/2 - knurl_depth -100])
+    square(100);
   }
 }
 
-knurl_depth = 0.3;
-knurl_peak = 2;
-knurl_slope = 0.4;
-knurl_valley = 0.8;
-knurl_segment_length = knurl_slope + knurl_peak + knurl_slope + knurl_valley;
+module bend_translate(r, z) {
+  translate([r, 0, 0])
+  rotate([0, 360*z/(2*PI*r), 0])
+  translate([-r, 0, 0])
+  children();
+}
+
+module mklayer(r, z) {
+  bend_translate(r, z)
+  linear_extrude(0.0001)
+  children();
+}
 
 module knurl_segment(bend_radius, i, chamfer=false) {
   z = i*knurl_segment_length;
   
-  for (a = [-1, 1])
-  scale([1, a, -1])
+  scale([1, 1, -1])
   chain() {
-    mklayer(z, bend_radius) grip_2d();
-    mklayer(z + knurl_slope, bend_radius) grip_2d(offs=knurl_depth);
-    mklayer(z + knurl_slope + knurl_peak, bend_radius) grip_2d(offs=knurl_depth);
-    mklayer(z + knurl_slope + knurl_peak + knurl_slope, bend_radius) grip_2d();
+    mklayer(bend_radius, z) grip_2d();
+    mklayer(bend_radius, z + knurl_slope) grip_2d(offs=knurl_depth);
+    mklayer(bend_radius, z + knurl_slope + knurl_peak) grip_2d(offs=knurl_depth);
+    mklayer(bend_radius, z + knurl_slope + knurl_peak + knurl_slope) grip_2d();
     
-    mklayer(z + knurl_slope + knurl_peak + knurl_slope + knurl_valley, bend_radius)
-    offset(delta=(chamfer ? -1 : 0))
+    mklayer(bend_radius, z + knurl_slope + knurl_peak + knurl_slope + knurl_valley)
+    offset(delta=(chamfer ? -0.9 : 0))
     grip_2d();
   }
 }
 
 module grip() {
-  shelf_height = 8;
-
-  // Shelf.
-  scale([1, -1, -1])
-  chain() {
-    mklayer(shelf_height) grip_2d();
-    mklayer(4) grip_2d(flare=5.4);
-    mklayer(1.2) grip_2d(flare=5.4);
-    mklayer(0.5) grip_2d(flare=4.6, narrow=0.6);
-    mklayer(0) grip_2d(flare=-1, narrow=2);
+  r1 = 1000;
+  p1 = 2;
+  
+  r2 = 130;
+  p2 = 24;
+  
+  // Form the shelf.
+  hull() {
+    translate([0, -5])
+    knurl_segment(r1, 0);
+  
+    knurl_segment(r1, 1);
   }
   
-  bend_radius = 130;
-  bend_segments = 34;
-  
-  // Curved part of grip.
-  translate([0, 0, knurl_segment_length - shelf_height])
-  for (i = [0:bend_segments-1])
-  knurl_segment(bend_radius, i, chamfer=(i == bend_segments-1));
+  bend_translate(r1, -p1*knurl_segment_length) {
+    for (i = [0:p2-1])
+    knurl_segment(r2, i, chamfer=(i==p2-1));
+  }
 }
 
-//////////////////////////////////////////////////////////////////////////
+module whole() {
+  wedge();
 
-*/
+  translate([0, 0, max_thickness/2])
+  rotate([-90, 0, 0])
+  grip();
+}
+
+whole();
