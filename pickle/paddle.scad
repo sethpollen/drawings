@@ -22,7 +22,6 @@ thickness = 20;
 end_thickness = 10;
 
 bulge_fn = 24;
-tab_height = 0.6;
 
 // Parameters for slicing into printable sections.
 top_length = 216 - finger_length()/2;
@@ -146,14 +145,6 @@ module top() {
   // Positive fingers.
   extrude_fingers(thickness=thickness,
                   cavity=false, complement=true, rot=true);
-  
-  // Tabs.
-  color("orange")
-  for (a = [-1, 1])
-  linear_extrude(tab_height)
-  scale([a, 1])
-  translate([82, 0])
-  circle(d=8);
 }
 
 // `part` should be 0 or 1. Part 0 has the fingers. Part 1 has the underside
@@ -184,9 +175,6 @@ module bottom_impl(part=0) {
   translate([0, 0, thickness/2 + 1])
   rotate([-90, 0, 0])
   grip();
-
-
-  // TODO: tabs?
 }
 
 // TODO: actually there is no part 1. For now I will just print part 0 and see how
