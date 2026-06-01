@@ -27,12 +27,6 @@ tab_height = 0.6;
 // Parameters for slicing into printable sections.
 top_length = 216 - finger_length()/2;
 
-// Grips.
-total_grip_depth = 26;
-// How much of the total length is just the grip, with no intrustion
-// from the `bottom` piece.
-grip_floor = 5;
-
 function bulge_radius(intercept_angle) =
   thickness / (2 * sin(intercept_angle));
 
@@ -226,6 +220,7 @@ module bottom(part=0) {
 // Only produces half of the profile.
 module grip_2d(flare=0, narrow=0, offs=0) {
   flats = thickness*0.5;
+  grip_thickness = 26;
   
   offset(delta=offs)
   scale([(handle_width-narrow)/handle_width, 1]) {
@@ -235,7 +230,7 @@ module grip_2d(flare=0, narrow=0, offs=0) {
     square([handle_width, flats/2 + flare + 2]);
 
     translate([0, flats/2 + flare])
-    scale([handle_width/2, (total_grip_depth-flats)/2])
+    scale([handle_width/2, (grip_thickness-flats)/2])
     intersection() {
       circle($fn=30, r=1);
       
