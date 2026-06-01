@@ -16,7 +16,7 @@ max_thickness = 21;
 min_thickness = 9;
 
 // Parameter for slicing into printable sections.
-top_length = 211 - finger_length()/2;
+top_length = 210.8 - finger_length()/2;
 
 // Linear interpolation.
 finger_thickness =
@@ -242,7 +242,7 @@ module top() {
                   cavity=false, complement=true, rot=true);
 }
 
-module bottom(part=0) {
+module bottom() {
   difference() {
     translate([0, top_length-wedge_length])
     whole();
