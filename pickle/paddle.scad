@@ -1,7 +1,5 @@
 use <finger.scad>
 
-// TODO: remove this: length = 357;
-
 // Parameters for the overall shape.
 width = 200;
 fan_length = 223;
@@ -17,14 +15,18 @@ bridge_grip_overlap = 20;
 max_thickness = 21;
 min_thickness = 9;
 
-// Has to be tweaked manually.
-finger_thickness = 18.4;
+// Parameter for slicing into printable sections.
+top_length = 211 - finger_length()/2;
+
+// Linear interpolation.
+finger_thickness =
+  min_thickness*(wedge_length - top_length)/wedge_length +
+  max_thickness*top_length/wedge_length;
+  
+echo(finger_thickness);
 
 wedge_angle = atan(
   (max_thickness - min_thickness) / (2 * wedge_length));
-
-// Parameters for slicing into printable sections.
-top_length = 211 - finger_length()/2;
 
 handle_width = 35;
 
@@ -119,68 +121,6 @@ module wedge() {
     cube([width, 600, 40], center=true);
   }
 }
-
-/*
-
-// `part` should be 0 or 1. Part 0 has the fingers. Part 1 has the underside
-// of the grip.
-module bottom_impl(part=0) {
-  unwedge() {
-    difference() {
-      whole();
-      
-      translate([0, 200])
-      cube([400, 400, 100], center=true);
-
-      // Negative fingers.
-      if (part == 0)
-      extrude_fingers(thickness=thickness,
-                      cavity=true, complement=true, rot=true);
-    }
-    
-    // Positive fingers.
-    if (part == 0)
-    extrude_fingers(thickness=thickness,
-                    cavity=false, complement=false);
-  }
-  
-  // The grip is not inside the "unwedge", so it is not aligned with the center
-  // axis of the paddle. I think that is OK. The grip is aligned with the
-  // "backhand" surface of the paddle.
-  translate([0, 0, thickness/2 + 1])
-  rotate([-90, 0, 0])
-  grip();
-}
-
-// TODO: actually there is no part 1. For now I will just print part 0 and see how
-// it works. It yields a slightly weird grip shape, but it is very simple. It avoids
-// any joints in the critical area. It avoids the added weight of another glue
-// joint. And it avoids any rough, supported surfaces on the grip (which might
-// not feel good in the hand).
-module bottom_part_cut() {
-  translate([0, -200, -200])
-  cube(400, center=true);
-}
-
-module bottom(part=0) {
-  if (part == 0) {
-    difference() {
-      bottom_impl(part);
-      
-      // TODO: need to line this up correctly.
-      joint_chamfer();
-      
-      bottom_part_cut();
-    }
-  } else {
-    intersection() {
-      bottom_impl(part);
-      bottom_part_cut();
-    }
-  }
-}
-
-*/
 
 knurl_depth = 0.5;
 knurl_peak = 3.1;
@@ -278,8 +218,6 @@ module whole() {
 
 // Chamfer the bottom edge at the finger joint. This avoids elephant
 // foot in a critical area.
-//
-// TODO: use
 module joint_chamfer() {
   w = 0.49;
   rotate([45, 0, 0])
@@ -326,5 +264,4 @@ module bottom(part=0) {
                   cavity=false, complement=false);
 }
 
-//top();
-bottom();
+top();
