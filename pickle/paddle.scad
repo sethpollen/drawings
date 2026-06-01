@@ -13,7 +13,7 @@ bridge_grip_overlap = 20;
 
 // Make a wedge shape.
 max_thickness = 20;
-min_thickness = 9;
+min_thickness = 10;
 
 grip_thickness = 27;
 
