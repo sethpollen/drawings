@@ -1,17 +1,21 @@
 use <chain.scad>
 use <finger.scad>
 
+// TODO: clean up unused variables.
+
 // Parameters for the overall shape.
 width = 200;
 length = 357;
 fan_length = 223;
 fan_roundoff = 69;
-// TODO: I think some of these are unused now. We can simplify this arithmetic.
-handle_length = 86;
 handle_width = 35;
-grip_length = handle_length + 20;
 
-bridge_length = length - fan_length - handle_length;
+// The length of the flat striking surface, before it hits the grip
+// shelf.
+flat_surface_length = length - 106;
+
+// 20mm of overlap between grip and the main body of the paddle.
+bridge_length = flat_surface_length + 20 - fan_length;
 
 // Make a wedge shape.
 thickness = 20;
@@ -90,16 +94,16 @@ module wedge_cut() {
     linear_extrude(50)
     square([300, 0.01], center=true);
 
-    translate([0, grip_length-length, thickness/2])
+    translate([0, -flat_surface_length, thickness/2])
     linear_extrude(50)
     square([300, 0.01], center=true);
   }
 }
 
 module unwedge() {
-  wedge_angle = atan((thickness-end_thickness) / (2*(length-grip_length)));
+  wedge_angle = atan((thickness-end_thickness) / (2*flat_surface_length));
   rotate([-wedge_angle, 0, 0])
-  translate([0, length-top_length-grip_length, 0])
+  translate([0, flat_surface_length-top_length, 0])
   children();
 }
 
@@ -222,17 +226,16 @@ module bottom(part=0) {
 // Only produces half of the profile.
 module grip_2d(flare=0, narrow=0, offs=0) {
   flats = thickness*0.5;
-  width = handle_width;
   
   offset(delta=offs)
-  scale([(width-narrow)/width, 1]) {
+  scale([(handle_width-narrow)/handle_width, 1]) {
     // Back it up by 2mm so the chamfer offset below doesn't create a
     // groove down the middle.
-    translate([-width/2, -2])
-    square([width, flats/2 + flare + 2]);
+    translate([-handle_width/2, -2])
+    square([handle_width, flats/2 + flare + 2]);
 
     translate([0, flats/2 + flare])
-    scale([width/2, (total_grip_depth-flats)/2])
+    scale([handle_width/2, (total_grip_depth-flats)/2])
     intersection() {
       circle($fn=30, r=1);
       
@@ -290,6 +293,5 @@ module grip() {
 
 //////////////////////////////////////////////////////////////////////////
 
-scale([1, 1, -1])
-bottom(0);
-
+bottom();
+translate([0, 80]) top();
