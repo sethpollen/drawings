@@ -1,5 +1,7 @@
 use <finger.scad>
 
+mark_number = 4;
+
 // Parameters for the overall shape.
 width = 200;
 fan_length = 223;
@@ -166,35 +168,49 @@ module bend_translate(r, z) {
 
 module mklayer(r, z) {
   bend_translate(r, z)
-  linear_extrude(0.0001)
+  linear_extrude(0.01)
   children();
 }
 
 module knurl_segment(bend_radius, i, end=false) {
   z = i*knurl_segment_length;
-  
+
   scale([1, 1, -1])
-  chain() {
-    mklayer(bend_radius, z) grip_2d();
-    mklayer(bend_radius, z + knurl_slope) grip_2d(offs=knurl_depth);
-    mklayer(bend_radius, z + knurl_slope + knurl_peak) grip_2d(offs=knurl_depth);
-    mklayer(bend_radius, z + knurl_slope + knurl_peak + knurl_slope) grip_2d();
+  difference() {
+    chain() {
+      mklayer(bend_radius, z) grip_2d();
+      mklayer(bend_radius, z + knurl_slope) grip_2d(offs=knurl_depth);
+      mklayer(bend_radius, z + knurl_slope + knurl_peak) grip_2d(offs=knurl_depth);
+      mklayer(bend_radius, z + knurl_slope + knurl_peak + knurl_slope) grip_2d();
+      
+      mklayer(bend_radius, z + knurl_slope + knurl_peak + knurl_slope + knurl_valley)
+      offset(delta=(end ? -0.9 : 0))
+      grip_2d();
+    }
     
-    mklayer(bend_radius, z + knurl_slope + knurl_peak + knurl_slope + knurl_valley)
-    offset(delta=(end ? -0.9 : 0))
-    grip_2d();
+    letter_depth = 1.6;
+    
+    if (end)
+    bend_translate(bend_radius, z+knurl_segment_length-letter_depth+0.05)
+    translate([-7, 6])
+    scale([1, -1])
+    linear_extrude(letter_depth)
+    offset(0.3)
+    text(str(mark_number), size=17);
   }
 }
 
 module grip() {
+  segments = 27;
+  
   r1 = 1000;
   p1 = 2;
   
-  r2 = 120;
-  p2 = 17;
-  
+  r2 = 100;
+  p2 = 11;
+
   r3 = 1000;
-  p3 = 8;
+  p3 = segments - p1 - p2;
   
   shelf_width = 8.8;
   
@@ -273,4 +289,3 @@ module bottom() {
 }
 
 bottom();
-top();
