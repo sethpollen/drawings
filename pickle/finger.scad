@@ -95,7 +95,7 @@ module extrude_fingers(thickness, cavity, complement, rot=false) {
         finger_2d(complement=complement, truncate=truncate);
         
         // Prevent the backs of the teeth from sticking out.
-        translate([-200, -5])
+        translate([-200, -1])
         square([400, 100]);
       }
     }

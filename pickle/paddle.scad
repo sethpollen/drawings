@@ -24,7 +24,7 @@ grip_thickness = 27;
 grip_offset = 1.8;
 
 // Parameter for slicing into printable sections.
-top_length = 210.8 - finger_length()/2;
+top_length = 215 - finger_length()/2;
 
 // Linear interpolation.
 finger_thickness =
@@ -314,24 +314,24 @@ module sheets() {
 
   bottom_sheet_intrusion = 6*0.2;
   top_sheet_intrusion = 7*0.2;
-  back_up_top_sheet = 5;
+  back_up_top_sheet = 4;
 
   translate([-sheet_width/2, 0, 0]) {
     // Bottom sheet.
     cube([sheet_width, sheet_length, bottom_sheet_intrusion]);
     
     // Top sheet.
+    translate([0, 0, -top_sheet_intrusion])
     rotate([-wedge_angle, 0, 0])
     translate([0, 0, max_thickness])
     rotate([-wedge_angle, 0, 0])
-    translate([0, -back_up_top_sheet, -top_sheet_intrusion])
+    translate([0, -back_up_top_sheet, 0])
     cube([
       sheet_width,
       sheet_length+back_up_top_sheet,
-      top_sheet_intrusion
+      20
      ]);
   }
 }
 
-color("orange") top();
-sheets();
+bottom();
