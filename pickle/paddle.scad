@@ -24,7 +24,7 @@ grip_thickness = 27;
 grip_offset = 1.8;
 
 // Parameter for slicing into printable sections.
-top_length = 215 - finger_length()/2;
+top_length = 216 - finger_length()/2;
 
 // Linear interpolation.
 finger_thickness =
@@ -35,6 +35,8 @@ wedge_angle = atan(
   (max_thickness - min_thickness) / (2 * wedge_length));
 
 grip_width = 35;
+
+tab_x = 72;
 
 function bulge_radius(thickness, intercept_angle) =
   thickness / (2 * sin(intercept_angle));
@@ -268,7 +270,7 @@ module top() {
     // Tabs.
     linear_extrude(0.4)
     for (a = [-1, 1])
-    translate([a*77, 0])
+    translate([a*tab_x, 0])
     circle(d=10);
   }
 }
@@ -302,7 +304,7 @@ module bottom() {
     // Tabs.
     linear_extrude(0.4)
     for (a = [-1, 1])
-    translate([a*77, 0])
+    translate([a*tab_x, 0])
     circle(d=10);
   }
 }

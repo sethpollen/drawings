@@ -39,19 +39,15 @@ module finger_profile_2d(complement=false) {
       
       // Shorten the outer tooth, so it fits within the taper of the
       // bottom piece.
-      //
-      // TODO: finish this
-      chop_width = 3;
       chop_length = 6;
-      translate([
-        -end_tooth_chop/2 + (teeth_pairs-1)*finger_width,
-        -finger_length()/2
-      ])
+      translate([(teeth_pairs-1)*finger_width, -finger_length()/2])
       difference() {
-        square(end_tooth_chop, center=true);
-          
-        translate([end_tooth_chop/2, end_tooth_chop])
-        circle(d=end_tooth_chop, $fn=16);
+        translate([-5, 0])
+        square([10, chop_length*2]);
+        
+        translate([0, 30/sqrt(2)+chop_length])
+        rotate([0, 0, 45])
+        square(30, center=true);
       }
     }
   }
@@ -95,14 +91,13 @@ module extrude_fingers(thickness, cavity, complement, rot=false) {
         // Truncate the tips of the teeth, and prevent the backs from
         // sticking out.
         translate([-200, -1])
-        square([400, 1 + finger_length()/2 - 2.5]);
+        square([400, 1 + finger_length()/2 - 2.2]);
       }
     }
   }
 }
 
-//c = true;
-//color("green") extrude_fingers(10, cavity=true, complement=c);
-//color("yellow") extrude_fingers(11, cavity=false, complement=c);
+c = true;
+color("green") extrude_fingers(10, cavity=true, complement=c);
+color("yellow") extrude_fingers(11, cavity=false, complement=c);
 
-finger_profile_2d();
