@@ -102,8 +102,6 @@ module bridge(i) {
 }
 
 module wedge() {
-  // "Unwedge" the piece, so that one surface coincides with the xy-plane.
-  rotate([-wedge_angle, 0, 0])
   translate([0, 0, max_thickness/2])
   difference() {
     union() {
@@ -128,6 +126,12 @@ module wedge() {
   }
 }
 
+module flatten_wedge() {
+  // "Unwedge" the piece, so that one surface coincides with the xy-plane.
+  rotate([-wedge_angle, 0, 0])
+  children();
+}  
+
 knurl_depth = 0.5;
 knurl_peak = 3.1;
 knurl_slope = 0.5;
@@ -147,7 +151,7 @@ module grip_2d(offs=0) {
     translate([0, flats/2])
     scale([grip_width/2, (grip_thickness-flats)/2])
     intersection() {
-      circle($fn=30, r=1);
+      circle($fn=18, r=1);
       
       translate([0, 2])
       square(4, center=true);
@@ -206,8 +210,8 @@ module grip() {
   r1 = 1000;
   p1 = 2;
   
-  r2 = 100;
-  p2 = 11;
+  r2 = 90;
+  p2 = 10;
 
   r3 = 1000;
   p3 = segments - p1 - p2;
@@ -232,14 +236,6 @@ module grip() {
   }
 }
 
-module whole() {
-  wedge();
-
-  translate([0, 0, max_thickness/2])
-  rotate([-90, 0, 0])
-  grip();
-}
-
 // Chamfer the bottom edge at the finger joint. This avoids elephant
 // foot in a critical area.
 module joint_chamfer() {
@@ -249,69 +245,93 @@ module joint_chamfer() {
 }
 
 module top() {
-  difference() {
-    translate([0, top_length-wedge_length])
-    wedge();
-    
-    translate([0, -200])
-    cube([400, 400, 100], center=true);
+  translate([0, wedge_length-top_length]) {
+    difference() {
+      translate([0, top_length-wedge_length])
+      flatten_wedge()
+      wedge();
+        
+      translate([0, -200])
+      cube([400, 400, 100], center=true);
 
-    joint_chamfer();
+      joint_chamfer();
 
-    // Negative fingers.
+      // Negative fingers.
+      extrude_fingers(thickness=finger_thickness,
+                      cavity=true);
+    }
+      
+    // Positive fingers.
     extrude_fingers(thickness=finger_thickness,
-                    cavity=true);
+                    cavity=false, complement=true, rot=true);
+      
+    // Tabs.
+    linear_extrude(0.4)
+    for (a = [-1, 1])
+    translate([a*77, 0])
+    circle(d=10);
   }
-  
-  // Positive fingers.
-  extrude_fingers(thickness=finger_thickness,
-                  cavity=false, complement=true, rot=true);
-  
-  // Tabs.
-  linear_extrude(0.4)
-  for (a = [-1, 1])
-  translate([a*77, 0])
-  circle(d=10);
 }
 
 module bottom() {
-  difference() {
-    translate([0, top_length-wedge_length])
-    whole();
+  translate([0, wedge_length-top_length]) {
+    difference() {
+      translate([0, top_length-wedge_length]) {
+        flatten_wedge()
+        wedge();
+
+        translate([0, 0, max_thickness/2])
+        rotate([-90, 0, 0])
+        grip();
+      }
     
-    translate([0, 200])
-    cube([400, 400, 100], center=true);
+      translate([0, 200])
+      cube([400, 400, 100], center=true);
 
-    joint_chamfer();
+      joint_chamfer();
 
-    // Negative fingers.
+      // Negative fingers.
+      extrude_fingers(thickness=finger_thickness,
+                      cavity=true, complement=true, rot=true);
+    }
+  
+    // Positive fingers.
     extrude_fingers(thickness=finger_thickness,
-                    cavity=true, complement=true, rot=true);
+                    cavity=false, complement=false);
+  
+    // Tabs.
+    linear_extrude(0.4)
+    for (a = [-1, 1])
+    translate([a*77, 0])
+    circle(d=10);
   }
-  
-  // Positive fingers.
-  extrude_fingers(thickness=finger_thickness,
-                  cavity=false, complement=false);
-  
-  // Tabs.
-  linear_extrude(0.4)
-  for (a = [-1, 1])
-  translate([a*77, 0])
-  circle(d=10);
 }
 
 // Sheets to modify infill.
 module sheets() {
-  sheet_width = width + 50;
-  sheet_length = 400;
-  sheet_thickness = 3;
-  
-  translate([-sheet_width/2, 0, -sheet_thickness])
-  cube([sheet_width, sheet_length, sheet_thickness]);
-  
-  translate([0, 0, max_thickness])
-  rotate([-wedge_angle*2, 0, 0])
-  translate([-sheet_width/2, 0, 0])
-  cube([sheet_width, sheet_length, sheet_thickness]);
+  sheet_width = width + 20;
+  sheet_length = 300;
+
+  bottom_sheet_intrusion = 6*0.2;
+  top_sheet_intrusion = 7*0.2;
+  back_up_top_sheet = 5;
+
+  translate([-sheet_width/2, 0, 0]) {
+    // Bottom sheet.
+    cube([sheet_width, sheet_length, bottom_sheet_intrusion]);
+    
+    // Top sheet.
+    rotate([-wedge_angle, 0, 0])
+    translate([0, 0, max_thickness])
+    rotate([-wedge_angle, 0, 0])
+    translate([0, -back_up_top_sheet, -top_sheet_intrusion])
+    cube([
+      sheet_width,
+      sheet_length+back_up_top_sheet,
+      top_sheet_intrusion
+     ]);
+  }
 }
 
+color("orange") top();
+sheets();
