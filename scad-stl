@@ -1,0 +1,8 @@
+#!/usr/bin/env fish
+
+
+
+openscad \
+  --export-format binstl \
+  -o $HOME/(date '+%Y%m%d_')(basename $argv[1] .scad).stl \
+  $argv
