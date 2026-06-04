@@ -4,7 +4,7 @@ mark_number = 4;
 
 // Parameters for the overall shape.
 width = 200;
-fan_length = 223;
+fan_length = 224;
 fan_roundoff = 69;
 
 // The length of the flat striking surface, before it hits the grip
@@ -30,13 +30,15 @@ top_length = 216 - finger_length()/2;
 finger_thickness =
   min_thickness*(wedge_length - top_length)/wedge_length +
   max_thickness*top_length/wedge_length;
+  
+echo(finger_thickness);
 
 wedge_angle = atan(
   (max_thickness - min_thickness) / (2 * wedge_length));
 
 grip_width = 35;
 
-tab_x = 72;
+tab_x = 73; // TUNED
 
 function bulge_radius(thickness, intercept_angle) =
   thickness / (2 * sin(intercept_angle));
@@ -166,9 +168,9 @@ module grip_2d(offs=0) {
 }
 
 module bend_translate(r, z) {
-  translate([r, 0, 0])
-  rotate([0, 360*z/(2*PI*r), 0])
   translate([-r, 0, 0])
+  rotate([0, -360*z/(2*PI*r), 0])
+  translate([r, 0, 0])
   children();
 }
 
@@ -336,4 +338,5 @@ module sheets() {
   }
 }
 
+bottom();
 top();
