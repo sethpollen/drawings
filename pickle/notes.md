@@ -56,8 +56,16 @@ to PETG should be enough to avoid denting the edges.
 * 10% grid infill.
 * Floor: 3 layers of 100% plus 3 layers of 50% lines.
 * Ceiling: 4 layers of 100% plus 3 layers of 50% lines.
-* Walls: 2 lines.
+* Walls: 2 lines (the default).
 * Bottom layer inset: 0.2mm.
 * Head temperature: 240 C.
 * Print speed: 40 mm/s.
 * Randomized Z seam alignment (to avoid weak spots).
+
+Standard first layer overdrive:
+
+* 120% flow in general
+* 110% flow for outer walls
+
+Also need to disable "extra infill lines to support skins," as my 50% layers
+already do that.

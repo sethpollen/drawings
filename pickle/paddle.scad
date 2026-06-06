@@ -37,7 +37,7 @@ echo(finger_thickness);
 wedge_angle = atan(
   (max_thickness - min_thickness) / (2 * wedge_length));
 
-tab_x = 74; // TUNED
+tab_x = 73; // TUNED
 
 function bulge_radius(thickness, intercept_angle) =
   thickness / (2 * sin(intercept_angle));
@@ -339,10 +339,12 @@ module sheets() {
 
   bottom_sheet_intrusion = 6*0.2;
   top_sheet_intrusion = 7*0.2;
-  back_up_top_sheet = 4;
+  back_up_top_sheet = 3;
+  back_up_bottom_sheet = back_up_top_sheet + 11;
 
   translate([-sheet_width/2, 0, 0]) {
     // Bottom sheet.
+    translate([0, -back_up_bottom_sheet])
     cube([sheet_width, sheet_length, bottom_sheet_intrusion]);
     
     // Top sheet.
@@ -354,9 +356,14 @@ module sheets() {
     cube([
       sheet_width,
       sheet_length+back_up_top_sheet,
-      20
+      3
      ]);
   }
 }
 
-bottom();
+// Block to add one extra floor layer to the grip.
+module grip_block() {
+  cube([400, 400, 50]);
+}
+
+sheets();
