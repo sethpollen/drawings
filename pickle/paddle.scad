@@ -338,5 +338,12 @@ module sheets() {
   }
 }
 
-bottom();
-top();
+difference() {
+  bottom();
+
+  translate([10, 10, max_thickness + 4.5])
+  rotate([0, 95, 0])
+  scale([5, 12])
+  translate([0, 0, -50])
+  cylinder(h=100, r=1, $fn=24);
+}
