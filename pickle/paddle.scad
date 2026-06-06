@@ -67,7 +67,7 @@ module bulge_piece(r) {
 module fan_piece(flip, x, y, gentle_top_curve=false) {
   y_frac = y/wedge_length;
   thickness = (1 - y_frac)*max_thickness + y_frac*min_thickness;
-  gentle_scale_factor = 0.73;
+  gentle_scale_factor = 0.72;
 
   for (a = [-1, 1])
   for (b = [-1, (gentle_top_curve && a == 1) ? gentle_scale_factor : 1])
