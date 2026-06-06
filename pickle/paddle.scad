@@ -18,6 +18,7 @@ max_thickness = 20;
 min_thickness = 9;
 
 grip_thickness = 27;
+grip_thickness2 = 24.7; // TODO:
 grip_width = 33.1;
 
 // The grip is offset from the center of the wedge base. This "lifts" the grip
@@ -96,7 +97,7 @@ module fan(base_only=false) {
 // `i` should be in the range [0, 3].
 module bridge(i) {
   x_frac = [0.31, 0.166, 0.074, 0.03][i];
-  y_frac = [0.28, 0.57, 0.8, 0.95][i];
+  y_frac = [0.28, 0.57, 0.8, 0.945][i];
 
   bridge_length = wedge_length + bridge_grip_overlap - fan_length;
 
@@ -143,10 +144,9 @@ knurl_slope = 0.5;
 knurl_valley = 0.8;
 knurl_segment_length = knurl_slope + knurl_peak + knurl_slope + knurl_valley;
 
-module grip_2d(offs=0) {
+module grip_2d() {
   flats = 10;
     
-  offset(delta=offs)
   intersection() {
     // Main profile, rounded on both sides.
     translate([0, -grip_offset])
@@ -163,7 +163,7 @@ module grip_2d(offs=0) {
     }
     
     // Cut off to meet the build plate.
-    translate([-50, max_thickness/2 - knurl_depth -100])
+    translate([-50, max_thickness/2 - 100])
     square(100);
   }
 }
@@ -187,13 +187,22 @@ module knurl_segment(bend_radius, i, x_scale=1, end=false) {
   scale([x_scale, 1, -1])
   difference() {
     chain() {
-      mklayer(bend_radius, z) grip_2d();
-      mklayer(bend_radius, z + knurl_slope) grip_2d(offs=knurl_depth);
-      mklayer(bend_radius, z + knurl_slope + knurl_peak) grip_2d(offs=knurl_depth);
-      mklayer(bend_radius, z + knurl_slope + knurl_peak + knurl_slope) grip_2d();
+      mklayer(bend_radius, z)
+      offset(delta=-knurl_depth)
+      grip_2d();
+      
+      mklayer(bend_radius, z + knurl_slope)
+      grip_2d();
+      
+      mklayer(bend_radius, z + knurl_slope + knurl_peak)
+      grip_2d();
+      
+      mklayer(bend_radius, z + knurl_slope + knurl_peak + knurl_slope)
+      offset(delta=-knurl_depth)
+      grip_2d();
       
       mklayer(bend_radius, z + knurl_slope + knurl_peak + knurl_slope + knurl_valley)
-      offset(delta=(end ? -0.9 : 0))
+      offset(delta=(end ? -0.9 : 0) - knurl_depth)
       grip_2d();
     }
     
