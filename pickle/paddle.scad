@@ -18,6 +18,7 @@ max_thickness = 20;
 min_thickness = 9;
 
 grip_thickness = 27;
+grip_width = 33.1;
 
 // The grip is offset from the center of the wedge base. This "lifts" the grip
 // away from the build plate, allowing more of its full profile to be printed.
@@ -35,8 +36,6 @@ echo(finger_thickness);
 
 wedge_angle = atan(
   (max_thickness - min_thickness) / (2 * wedge_length));
-
-grip_width = 35;
 
 tab_x = 73; // TUNED
 
@@ -138,7 +137,7 @@ module flatten_wedge() {
   children();
 }  
 
-knurl_depth = 0.5;
+knurl_depth = 0.25;
 knurl_peak = 3.1;
 knurl_slope = 0.5;
 knurl_valley = 0.8;
@@ -182,10 +181,10 @@ module mklayer(r, z) {
   children();
 }
 
-module knurl_segment(bend_radius, i, end=false) {
+module knurl_segment(bend_radius, i, x_scale=1, end=false) {
   z = i*knurl_segment_length;
-
-  scale([1, 1, -1])
+  
+  scale([x_scale, 1, -1])
   difference() {
     chain() {
       mklayer(bend_radius, z) grip_2d();
@@ -238,7 +237,17 @@ module grip() {
     
     bend_translate(r2, -p2*knurl_segment_length)
     for (i = [0:p3-1])
-    knurl_segment(r3, i, end=(i==p3-1));
+    knurl_segment(r3, i,
+      // Make a slight pommel.
+      x_scale=(
+          (i == p3-1)
+        ? 1.08
+        : (i == p3-2)
+        ? 1.04
+        : 1
+      ),
+      end=(i == p3-1)
+    );
   }
 }
 

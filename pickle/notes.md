@@ -51,6 +51,4 @@ struggle to form correctly with 0.15mm layers.
 
 TODO:
 
-2. Flatten the top of the handle like the bottom.
-3. Make handle less wide.
-5. Make knurl grooves shallower.
+1. Flatten the top of the handle like the bottom.
