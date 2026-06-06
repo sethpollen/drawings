@@ -53,23 +53,25 @@ module chain() {
 }
 
 module bulge_piece(r) {
-  // A quarter slice of a sphere.
+  // A 1/8th slice of a sphere.
   translate([-r, -r])
   rotate_extrude($fn=16, angle=90)
   intersection() {
     circle($fn=24, r=r);
     
-    translate([r, 0])
+    translate([r, r])
     square(r*2, center=true);
   }
 }
 
-module fan_piece(flip, x, y) {
+module fan_piece(flip, x, y, gentle_top_curve=false) {
   y_frac = y/wedge_length;
   thickness = (1 - y_frac)*max_thickness + y_frac*min_thickness;
+  gentle_scale_factor = 0.73;
 
   for (a = [-1, 1])
-  scale([a, 1])
+  for (b = [-1, (gentle_top_curve && a == 1) ? gentle_scale_factor : 1])
+  scale([a, 1, b])
   translate([x, y])
   scale([1, flip ? -1 : 1])
   bulge_piece(bulge_radius(thickness, 45));
@@ -94,15 +96,15 @@ module fan(base_only=false) {
 
 // `i` should be in the range [0, 3].
 module bridge(i) {
-  intercept_angle = 52;
-  x_frac = [0.28, 0.18, 0.083, 0.03][i];
-  y_frac = [0.38, 0.57, 0.8  , 0.95 ][i];
+  x_frac = [0.3, 0.166, 0.074, 0.03][i];
+  y_frac = [0.3, 0.57, 0.8, 0.95][i];
 
   bridge_length = wedge_length + bridge_grip_overlap - fan_length;
 
   fan_piece(true,
     grip_width/2 + x_frac*0.5*(width-grip_width),
-    bridge_length*(1-y_frac) - bridge_grip_overlap);
+    bridge_length*(1-y_frac) - bridge_grip_overlap,
+    gentle_top_curve=true);
 }
 
 module wedge() {
@@ -338,12 +340,4 @@ module sheets() {
   }
 }
 
-difference() {
-  bottom();
-
-  translate([10, 10, max_thickness + 4.5])
-  rotate([0, 95, 0])
-  scale([5, 12])
-  translate([0, 0, -50])
-  cylinder(h=100, r=1, $fn=24);
-}
+bottom();

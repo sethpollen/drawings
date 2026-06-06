@@ -51,9 +51,7 @@ struggle to form correctly with 0.15mm layers.
 
 TODO:
 
-1. Cylindrical thumb cutout.
 2. Flatten the top of the handle like the bottom.
 3. Make handle less wide.
 4. Sharper handle bend.
 5. Make knurl grooves shallower.
-6. Narrower bridge near the handle, for a more flexible hold.
