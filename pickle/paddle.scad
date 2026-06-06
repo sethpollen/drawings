@@ -4,7 +4,7 @@ mark_number = 4;
 
 // Parameters for the overall shape.
 width = 200;
-fan_length = 224;
+fan_length = 225;
 fan_roundoff = 69;
 
 // The length of the flat striking surface, before it hits the grip
@@ -37,7 +37,7 @@ echo(finger_thickness);
 wedge_angle = atan(
   (max_thickness - min_thickness) / (2 * wedge_length));
 
-tab_x = 73; // TUNED
+tab_x = 74; // TUNED
 
 function bulge_radius(thickness, intercept_angle) =
   thickness / (2 * sin(intercept_angle));
