@@ -96,8 +96,8 @@ module fan(base_only=false) {
 
 // `i` should be in the range [0, 3].
 module bridge(i) {
-  x_frac = [0.3, 0.166, 0.074, 0.03][i];
-  y_frac = [0.3, 0.57, 0.8, 0.95][i];
+  x_frac = [0.31, 0.166, 0.074, 0.03][i];
+  y_frac = [0.28, 0.57, 0.8, 0.95][i];
 
   bridge_length = wedge_length + bridge_grip_overlap - fan_length;
 
