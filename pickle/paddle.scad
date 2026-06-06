@@ -17,9 +17,8 @@ bridge_grip_overlap = 20;
 max_thickness = 20;
 min_thickness = 9;
 
-grip_thickness = 27;
-grip_thickness2 = 24.7; // TODO:
-grip_width = 33.1;
+grip_thickness = 24;
+grip_width = 34;
 
 // The grip is offset from the center of the wedge base. This "lifts" the grip
 // away from the build plate, allowing more of its full profile to be printed.
@@ -154,7 +153,7 @@ module grip_2d() {
     for (a = [-1, 1])
     scale([1, a])
     translate([0, flats/2])
-    scale([grip_width/2, (grip_thickness-flats)/2])
+    scale([grip_width/2, (1.107*grip_thickness - flats)/2])
     intersection() {
       circle($fn=18, r=1);
       
@@ -163,8 +162,8 @@ module grip_2d() {
     }
     
     // Cut off to meet the build plate.
-    translate([-50, max_thickness/2 - 100])
-    square(100);
+    translate([-30, max_thickness/2 - grip_thickness])
+    square([60, grip_thickness]);
   }
 }
 
@@ -234,7 +233,9 @@ module grip() {
   
   // Form the shelf.
   hull() {
-    translate([0, grip_thickness - max_thickness - grip_offset - shelf_width])
+    translate([0, max_thickness/2])
+    scale([1, (max_thickness + shelf_width)/grip_thickness])
+    translate([0, -max_thickness/2])
     knurl_segment(r1, 0);
   
     knurl_segment(r1, 1);

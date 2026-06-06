@@ -48,7 +48,3 @@ but I think I was too worried. PETG should have fine adhesion with 0.2mm layers.
 
 I plan to use PETG again, but with 0.2mm layers. I noticed that the infill grids
 struggle to form correctly with 0.15mm layers.
-
-TODO:
-
-1. Flatten the top of the handle like the bottom.
