@@ -137,7 +137,7 @@ module flatten_wedge() {
   children();
 }  
 
-knurl_depth = 0.25;
+knurl_depth = 0.39;
 knurl_peak = 3.1;
 knurl_slope = 0.5;
 knurl_valley = 0.8;
@@ -176,7 +176,7 @@ module bend_translate(r, z) {
 
 module mklayer(r, z) {
   bend_translate(r, z)
-  linear_extrude(0.01)
+  linear_extrude(0.07)
   children();
 }
 
@@ -205,7 +205,7 @@ module knurl_segment(bend_radius, i, x_scale=1, end=false) {
       grip_2d();
     }
     
-    letter_depth = 1.6;
+    letter_depth = 1;
     
     if (end)
     bend_translate(bend_radius, z+knurl_segment_length-letter_depth+0.05)

@@ -48,3 +48,16 @@ but I think I was too worried. PETG should have fine adhesion with 0.2mm layers.
 
 I plan to use PETG again, but with 0.2mm layers. I noticed that the infill grids
 struggle to form correctly with 0.15mm layers.
+
+I think the extra wall line of Mk. 3 was overkill. Simply switching from PLA
+to PETG should be enough to avoid denting the edges.
+
+* 0.2mm layers.
+* 10% grid infill.
+* Floor: 3 layers of 100% plus 3 layers of 50% lines.
+* Ceiling: 4 layers of 100% plus 3 layers of 50% lines.
+* Walls: 2 lines.
+* Bottom layer inset: 0.2mm.
+* Head temperature: 240 C.
+* Print speed: 40 mm/s.
+* Randomized Z seam alignment (to avoid weak spots).
