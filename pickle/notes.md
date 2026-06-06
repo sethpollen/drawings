@@ -53,5 +53,4 @@ TODO:
 
 2. Flatten the top of the handle like the bottom.
 3. Make handle less wide.
-4. Sharper handle bend.
 5. Make knurl grooves shallower.
