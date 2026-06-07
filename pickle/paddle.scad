@@ -17,12 +17,12 @@ bridge_grip_overlap = 20;
 max_thickness = 20;
 min_thickness = 9;
 
-grip_thickness = 24;
-grip_width = 34;
+grip_width = 34.8;
+grip_thickness = 24.7;
 
 // The grip is offset from the center of the wedge base. This "lifts" the grip
 // away from the build plate, allowing more of its full profile to be printed.
-grip_offset = 1.8;
+grip_offset = 1.9;
 
 // Parameter for slicing into printable sections.
 top_length = 216 - finger_length()/2;
@@ -153,7 +153,7 @@ module grip_2d() {
     for (a = [-1, 1])
     scale([1, a])
     translate([0, flats/2])
-    scale([grip_width/2, (1.107*grip_thickness - flats)/2])
+    scale([grip_width/2, (1.12*grip_thickness - flats)/2])
     intersection() {
       circle($fn=18, r=1);
       
@@ -366,4 +366,4 @@ module grip_block() {
   cube([400, 400, 50]);
 }
 
-sheets();
+bottom();
