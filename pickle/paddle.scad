@@ -137,7 +137,7 @@ module flatten_wedge() {
   children();
 }  
 
-knurl_depth = 0.39;
+knurl_depth = 0.4;
 knurl_peak = 3.1;
 knurl_slope = 0.5;
 knurl_valley = 0.8;
