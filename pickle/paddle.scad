@@ -359,11 +359,22 @@ module sheets() {
       3
      ]);
   }
+  
+  // Add an ornament on the top to help us align the sheets with the piece
+  // to be printed.
+  hull()
+  translate([-10, wedge_length - top_length, max_thickness - 1]) {
+    cube([20, 1, 20]);
+    
+    translate([0, 20])
+    cube([20, 1, 5]);
+  }
 }
 
 // Block to add one extra floor layer to the grip.
 module grip_block() {
-  cube([400, 400, 50]);
+  cube([400, 400, 1.8]);
 }
 
-bottom();
+top();
+sheets();
