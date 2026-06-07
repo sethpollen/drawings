@@ -61,11 +61,15 @@ to PETG should be enough to avoid denting the edges.
 * Head temperature: 240 C.
 * Print speed: 40 mm/s.
 * Randomized Z seam alignment (to avoid weak spots).
-
-Standard first layer overdrive:
-
-* 120% flow in general
-* 110% flow for outer walls
+* First layer overdrive:
+  * 120% flow in general
+  * 110% flow for outer walls
 
 Also need to disable "extra infill lines to support skins," as my 50% layers
 already do that.
+
+## Notes
+
+The 120% flow overdrive might be backfiring, causing weird artifacts on the
+first layer. I can probably scale back to 110% initial layer flow. The adhesion
+of PETG seems quite good.
