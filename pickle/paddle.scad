@@ -204,11 +204,11 @@ module knurl_segment(bend_radius, i, x_scale=1, end=false) {
       offset(delta=(end ? -0.9 : 0) - knurl_depth)
       grip_2d();
     }
-    
+
     letter_depth = 1;
     
     if (end)
-    bend_translate(bend_radius, z+knurl_segment_length-letter_depth+0.05)
+    bend_translate(bend_radius, z+knurl_segment_length-letter_depth+0.1)
     translate([-7, 6])
     scale([1, -1])
     linear_extrude(letter_depth)
