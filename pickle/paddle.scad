@@ -231,33 +231,36 @@ module grip() {
   
   shelf_width = 8.8;
   
-  // Form the shelf.
-  hull() {
-    translate([0, max_thickness/2])
-    scale([1, (max_thickness + shelf_width)/grip_thickness])
-    translate([0, -max_thickness/2])
-    knurl_segment(r1, 0);
-  
-    knurl_segment(r1, 1);
-  }
-  
-  bend_translate(r1, -p1*knurl_segment_length) {
-    for (i = [0:p2-1])
-    knurl_segment(r2, i);
+  translate([0, 0, max_thickness/2])
+  rotate([-90, 0, 0]) {
+    // Form the shelf.
+    hull() {
+      translate([0, max_thickness/2])
+      scale([1, (max_thickness + shelf_width)/grip_thickness])
+      translate([0, -max_thickness/2])
+      knurl_segment(r1, 0);
     
-    bend_translate(r2, -p2*knurl_segment_length)
-    for (i = [0:p3-1])
-    knurl_segment(r3, i,
-      // Make a slight pommel.
-      x_scale=(
-          (i == p3-1)
-        ? 1.08
-        : (i == p3-2)
-        ? 1.04
-        : 1
-      ),
-      end=(i == p3-1)
-    );
+      knurl_segment(r1, 1);
+    }
+    
+    bend_translate(r1, -p1*knurl_segment_length) {
+      for (i = [0:p2-1])
+      knurl_segment(r2, i);
+      
+      bend_translate(r2, -p2*knurl_segment_length)
+      for (i = [0:p3-1])
+      knurl_segment(r3, i,
+        // Make a slight pommel.
+        x_scale=(
+            (i == p3-1)
+          ? 1.08
+          : (i == p3-2)
+          ? 1.04
+          : 1
+        ),
+        end=(i == p3-1)
+      );
+    }
   }
 }
 
@@ -304,9 +307,6 @@ module bottom() {
       translate([0, top_length-wedge_length]) {
         flatten_wedge()
         wedge();
-
-        translate([0, 0, max_thickness/2])
-        rotate([-90, 0, 0])
         grip();
       }
     
@@ -332,46 +332,6 @@ module bottom() {
   }
 }
 
-// Sheets to modify infill.
-module sheets() {
-  sheet_width = width + 20;
-  sheet_length = 300;
-
-  bottom_sheet_intrusion = 6*0.2;
-  top_sheet_intrusion = 7*0.2;
-  back_up_top_sheet = 3;
-  back_up_bottom_sheet = back_up_top_sheet + 11;
-
-  translate([-sheet_width/2, 0, 0]) {
-    // Bottom sheet.
-    translate([0, -back_up_bottom_sheet])
-    cube([sheet_width, sheet_length, bottom_sheet_intrusion]);
-    
-    // Top sheet.
-    translate([0, 0, -top_sheet_intrusion])
-    rotate([-wedge_angle, 0, 0])
-    translate([0, 0, max_thickness])
-    rotate([-wedge_angle, 0, 0])
-    translate([0, -back_up_top_sheet, 0])
-    cube([
-      sheet_width,
-      sheet_length+back_up_top_sheet,
-      3
-     ]);
-  }
-  
-  // Add an ornament on the top to help us align the sheets with the piece
-  // to be printed.
-  hull()
-  translate([-10, wedge_length - top_length, max_thickness - 1]) {
-    cube([20, 1, 20]);
-    
-    translate([0, 20])
-    cube([20, 1, 5]);
-  }
-}
-
-// TODO:
 module upper_sheet() {
   sheet_width = width + 20;
   back_up = 2;
@@ -394,7 +354,4 @@ module upper_sheet() {
 // seems like it might be unavoidable. Unless I can insert a horizontal crack in
 // the grip to relieve stress.
 
-difference(){
-bottom();
-upper_sheet();
-}
+grip();
