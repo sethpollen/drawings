@@ -371,9 +371,30 @@ module sheets() {
   }
 }
 
-// Block to add one extra floor layer to the grip.
-module grip_block() {
-  cube([400, 400, 1.8]);
+// TODO:
+module upper_sheet() {
+  sheet_width = width + 20;
+  back_up = 2;
+  thickness = 15;
+  
+  // Tilted sheet over the paddle face.
+  rotate([-wedge_angle, 0, 0])
+  translate([0, 0, max_thickness])
+  rotate([-wedge_angle, 0, 0])
+  translate([-sheet_width/2, -back_up, 0])
+  cube([sheet_width, 300+back_up, thickness]);
+  
+  // Horizontal sheet over the grip.
+  translate([-sheet_width/2, -180, max_thickness])
+  cube([sheet_width, 180, thickness]);
 }
 
+// TODO: maybe I should go back to the grip design of Mk.3. It seems to be holding
+// up pretty well. The only disadvantage is that it requires a glue joint, but that
+// seems like it might be unavoidable. Unless I can insert a horizontal crack in
+// the grip to relieve stress.
+
+difference(){
 bottom();
+upper_sheet();
+}
