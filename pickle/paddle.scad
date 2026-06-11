@@ -15,7 +15,7 @@ bridge_grip_overlap = 20;
 
 // Make a wedge shape.
 max_thickness = 20;
-min_thickness = 9;
+min_thickness = 8;
 
 grip_width = 34.8;
 grip_thickness = 24.7;
@@ -218,13 +218,13 @@ module knurl_segment(bend_radius, i, x_scale=1, end=false) {
 }
 
 module grip() {
-  segments = 27;
+  segments = 26;
   
   r1 = 1000;
   p1 = 2;
   
   r2 = 70;
-  p2 = 9;
+  p2 = 8;
 
   r3 = 1000;
   p3 = segments - p1 - p2;
@@ -376,5 +376,4 @@ module grip_block() {
   cube([400, 400, 1.8]);
 }
 
-top();
-sheets();
+bottom();
