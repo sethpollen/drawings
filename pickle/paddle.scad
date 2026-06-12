@@ -37,6 +37,9 @@ echo(finger_thickness);
 wedge_angle = atan(
   (max_thickness - min_thickness) / (2 * wedge_length));
 
+grip_groove_floor = 5;
+grip_tongue_width = 1;
+
 tab_x = 73; // TUNED
 
 function bulge_radius(thickness, intercept_angle) =
@@ -143,27 +146,39 @@ knurl_slope = 0.5;
 knurl_valley = 0.8;
 knurl_segment_length = knurl_slope + knurl_peak + knurl_slope + knurl_valley;
 
-module grip_2d() {
-  flats = 10;
-    
-  intersection() {
-    // Main profile, rounded on both sides.
-    translate([0, -grip_offset])
-    hull()
-    for (a = [-1, 1])
-    scale([1, a])
-    translate([0, flats/2])
-    scale([grip_width/2, (1.12*grip_thickness - flats)/2])
-    intersection() {
-      circle($fn=18, r=1);
+// Values for `type`:
+//   -1 Nothing at all.
+//   0  Grip exterior.
+//   1  Central tongue.
+//   2  Central groove.
+module grip_2d(type=0) {
+  if (type == 0) {
+    flats = 10;
       
-      translate([0, 2])
-      square(4, center=true);
+    intersection() {
+      // Main profile, rounded on both sides.
+      translate([0, -grip_offset])
+      hull()
+      for (a = [-1, 1])
+      scale([1, a])
+      translate([0, flats/2])
+      scale([grip_width/2, (1.12*grip_thickness - flats)/2])
+      intersection() {
+        circle($fn=18, r=1);
+        
+        translate([0, 2])
+        square(4, center=true);
+      }
+      
+      // Cut off to meet the build plate.
+      translate([-30, max_thickness/2 - grip_thickness])
+      square([60, grip_thickness]);
     }
-    
-    // Cut off to meet the build plate.
-    translate([-30, max_thickness/2 - grip_thickness])
-    square([60, grip_thickness]);
+  }
+
+  if (type == 1) {
+    translate([-grip_tongue_width/2, max_thickness/2 - grip_thickness - 0.0001])
+    square([grip_tongue_width, grip_thickness - grip_groove_floor]);
   }
 }
 
@@ -180,29 +195,30 @@ module mklayer(r, z) {
   children();
 }
 
-module knurl_segment(bend_radius, i, x_scale=1, end=false) {
+module knurl_segment(bend_radius, i, type=0, x_scale=1, end=false) {
   z = i*knurl_segment_length;
+  knurl_offs = (type == 0) ? -knurl_depth : 0;
   
-  scale([x_scale, 1, -1])
+  scale([(type == 0) ? x_scale : 1, 1, -1])
   difference() {
     chain() {
       mklayer(bend_radius, z)
-      offset(delta=-knurl_depth)
-      grip_2d();
+      offset(delta=knurl_offs)
+      grip_2d(type=type);
       
       mklayer(bend_radius, z + knurl_slope)
-      grip_2d();
+      grip_2d(type=type);
       
       mklayer(bend_radius, z + knurl_slope + knurl_peak)
-      grip_2d();
+      grip_2d(type=type);
       
       mklayer(bend_radius, z + knurl_slope + knurl_peak + knurl_slope)
-      offset(delta=-knurl_depth)
-      grip_2d();
+      offset(delta=knurl_offs)
+      grip_2d(type=type);
       
       mklayer(bend_radius, z + knurl_slope + knurl_peak + knurl_slope + knurl_valley)
-      offset(delta=(end ? -0.9 : 0) - knurl_depth)
-      grip_2d();
+      offset(delta=knurl_offs + (end ? -0.9 : 0))
+      grip_2d(type=type);
     }
 
     letter_depth = 1;
@@ -217,7 +233,7 @@ module knurl_segment(bend_radius, i, x_scale=1, end=false) {
   }
 }
 
-module grip() {
+module grip(type=0) {
   segments = 26;
   
   r1 = 1000;
@@ -238,28 +254,35 @@ module grip() {
       translate([0, max_thickness/2])
       scale([1, (max_thickness + shelf_width)/grip_thickness])
       translate([0, -max_thickness/2])
-      knurl_segment(r1, 0);
+      knurl_segment(r1, 0, type=type);
     
-      knurl_segment(r1, 1);
+      knurl_segment(r1, 1, type=type);
     }
     
     bend_translate(r1, -p1*knurl_segment_length) {
       for (i = [0:p2-1])
-      knurl_segment(r2, i);
+      knurl_segment(r2, i, type=type);
       
       bend_translate(r2, -p2*knurl_segment_length)
-      for (i = [0:p3-1])
-      knurl_segment(r3, i,
-        // Make a slight pommel.
-        x_scale=(
-            (i == p3-1)
-          ? 1.08
-          : (i == p3-2)
-          ? 1.04
-          : 1
-        ),
-        end=(i == p3-1)
-      );
+      for (i = [0:p3-1]) {
+        // Keep the tonge from going all the way to the end of the grip.
+        mytype = (type == 0) ? 0
+               : (i < p3-1) ? type
+               : -1;
+        
+        knurl_segment(r3, i,
+          type=mytype,
+          // Make a slight pommel.
+          x_scale=(
+              (i == p3-1)
+            ? 1.08
+            : (i == p3-2)
+            ? 1.04
+            : 1
+          ),
+          end=(i == p3-1)
+        );
+      }
     }
   }
 }
@@ -338,6 +361,7 @@ module upper_sheet() {
   thickness = 15;
   
   // Tilted sheet over the paddle face.
+  translate([0, 0, 0.001]) // Don't actually intersect the face.
   rotate([-wedge_angle, 0, 0])
   translate([0, 0, max_thickness])
   rotate([-wedge_angle, 0, 0])
@@ -354,4 +378,10 @@ module upper_sheet() {
 // seems like it might be unavoidable. Unless I can insert a horizontal crack in
 // the grip to relieve stress.
 
-grip();
+intersection() {
+  bottom();
+  union() {
+    upper_sheet();
+    grip(type=1);
+  }
+}
