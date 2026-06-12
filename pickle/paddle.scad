@@ -270,12 +270,15 @@ module grip() {
   rotate([-90, 0, 0]) {
     // Form the shelf.
     hull() {
+      // No tongue for the first segments.
+      my_grip_type = ($grip_type == 0) ? 0 : -1;
+
       translate([0, max_thickness/2])
       scale([1, (max_thickness + shelf_width)/grip_thickness])
       translate([0, -max_thickness/2])
-      knurl_segment(r1, 0);
+      knurl_segment(r1, 0, $grip_type=my_grip_type);
     
-      knurl_segment(r1, 1);
+      knurl_segment(r1, 1, $grip_type=my_grip_type);
     }
     
     bend_translate(r1, -p1*knurl_segment_length) {
@@ -284,13 +287,13 @@ module grip() {
       
       bend_translate(r2, -p2*knurl_segment_length)
       for (i = [0:p3-1]) {
-        // No tongue for the last segment.
-        mytype = ($grip_type == 0) ? 0
-               : (i < p3-1) ? $grip_type
-               : -1;
+        // No tongue for the last segments.
+        my_grip_type = ($grip_type == 0) ? 0
+                     : (i < p3-2) ? $grip_type
+                     : -1;
         
         knurl_segment(r3, i,
-          $grip_type=mytype,
+          $grip_type=my_grip_type,
           // Make a slight pommel.
           x_scale=(
               (i == p3-1)
@@ -410,14 +413,15 @@ module upper_sheet() {
 
 module grip_plate() {
   intersection() {
-    translate([0, middle_length])
     bottom_template();
 
     union() {
       translate([-200, -200, max_thickness])
-      cube([400, 400, 100]);
+      cube([400, 400, 30]);
       
       grip($grip_type=1);
     }
   }
 }
+
+grip_plate();
