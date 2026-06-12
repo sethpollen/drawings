@@ -18,7 +18,7 @@ max_thickness = 20;
 min_thickness = 8;
 
 grip_width = 34.6;
-grip_thickness = 24.5;
+grip_thickness = 24.4;
 
 // The grip is offset from the center of the wedge base. This "lifts" the grip
 // away from the build plate, allowing more of its full profile to be printed.
