@@ -73,3 +73,15 @@ already do that.
 The 120% flow overdrive might be backfiring, causing weird artifacts on the
 first layer. I can probably scale back to 110% initial layer flow. The adhesion
 of PETG seems quite good.
+
+The paddle broke after a few minutes of use. I believe the problem is that
+the continuous sheet of the upper surface stopped abruptly at the shelf. So
+under stress, the paddle cracked right there at the shelf. In the future, I need
+to maintain that continuous sheet over the whole paddle.
+
+# Mk. 5
+
+Same print settings as Mk. 4, with a few changes:
+
+* Floor: 3 layers of 100% plus 2 layers of 50%.
+* Ceiling: 

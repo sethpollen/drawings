@@ -1,6 +1,6 @@
 use <finger.scad>
 
-mark_number = 4;
+mark_number = 5;
 
 // Parameters for the overall shape.
 width = 200;
@@ -424,4 +424,4 @@ module grip_plate() {
   }
 }
 
-grip_plate();
+bottom();
