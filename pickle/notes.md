@@ -86,9 +86,6 @@ customization I tried earlier. For instance, I don't have evidence that the 50%
 skin layers are needed with PETG. I'm going to use all of the default settings
 for floor, ceiling, and wall thickness.
 
-The one concession I will make is to add an extra floor and ceiling layer to
-the narrow part (where the paddle meets the grip). See `bottom_extent`.
-
 * 0.2mm layers.
 * 10% grid infill.
 * Bottom layer inset: 0.2mm.

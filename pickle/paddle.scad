@@ -389,41 +389,6 @@ module bottom() {
   }
 }
 
-// Adds an extra floor and ceiling layer to the highest stress area.
-module bottom_modifier() {
-  sheet_width = width + 20;
-  back_up = 2;
-  
-  z_intrusion = 1;
-  y_extent = 32;
-  
-  intersection() {
-    union() {
-      // Add 2 layers to the ceiling.
-      translate([0, 0, -1.2]) {
-        // Tilted sheet over the paddle face.
-        rotate([-wedge_angle, 0, 0])
-        translate([0, 0, max_thickness])
-        rotate([-wedge_angle, 0, 0])
-        translate([-sheet_width/2, -back_up, 0])
-        cube([sheet_width, 300+back_up, 10]);
-          
-        // Horizontal sheet over the grip.
-        translate([-sheet_width/2, -180, max_thickness])
-        cube([sheet_width, 180, 10]);
-      }
-      
-      // Add 1 layer: Bottom sheet.
-      cube([sheet_width, 250, z_intrusion*2], center=true);
-    }
-    
-    // Limit the extent.
-    cube([sheet_width, y_extent, 100], center=true);
-    
-    bottom();
-  }
-}
-
 module grip_plate() {
   intersection() {
     bottom_template();
@@ -437,4 +402,4 @@ module grip_plate() {
   }
 }
 
-bottom_modifier();
+bottom();
