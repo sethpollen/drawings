@@ -38,8 +38,8 @@ finger_thickness =
 wedge_angle = atan(
   (max_thickness - min_thickness) / (2 * wedge_length));
 
-grip_groove_floor = 5;
-grip_tongue_width = 4.4;
+grip_groove_floor = 6;
+grip_tongue_width = 4.6;
 
 tab_x = 73; // TUNED
 
@@ -150,10 +150,10 @@ knurl_valley = 0.8;
 knurl_segment_length = knurl_slope + knurl_peak + knurl_slope + knurl_valley;
 
 // Values for `$grip_type`:
-//   -1 Nothing at all.
-//   0  Grip exterior.
-//   1  Central tongue.
-//   2  Central groove.
+//   -1  Nothing at all.
+//    0  Grip exterior.
+//    1  Central tongue.
+//    2  Central groove.
 module grip_2d() {
   flats = 10;
 
@@ -187,9 +187,10 @@ module grip_2d() {
     square([grip_tongue_width, 0.0001], center=true);
   }
   
-  // TODO: also need to take in the ends of the tongue.
+  groove_slack = 0.1;
+
   if ($grip_type == 2)
-  offset(delta=1) // TODO: 0.1
+  offset(delta=groove_slack)
   grip_2d($grip_type=1);
 }
 
@@ -208,13 +209,19 @@ module mklayer(r, z) {
 
 module knurl_segment(bend_radius, i, x_scale=1, end=false) {
   z = i*knurl_segment_length;
-  knurl_offs = ($grip_type == 0) ? -knurl_depth : 0;
   
-  scale([($grip_type == 0) ? x_scale : 1, 1, -1])
+  my_knurl_depth = ($grip_type == 0) ? knurl_depth : 0;
+  my_x_scale = ($grip_type == 0) ? x_scale : 1;
+  
+  groove_end_slack = ($grip_type == 2) ? 0.15 : 0;
+  extra_height = groove_end_slack * 2;
+  
+  translate([0, 0, groove_end_slack])
+  scale([my_x_scale, 1, -1])
   difference() {
     chain() {
       mklayer(bend_radius, z)
-      offset(delta=knurl_offs)
+      offset(delta=-my_knurl_depth)
       grip_2d();
       
       mklayer(bend_radius, z + knurl_slope)
@@ -224,21 +231,22 @@ module knurl_segment(bend_radius, i, x_scale=1, end=false) {
       grip_2d();
       
       mklayer(bend_radius, z + knurl_slope + knurl_peak + knurl_slope)
-      offset(delta=knurl_offs)
+      offset(delta=-my_knurl_depth)
       grip_2d();
       
-      mklayer(bend_radius, z + knurl_slope + knurl_peak + knurl_slope + knurl_valley)
-      offset(delta=knurl_offs + (end ? -0.9 : 0))
+      mklayer(bend_radius, z + knurl_slope + knurl_peak + knurl_slope + knurl_valley + extra_height)
+      offset(delta=-my_knurl_depth + (end ? -0.9 : 0))
       grip_2d();
     }
-
-    letter_depth = 1;
     
+    engrave_depth = 1;
+
+    // Numeral on the base.
     if (end)
-    bend_translate(bend_radius, z+knurl_segment_length-letter_depth+0.1)
+    bend_translate(bend_radius, z+knurl_segment_length-engrave_depth+0.1)
     translate([-7, 6])
     scale([1, -1])
-    linear_extrude(letter_depth)
+    linear_extrude(engrave_depth)
     offset(0.3)
     text(str(mark_number), size=17);
   }
@@ -309,7 +317,7 @@ module joint_chamfer() {
 module top() {
   translate([0, middle_length]) {
     difference() {
-      translate([0, -middle_length]) // TODO:
+      translate([0, -middle_length])
       wedge();
         
       translate([0, -200])
@@ -413,5 +421,3 @@ module grip_plate() {
     }
   }
 }
-
-bottom();
