@@ -27,13 +27,14 @@ grip_offset = 1.9;
 // Parameter for slicing into printable sections.
 top_length = 216 - finger_length()/2;
 
+// The distance between the two critical points: The shelf and the finger joint.
+middle_length = wedge_length - top_length;
+
 // Linear interpolation.
 finger_thickness =
-  min_thickness*(wedge_length - top_length)/wedge_length +
+  min_thickness*middle_length/wedge_length +
   max_thickness*top_length/wedge_length;
   
-echo(finger_thickness);
-
 wedge_angle = atan(
   (max_thickness - min_thickness) / (2 * wedge_length));
 
@@ -131,6 +132,10 @@ module wedge() {
     rotate([-wedge_angle, 0, 0])
     translate([0, 0, 20])
     cube([width, 600, 40], center=true);
+
+    // Flatten the stem that intersects with the grip.
+    translate([-200, -200, max_thickness/2])
+    cube([400, 400, 100]);
   }
 }
 
@@ -304,7 +309,7 @@ module joint_chamfer() {
 }
 
 module top() {
-  translate([0, wedge_length-top_length]) {
+  translate([0, middle_length]) {
     difference() {
       translate([0, top_length-wedge_length])
       flatten_wedge()
@@ -333,7 +338,7 @@ module top() {
 }
 
 module bottom_template() {
-  translate([0, wedge_length-top_length])
+  translate([0, middle_length])
   difference() {
     translate([0, top_length-wedge_length]) {
       flatten_wedge()
@@ -350,7 +355,7 @@ module bottom() {
   difference() {
     bottom_template();
 
-    translate([0, wedge_length-top_length]) {
+    translate([0, middle_length]) {
       joint_chamfer();
 
       // Negative fingers.
@@ -362,10 +367,11 @@ module bottom() {
     translate([-200, -200, max_thickness])
     cube([400, 400, 100]);
     
-    // TODO: groove
+    // Groove.
+    grip(type=2);
   }
 
-  translate([0, wedge_length-top_length]) {
+  translate([0, middle_length]) {
     // Positive fingers.
     extrude_fingers(thickness=finger_thickness,
                     cavity=false, complement=false);
@@ -402,7 +408,7 @@ module upper_sheet() {
 
 module grip_plate() {
   intersection() {
-    translate([0, wedge_length-top_length])
+    translate([0, middle_length])
     bottom_template();
 
     union() {
