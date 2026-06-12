@@ -38,7 +38,7 @@ wedge_angle = atan(
   (max_thickness - min_thickness) / (2 * wedge_length));
 
 grip_groove_floor = 5;
-grip_tongue_width = 1;
+grip_tongue_width = 4.4;
 
 tab_x = 73; // TUNED
 
@@ -152,34 +152,42 @@ knurl_segment_length = knurl_slope + knurl_peak + knurl_slope + knurl_valley;
 //   1  Central tongue.
 //   2  Central groove.
 module grip_2d(type=0) {
-  if (type == 0) {
-    flats = 10;
-      
+  flats = 10;
+
+  if (type == 0)
+  intersection() {
+    // Main profile, rounded on both sides.
+    translate([0, -grip_offset])
+    hull()
+    for (a = [-1, 1])
+    scale([1, a])
+    translate([0, flats/2])
+    scale([grip_width/2, (1.12*grip_thickness - flats)/2])
     intersection() {
-      // Main profile, rounded on both sides.
-      translate([0, -grip_offset])
-      hull()
-      for (a = [-1, 1])
-      scale([1, a])
-      translate([0, flats/2])
-      scale([grip_width/2, (1.12*grip_thickness - flats)/2])
-      intersection() {
-        circle($fn=18, r=1);
-        
-        translate([0, 2])
-        square(4, center=true);
-      }
+      circle($fn=18, r=1);
       
-      // Cut off to meet the build plate.
-      translate([-30, max_thickness/2 - grip_thickness])
-      square([60, grip_thickness]);
+      translate([0, 2])
+      square(4, center=true);
     }
+    
+    // Cut off to meet the build plate.
+    translate([-30, max_thickness/2 - grip_thickness])
+    square([60, grip_thickness]);
   }
 
-  if (type == 1) {
-    translate([-grip_tongue_width/2, max_thickness/2 - grip_thickness - 0.0001])
-    square([grip_tongue_width, grip_thickness - grip_groove_floor]);
+  if (type == 1)
+  translate([0, max_thickness/2 - grip_thickness - 0.0001])
+  hull() {
+    translate([-0.4, 0])
+    square([0.8, grip_thickness - grip_groove_floor]);
+    
+    square([grip_tongue_width, 0.0001], center=true);
   }
+  
+  // TODO: also need to take in the ends of the tongue.
+  if (type == 2)
+  offset(delta=0.1)
+  grip_2d(type=1);
 }
 
 module bend_translate(r, z) {
@@ -265,7 +273,7 @@ module grip(type=0) {
       
       bend_translate(r2, -p2*knurl_segment_length)
       for (i = [0:p3-1]) {
-        // Keep the tonge from going all the way to the end of the grip.
+        // No tongue for the last segment.
         mytype = (type == 0) ? 0
                : (i < p3-1) ? type
                : -1;
@@ -324,29 +332,44 @@ module top() {
   }
 }
 
-module bottom() {
-  translate([0, wedge_length-top_length]) {
-    difference() {
-      translate([0, top_length-wedge_length]) {
-        flatten_wedge()
-        wedge();
-        grip();
-      }
-    
-      translate([0, 200])
-      cube([400, 400, 100], center=true);
+module bottom_template() {
+  translate([0, wedge_length-top_length])
+  difference() {
+    translate([0, top_length-wedge_length]) {
+      flatten_wedge()
+      wedge();
+      grip();
+    }
+  
+    translate([0, 200])
+    cube([400, 400, 100], center=true);
+  }
+}
 
+module bottom() {
+  difference() {
+    bottom_template();
+
+    translate([0, wedge_length-top_length]) {
       joint_chamfer();
 
       // Negative fingers.
       extrude_fingers(thickness=finger_thickness,
                       cavity=true, complement=true, rot=true);
     }
-  
+    
+    // Cut off the grip piece.
+    translate([-200, -200, max_thickness])
+    cube([400, 400, 100]);
+    
+    // TODO: groove
+  }
+
+  translate([0, wedge_length-top_length]) {
     // Positive fingers.
     extrude_fingers(thickness=finger_thickness,
                     cavity=false, complement=false);
-  
+
     // Tabs.
     linear_extrude(0.4)
     for (a = [-1, 1])
@@ -355,6 +378,8 @@ module bottom() {
   }
 }
 
+// TODO: use this
+/*
 module upper_sheet() {
   sheet_width = width + 20;
   back_up = 2;
@@ -372,16 +397,21 @@ module upper_sheet() {
   translate([-sheet_width/2, -180, max_thickness])
   cube([sheet_width, 180, thickness]);
 }
+*/
 
-// TODO: maybe I should go back to the grip design of Mk.3. It seems to be holding
-// up pretty well. The only disadvantage is that it requires a glue joint, but that
-// seems like it might be unavoidable. Unless I can insert a horizontal crack in
-// the grip to relieve stress.
 
-intersection() {
-  bottom();
-  union() {
-    upper_sheet();
-    grip(type=1);
+module grip_plate() {
+  intersection() {
+    translate([0, wedge_length-top_length])
+    bottom_template();
+
+    union() {
+      translate([-200, -200, max_thickness])
+      cube([400, 400, 100]);
+      
+      grip(type=1);
+    }
   }
 }
+
+bottom();
