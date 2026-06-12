@@ -83,11 +83,12 @@ to maintain that continuous sheet over the whole paddle.
 
 Some changes relative to Mk. 4. In general I am walking back some of the
 customization I tried earlier. For instance, I don't have evidence that the 50%
-skin layers are needed with PETG. I'm going to use all of the default settings
-for floor, ceiling, and wall thickness.
+skin layers are needed with PETG. So set everything to the default and then
+do just these overrides:
 
 * 0.2mm layers.
 * 10% grid infill.
+* Floor: 3 layers of 100% plus one layer of 50%.
 * Bottom layer inset: 0.2mm.
 * Head temperature: 240 C.
 * Print speed: 40 mm/s.
