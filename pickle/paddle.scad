@@ -309,7 +309,7 @@ module joint_chamfer() {
 module top() {
   translate([0, middle_length]) {
     difference() {
-      translate([0, top_length-wedge_length])
+      translate([0, -middle_length]) // TODO:
       wedge();
         
       translate([0, -200])
@@ -335,16 +335,14 @@ module top() {
 }
 
 module bottom_template() {
-  translate([0, middle_length])
   difference() {
-    translate([0, top_length-wedge_length]) {
-      wedge();
-      grip($grip_type=0);
-    }
+    wedge();
   
-    translate([0, 200])
-    cube([400, 400, 100], center=true);
+    translate([0, 200 + middle_length])
+    cube([400, 400, 70], center=true);
   }
+  
+  grip($grip_type=0);
 }
 
 module bottom() {
