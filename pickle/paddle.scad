@@ -394,27 +394,26 @@ module bottom_modifier() {
   sheet_width = width + 20;
   back_up = 2;
   
-  // Add one extra layer, for a total thickness of 1mm.
   z_intrusion = 1;
-  y_extent = 40;
+  y_extent = 32;
   
   intersection() {
     union() {
-      // Top sheet.
-      translate([0, 0, -z_intrusion]) {
+      // Add 2 layers to the ceiling.
+      translate([0, 0, -1.2]) {
         // Tilted sheet over the paddle face.
         rotate([-wedge_angle, 0, 0])
         translate([0, 0, max_thickness])
         rotate([-wedge_angle, 0, 0])
         translate([-sheet_width/2, -back_up, 0])
         cube([sheet_width, 300+back_up, 10]);
-        
+          
         // Horizontal sheet over the grip.
         translate([-sheet_width/2, -180, max_thickness])
         cube([sheet_width, 180, 10]);
       }
       
-      // Bottom sheet.
+      // Add 1 layer: Bottom sheet.
       cube([sheet_width, 250, z_intrusion*2], center=true);
     }
     
