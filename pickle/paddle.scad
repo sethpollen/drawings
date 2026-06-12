@@ -111,39 +111,37 @@ module bridge(i) {
 }
 
 module wedge() {
-  translate([0, 0, max_thickness/2])
   difference() {
-    union() {
-      fan();
-      
-      chain() {
-        fan(base_only=true);
-        bridge(0);
-        bridge(1);
-        bridge(2);
-        bridge(3);
-      }
-    }   
-  
-    // Cut in the wedge surface.
-    for (a = [-1, 1])
-    scale([1, 1, a])
-    translate([0, 0, max_thickness/2])
+    // "Unwedge" the piece, so that one surface coincides with the xy-plane.
     rotate([-wedge_angle, 0, 0])
-    translate([0, 0, 20])
-    cube([width, 600, 40], center=true);
+    translate([0, 0, max_thickness/2])
+    difference() {
+      union() {
+        fan();
+        
+        chain() {
+          fan(base_only=true);
+          bridge(0);
+          bridge(1);
+          bridge(2);
+          bridge(3);
+        }
+      }   
+    
+      // Cut in the wedge surface.
+      for (a = [-1, 1])
+      scale([1, 1, a])
+      translate([0, 0, max_thickness/2])
+      rotate([-wedge_angle, 0, 0])
+      translate([0, 0, 20])
+      cube([width, 600, 40], center=true);
+    }
 
     // Flatten the stem that intersects with the grip.
-    translate([-200, -200, max_thickness/2])
-    cube([400, 400, 100]);
+    translate([-30, -30, max_thickness])
+    cube([60, 60, 10]);
   }
 }
-
-module flatten_wedge() {
-  // "Unwedge" the piece, so that one surface coincides with the xy-plane.
-  rotate([-wedge_angle, 0, 0])
-  children();
-}  
 
 knurl_depth = 0.4;
 knurl_peak = 3.1;
@@ -312,7 +310,6 @@ module top() {
   translate([0, middle_length]) {
     difference() {
       translate([0, top_length-wedge_length])
-      flatten_wedge()
       wedge();
         
       translate([0, -200])
@@ -341,7 +338,6 @@ module bottom_template() {
   translate([0, middle_length])
   difference() {
     translate([0, top_length-wedge_length]) {
-      flatten_wedge()
       wedge();
       grip();
     }
@@ -420,4 +416,4 @@ module grip_plate() {
   }
 }
 
-bottom();
+wedge();
