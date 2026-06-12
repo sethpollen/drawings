@@ -81,7 +81,18 @@ to maintain that continuous sheet over the whole paddle.
 
 # Mk. 5
 
-Same print settings as Mk. 4, with a few changes:
+Some changes relative to Mk. 4. In general I am walking back some of the
+customization I tried earlier. For instance, I don't have evidence that the 50%
+skin layers are needed with PETG. I'm going to use all of the default settings
+for floor, ceiling, and wall thickness.
 
-* Floor: 3 layers of 100% plus 2 layers of 50%.
-* Ceiling: 
+The one concession I will make is to add an extra floor and ceiling layer to
+the narrow part (where the paddle meets the grip). See `bottom_extent`.
+
+* 0.2mm layers.
+* 10% grid infill.
+* Bottom layer inset: 0.2mm.
+* Head temperature: 240 C.
+* Print speed: 40 mm/s.
+* Randomized Z seam alignment.
+* First layer overdrive: 110%

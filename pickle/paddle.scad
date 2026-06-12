@@ -389,27 +389,41 @@ module bottom() {
   }
 }
 
-// TODO: use this
-/*
-module upper_sheet() {
+// Adds an extra floor and ceiling layer to the highest stress area.
+module bottom_modifier() {
   sheet_width = width + 20;
   back_up = 2;
-  thickness = 15;
   
-  // Tilted sheet over the paddle face.
-  translate([0, 0, 0.001]) // Don't actually intersect the face.
-  rotate([-wedge_angle, 0, 0])
-  translate([0, 0, max_thickness])
-  rotate([-wedge_angle, 0, 0])
-  translate([-sheet_width/2, -back_up, 0])
-  cube([sheet_width, 300+back_up, thickness]);
+  // Add one extra layer, for a total thickness of 1mm.
+  z_intrusion = 1;
+  y_extent = 40;
   
-  // Horizontal sheet over the grip.
-  translate([-sheet_width/2, -180, max_thickness])
-  cube([sheet_width, 180, thickness]);
+  intersection() {
+    union() {
+      // Top sheet.
+      translate([0, 0, -z_intrusion]) {
+        // Tilted sheet over the paddle face.
+        rotate([-wedge_angle, 0, 0])
+        translate([0, 0, max_thickness])
+        rotate([-wedge_angle, 0, 0])
+        translate([-sheet_width/2, -back_up, 0])
+        cube([sheet_width, 300+back_up, 10]);
+        
+        // Horizontal sheet over the grip.
+        translate([-sheet_width/2, -180, max_thickness])
+        cube([sheet_width, 180, 10]);
+      }
+      
+      // Bottom sheet.
+      cube([sheet_width, 250, z_intrusion*2], center=true);
+    }
+    
+    // Limit the extent.
+    cube([sheet_width, y_extent, 100], center=true);
+    
+    bottom();
+  }
 }
-*/
-
 
 module grip_plate() {
   intersection() {
@@ -424,4 +438,4 @@ module grip_plate() {
   }
 }
 
-bottom();
+bottom_modifier();
