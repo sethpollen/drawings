@@ -278,7 +278,7 @@ module grip() {
       translate([0, -max_thickness/2])
       knurl_segment(r1, 0, $grip_type=my_grip_type);
     
-      knurl_segment(r1, 1, $grip_type=my_grip_type);
+      knurl_segment(r1, 1);
     }
     
     bend_translate(r1, -p1*knurl_segment_length) {
@@ -424,5 +424,4 @@ module grip_plate() {
   }
 }
 
-bottom();
 grip_plate();
