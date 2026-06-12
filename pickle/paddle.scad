@@ -138,8 +138,8 @@ module wedge() {
     }
 
     // Flatten the stem that intersects with the grip.
-    translate([-30, -30, max_thickness])
-    cube([60, 60, 10]);
+    translate([-50, -50, max_thickness])
+    cube([100, 100, 10]);
   }
 }
 
@@ -149,15 +149,15 @@ knurl_slope = 0.5;
 knurl_valley = 0.8;
 knurl_segment_length = knurl_slope + knurl_peak + knurl_slope + knurl_valley;
 
-// Values for `type`:
+// Values for `$grip_type`:
 //   -1 Nothing at all.
 //   0  Grip exterior.
 //   1  Central tongue.
 //   2  Central groove.
-module grip_2d(type=0) {
+module grip_2d() {
   flats = 10;
 
-  if (type == 0)
+  if ($grip_type == 0)
   intersection() {
     // Main profile, rounded on both sides.
     translate([0, -grip_offset])
@@ -178,7 +178,7 @@ module grip_2d(type=0) {
     square([60, grip_thickness]);
   }
 
-  if (type == 1)
+  if ($grip_type == 1)
   translate([0, max_thickness/2 - grip_thickness - 0.0001])
   hull() {
     translate([-0.4, 0])
@@ -188,9 +188,9 @@ module grip_2d(type=0) {
   }
   
   // TODO: also need to take in the ends of the tongue.
-  if (type == 2)
-  offset(delta=0.1)
-  grip_2d(type=1);
+  if ($grip_type == 2)
+  offset(delta=1) // TODO: 0.1
+  grip_2d($grip_type=1);
 }
 
 module bend_translate(r, z) {
@@ -206,30 +206,30 @@ module mklayer(r, z) {
   children();
 }
 
-module knurl_segment(bend_radius, i, type=0, x_scale=1, end=false) {
+module knurl_segment(bend_radius, i, x_scale=1, end=false) {
   z = i*knurl_segment_length;
-  knurl_offs = (type == 0) ? -knurl_depth : 0;
+  knurl_offs = ($grip_type == 0) ? -knurl_depth : 0;
   
-  scale([(type == 0) ? x_scale : 1, 1, -1])
+  scale([($grip_type == 0) ? x_scale : 1, 1, -1])
   difference() {
     chain() {
       mklayer(bend_radius, z)
       offset(delta=knurl_offs)
-      grip_2d(type=type);
+      grip_2d();
       
       mklayer(bend_radius, z + knurl_slope)
-      grip_2d(type=type);
+      grip_2d();
       
       mklayer(bend_radius, z + knurl_slope + knurl_peak)
-      grip_2d(type=type);
+      grip_2d();
       
       mklayer(bend_radius, z + knurl_slope + knurl_peak + knurl_slope)
       offset(delta=knurl_offs)
-      grip_2d(type=type);
+      grip_2d();
       
       mklayer(bend_radius, z + knurl_slope + knurl_peak + knurl_slope + knurl_valley)
       offset(delta=knurl_offs + (end ? -0.9 : 0))
-      grip_2d(type=type);
+      grip_2d();
     }
 
     letter_depth = 1;
@@ -244,7 +244,7 @@ module knurl_segment(bend_radius, i, type=0, x_scale=1, end=false) {
   }
 }
 
-module grip(type=0) {
+module grip() {
   segments = 26;
   
   r1 = 1000;
@@ -265,24 +265,24 @@ module grip(type=0) {
       translate([0, max_thickness/2])
       scale([1, (max_thickness + shelf_width)/grip_thickness])
       translate([0, -max_thickness/2])
-      knurl_segment(r1, 0, type=type);
+      knurl_segment(r1, 0);
     
-      knurl_segment(r1, 1, type=type);
+      knurl_segment(r1, 1);
     }
     
     bend_translate(r1, -p1*knurl_segment_length) {
       for (i = [0:p2-1])
-      knurl_segment(r2, i, type=type);
+      knurl_segment(r2, i);
       
       bend_translate(r2, -p2*knurl_segment_length)
       for (i = [0:p3-1]) {
         // No tongue for the last segment.
-        mytype = (type == 0) ? 0
-               : (i < p3-1) ? type
+        mytype = ($grip_type == 0) ? 0
+               : (i < p3-1) ? $grip_type
                : -1;
         
         knurl_segment(r3, i,
-          type=mytype,
+          $grip_type=mytype,
           // Make a slight pommel.
           x_scale=(
               (i == p3-1)
@@ -339,7 +339,7 @@ module bottom_template() {
   difference() {
     translate([0, top_length-wedge_length]) {
       wedge();
-      grip();
+      grip($grip_type=0);
     }
   
     translate([0, 200])
@@ -364,7 +364,7 @@ module bottom() {
     cube([400, 400, 100]);
     
     // Groove.
-    grip(type=2);
+    grip($grip_type=2);
   }
 
   translate([0, middle_length]) {
@@ -411,9 +411,9 @@ module grip_plate() {
       translate([-200, -200, max_thickness])
       cube([400, 400, 100]);
       
-      grip(type=1);
+      grip($grip_type=1);
     }
   }
 }
 
-wedge();
+bottom();
