@@ -88,9 +88,18 @@ do just these overrides:
 
 * 0.2mm layers.
 * 10% grid infill.
-* Floor: 3 layers of 100% plus one layer of 50%.
+* Ceiling: 4 layers.
+* Floor: 3 layers.
 * Bottom layer inset: 0.2mm.
 * Head temperature: 240 C.
 * Print speed: 40 mm/s.
 * Randomized Z seam alignment.
 * First layer overdrive: 110%
+
+I have to disable "infill skin support" it does weird things with the `top`
+piece, like having many layerse of infill support on one side and only one
+layer on the other side.
+
+Note that the `bottom` piece was actually printed with a floor of 4 layers and
+with "infill skin support" enabled. The `top` piece was printed with the
+settings stated above.
