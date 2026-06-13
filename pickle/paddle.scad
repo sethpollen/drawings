@@ -213,7 +213,7 @@ module knurl_segment(bend_radius, i, x_scale=1, end=false) {
   my_knurl_depth = ($grip_type == 0) ? knurl_depth : 0;
   my_x_scale = ($grip_type == 0) ? x_scale : 1;
   
-  groove_end_slack = ($grip_type == 2) ? 0.3 : 0;
+  groove_end_slack = ($grip_type == 2) ? 0.2 : 0;
   extra_height = groove_end_slack * 2;
   
   scale([my_x_scale, 1, -1])
@@ -269,13 +269,10 @@ module grip() {
   rotate([-90, 0, 0]) {
     // Form the shelf.
     hull() {
-      // No tongue for the first segments.
-      my_grip_type = ($grip_type == 0) ? 0 : -1;
-
       translate([0, max_thickness/2])
       scale([1, (max_thickness + shelf_width)/grip_thickness])
       translate([0, -max_thickness/2])
-      knurl_segment(r1, 0, $grip_type=my_grip_type);
+      knurl_segment(r1, 0);
     
       knurl_segment(r1, 1);
     }
