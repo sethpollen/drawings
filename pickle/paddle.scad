@@ -213,14 +213,13 @@ module knurl_segment(bend_radius, i, x_scale=1, end=false) {
   my_knurl_depth = ($grip_type == 0) ? knurl_depth : 0;
   my_x_scale = ($grip_type == 0) ? x_scale : 1;
   
-  groove_end_slack = ($grip_type == 2) ? 0.15 : 0;
+  groove_end_slack = ($grip_type == 2) ? 0.3 : 0;
   extra_height = groove_end_slack * 2;
   
-  translate([0, 0, groove_end_slack])
   scale([my_x_scale, 1, -1])
   difference() {
     chain() {
-      mklayer(bend_radius, z)
+      mklayer(bend_radius, z - groove_end_slack)
       offset(delta=-my_knurl_depth)
       grip_2d();
       
@@ -234,7 +233,7 @@ module knurl_segment(bend_radius, i, x_scale=1, end=false) {
       offset(delta=-my_knurl_depth)
       grip_2d();
       
-      mklayer(bend_radius, z + knurl_slope + knurl_peak + knurl_slope + knurl_valley + extra_height)
+      mklayer(bend_radius, z + knurl_slope + knurl_peak + knurl_slope + knurl_valley + extra_height + groove_end_slack)
       offset(delta=-my_knurl_depth + (end ? -0.9 : 0))
       grip_2d();
     }
