@@ -109,3 +109,11 @@ Even the 110% initial layer overdrive seems to cause problems. I suspect that
 it causes extra material to cling to the extruder nozzle, which then falls
 off in large clumps and disrupts the print. Let's go just use the default
 flow of 100%; adhesion will probably still be just fine.
+
+# Next
+
+Use the settings from Mk. 5, with the following tweaks:
+
+* No first layer overdrive.
+* Infill line direction: 45. This ensures that the walls are well connected
+  to the infill pattern.
