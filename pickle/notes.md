@@ -113,3 +113,7 @@ Even the 110% initial layer overdrive seems to cause problems. I suspect that
 it causes extra material to cling to the extruder nozzle, which then falls
 off in large clumps and disrupts the print. Let's go just use the default
 flow of 100%; adhesion will probably still be just fine.
+
+One worry I have is that the first knurl groove is a weak spot for the floor
+layer. The paddle could separate there. Maybe I should add extra floor layers
+over the knurl lines.
