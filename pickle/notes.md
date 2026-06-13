@@ -115,5 +115,7 @@ flow of 100%; adhesion will probably still be just fine.
 Use the settings from Mk. 5, with the following tweaks:
 
 * No first layer overdrive.
-* Infill line direction: 45. This ensures that the walls are well connected
-  to the infill pattern.
+* Infill line direction: 5 degrees (or some other small value). This ensures
+  that the walls are well connected to the infill pattern, especially at the
+  topmost extremity of the paddle. I tried 45 degrees, but that brings back the
+  weird skin support pattern which I don't like.
