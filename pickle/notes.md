@@ -93,15 +93,19 @@ do just these overrides:
 * Head temperature: 240 C.
 * Print speed: 40 mm/s.
 * Randomized Z seam alignment.
-* First layer overdrive: 110%
+* First layer overdrive: 110%, but only for the wall layers.
+* Skin support density: 80%.
+* Infill line direction: 5 degrees.
 
 "Infill skin support" does weird things with grid infill. But with gyroid it
 seems well behaved, so I'll use it.
 
-Note that the `bottom` piece was printed with slightly different settings:
+Note that the `bottom` piece was printed with slightly different settings.
+The most important differences where these:
 
 * Floor: 4 layers
 * 10% grid infill
+* First layer overdrive: 110% for everything
 
 ## Notes
 
@@ -109,13 +113,3 @@ Even the 110% initial layer overdrive seems to cause problems. I suspect that
 it causes extra material to cling to the extruder nozzle, which then falls
 off in large clumps and disrupts the print. Let's go just use the default
 flow of 100%; adhesion will probably still be just fine.
-
-# Next
-
-Use the settings from Mk. 5, with the following tweaks:
-
-* No first layer overdrive.
-* Infill line direction: 5 degrees (or some other small value). This ensures
-  that the walls are well connected to the infill pattern, especially at the
-  topmost extremity of the paddle. I tried 45 degrees, but that brings back the
-  weird skin support pattern which I don't like.
