@@ -87,19 +87,12 @@ skin layers are needed with PETG. So set everything to the default and then
 do just these overrides:
 
 * 0.2mm layers.
-* 10% grid infill.
-* Ceiling: 4 layers.
-* Floor: 3 layers.
+* 10% gyroid infill.
 * Bottom layer inset: 0.2mm.
 * Head temperature: 240 C.
 * Print speed: 40 mm/s.
 * Randomized Z seam alignment.
 * First layer overdrive: 110%
 
-I have to disable "infill skin support" it does weird things with the `top`
-piece, like having many layerse of infill support on one side and only one
-layer on the other side.
-
-Note that the `bottom` piece was actually printed with a floor of 4 layers and
-with "infill skin support" enabled. The `top` piece was printed with the
-settings stated above.
+"Infill skin support" does weird things with grid infill. But with gyroid it
+seems well behaved, so I'll use it.
