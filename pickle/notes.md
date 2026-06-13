@@ -96,3 +96,5 @@ do just these overrides:
 
 "Infill skin support" does weird things with grid infill. But with gyroid it
 seems well behaved, so I'll use it.
+
+For the `top` piece, I reduced the floor to only 3 layers.
