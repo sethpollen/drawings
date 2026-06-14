@@ -203,20 +203,19 @@ module bend_translate(r, z) {
 
 module mklayer(r, z) {
   bend_translate(r, z)
-  linear_extrude(0.07)
+  linear_extrude(0.01)
   children();
 }
 
-module knurl_segment(bend_radius, i, x_scale=1, end=false) {
+module knurl_segment(bend_radius, i, end=false) {
   z = i*knurl_segment_length;
   
   my_knurl_depth = ($grip_type == 0) ? knurl_depth : 0;
-  my_x_scale = ($grip_type == 0) ? x_scale : 1;
   
   groove_end_slack = ($grip_type == 2) ? 0.2 : 0;
   extra_height = groove_end_slack * 2;
   
-  scale([my_x_scale, 1, -1])
+  scale([1, 1, -1])
   difference() {
     chain() {
       mklayer(bend_radius, z - groove_end_slack)
@@ -259,9 +258,13 @@ module grip() {
   
   r2 = 77;
   p2 = 9;
+  
+  // TODO: make this into a better pommel.
+  r4 = 30;
+  p4 = 2;
 
   r3 = 1000;
-  p3 = segments - p1 - p2;
+  p3 = segments - p1 - p2 - p4;
   
   shelf_width = 8.8;
   
@@ -281,25 +284,24 @@ module grip() {
       for (i = [0:p2-1])
       knurl_segment(r2, i);
       
-      bend_translate(r2, -p2*knurl_segment_length)
-      for (i = [0:p3-1]) {
-        // No tongue for the last segments.
-        my_grip_type = ($grip_type == 0) ? 0
-                     : (i < p3-2) ? $grip_type
-                     : -1;
+      bend_translate(r2, -p2*knurl_segment_length) {
+        for (i = [0:p3-1])
+        knurl_segment(r3, i);
         
-        knurl_segment(r3, i,
-          $grip_type=my_grip_type,
-          // Make a slight pommel.
-          x_scale=(
-              (i == p3-1)
-            ? 1.08
-            : (i == p3-2)
-            ? 1.04
-            : 1
-          ),
-          end=(i == p3-1)
-        );
+        bend_translate(r3, -p3*knurl_segment_length) {
+          for (i = [0:p4-1]) {
+            // No tongue for the last segments.
+            // TODO: just push this down; base it on end=true
+            my_grip_type = ($grip_type == 0) ? 0 : -1;
+            
+            
+            // TODO: end=true
+            knurl_segment(r4, i,
+              $grip_type=my_grip_type,
+              end=(i == p3-1)
+            );
+          }
+        }
       }
     }
   }
@@ -391,7 +393,7 @@ module grip_plate() {
 
     union() {
       translate([-200, -200, max_thickness])
-      cube([400, 400, 30]);
+      cube([400, 200, 30]);
       
       grip($grip_type=1);
     }
@@ -399,3 +401,4 @@ module grip_plate() {
 }
 
 bottom();
+grip_plate();
