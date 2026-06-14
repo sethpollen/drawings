@@ -294,7 +294,6 @@ module grip() {
             // TODO: just push this down; base it on end=true
             my_grip_type = ($grip_type == 0) ? 0 : -1;
             
-            
             // TODO: end=true
             knurl_segment(r4, i,
               $grip_type=my_grip_type,
@@ -401,4 +400,3 @@ module grip_plate() {
 }
 
 bottom();
-grip_plate();

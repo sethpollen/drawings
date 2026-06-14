@@ -75,30 +75,39 @@ module finger_cavity_2d(complement=false) {
   finger_profile_2d(complement);
 }
 
-module extrude_fingers(thickness, cavity, complement, rot=false) {  
-  translate([0, 0, finger_floor + (cavity ? 0 : z_slack)])
-  linear_extrude(
-    thickness
-    - 2*finger_floor
-    - (cavity ? 0 : 2*z_slack)
-  )
-  rotate([0, 0, rot ? 180 : 0]) {    
-    if (cavity) {
-      finger_cavity_2d(complement=complement);
-    } else {
-      intersection() {
-        finger_2d(complement=complement);
-        
-        // Truncate the tips of the teeth, and prevent the backs from
-        // sticking out.
-        translate([-200, -1])
-        square([400, 1 + finger_length()/2 - 2.2]);
+module extrude_fingers(thickness, cavity, complement, rot=false) {
+  difference() {
+    translate([0, 0, finger_floor + (cavity ? 0 : z_slack)])
+    linear_extrude(
+      thickness
+      - 2*finger_floor
+      - (cavity ? 0 : 2*z_slack)
+    )
+    rotate([0, 0, rot ? 180 : 0]) {    
+      if (cavity) {
+        finger_cavity_2d(complement=complement);
+      } else {
+        intersection() {
+          finger_2d(complement=complement);
+          
+          // Truncate the tips of the teeth, and prevent the backs from
+          // sticking out.
+          translate([-200, -1])
+          square([400, 1 + finger_length()/2 - 2.2]);
+        }
       }
     }
+  
+    // Slightly taper the tops of the teeth. Otherwise, the joint wants to
+    // bend concavely upwards. I'm not sure why. I guess it has to do with
+    // the inaccuracies of bridging over the cavities.
+    if (!cavity)
+    translate([0, 2])
+    rotate([-2.9, 0, rot ? 180 : 0])
+    translate([0, 15, 2 + thickness - finger_floor - z_slack])
+    cube([200, 30, 4], center=true);
   }
 }
 
 c = true;
-color("green") extrude_fingers(10, cavity=true, complement=c);
-color("yellow") extrude_fingers(11, cavity=false, complement=c);
-
+extrude_fingers(11, cavity=false, complement=c);
