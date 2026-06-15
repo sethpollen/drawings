@@ -16,12 +16,12 @@ xy_slack = 0.1;
 // TODO: print a test of the revised finger joint.
 z_slack = 0.6;
 
-module finger_profile_2d(complement) {
+module finger_profile_2d(complement, additional_end_chop=0) {
   if (complement) {
     rotate([0, 0, 180])
     difference() {
-      hull() finger_profile_2d(false);
-      finger_profile_2d(false);
+      hull() finger_profile_2d(false, additional_end_chop);
+      finger_profile_2d(false, additional_end_chop);
     }
   } else {
     for (a = [-1, 1])
@@ -42,7 +42,7 @@ module finger_profile_2d(complement) {
       
       // Shorten the outer tooth, so it fits within the taper of the
       // bottom piece.
-      chop_length = 6; // TUNED
+      chop_length = 6 + additional_end_chop;
       
       translate([(teeth_pairs-1)*finger_width, -finger_length()/2])
       difference() {
@@ -66,7 +66,8 @@ module finger_2d(complement) {
   difference() {
     offset(delta=-xy_slack)
     union() {
-      finger_profile_2d(complement);
+      // Withdraw the chopped teeth slightly, so they have plenty of room.
+      finger_profile_2d(complement, additional_end_chop=0.4);
       finger_base_2d();
     }
     finger_base_2d();
@@ -81,53 +82,38 @@ module finger_cavity_2d(complement) {
 module extrude_fingers(thickness, cavity, complement, rot=false) {
   difference() {
     translate([0, 0, finger_floor + (cavity ? 0 : z_slack)])
-    rotate([0, 0, rot ? 180 : 0]) {
-      linear_extrude(
-        thickness
-        - 2*finger_floor
-        - (cavity ? 0 : 2*z_slack)
-      ) {    
-        if (cavity) {
-          finger_cavity_2d(complement);
-        } else {
-          intersection() {
-            finger_2d(complement);
-            
-            // Truncate the tips of the teeth, and prevent the backs from
-            // sticking out.
-            translate([-200, -1])
-            square([400, 1 + finger_length()/2 - 3.2]);
-          }
+    rotate([0, 0, rot ? 180 : 0])
+    linear_extrude(
+      thickness
+      - 2*finger_floor
+      - (cavity ? 0 : 2*z_slack)
+    ) {    
+      if (cavity) {
+        finger_cavity_2d(complement);
+      } else {
+        intersection() {
+          finger_2d(complement);
+          
+          // Truncate the tips of the teeth, and prevent the backs from
+          // sticking out.
+          translate([-200, -1])
+          square([400, 1 + finger_length()/2 - 3.2]);
         }
       }
     }
-  
-    // Slightly taper the tops of the teeth. Otherwise, the joint wants to
-    // bend concavely upwards. I'm not sure why. I guess it has to do with
-    // the inaccuracies of bridging over the cavities.
-    //
-    // TODO: decide whether this asymmetry is needed. It could be motivated
-    // by the fact that I can file the bottom of the teeth but not the
-    // ceiling of the tooth cavity.
-    //
-    //if (!cavity)
-    //translate([0, 2])
-    //rotate([-2.9, 0, rot ? 180 : 0])
-    //translate([0, 15, 2 + thickness - finger_floor - z_slack])
-    //cube([200, 30, 4], center=true);
   }
 }
 
-module finger_test_bottom() {
-  width = 160;
+module finger_test(separation=0) {
+  width = 145;
   thickness = 15;
-  separation = 1;
+  depth = 21;
 
   // "bottom"
   translate([0, -separation]) {
     difference() {
-      translate([-width/2, -30])
-      cube([width, 30, thickness]);
+      translate([-width/2, -depth])
+      cube([width, depth, thickness]);
 
       extrude_fingers(thickness=thickness, cavity=true, complement=true, rot=true);
     }
@@ -138,7 +124,7 @@ module finger_test_bottom() {
   translate([0, separation]) {
     difference() {
       translate([-width/2, 0])
-      cube([width, 30, thickness]);
+      cube([width, depth, thickness]);
         
       extrude_fingers(thickness=thickness, cavity=true);
     }
@@ -146,4 +132,8 @@ module finger_test_bottom() {
   }
 }
 
-finger_test_bottom();
+intersection() {
+  finger_test(9);
+  translate([64, 0])
+  cube(100, center=true);
+}
