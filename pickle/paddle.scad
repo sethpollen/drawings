@@ -366,7 +366,7 @@ module bottom() {
     
     // Cut off the grip piece.
     translate([-200, -200, max_thickness])
-    cube([400, 400, 100]);
+    cube([400, 400, 30]);
     
     // Groove.
     grip($grip_type=2);
@@ -397,5 +397,3 @@ module grip_plate() {
     }
   }
 }
-
-bottom();
