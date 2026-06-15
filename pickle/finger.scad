@@ -114,6 +114,9 @@ module finger_test(separation=0) {
     difference() {
       translate([-width/2, -depth])
       cube([width, depth, thickness]);
+      
+      rotate([45, 0, 0])
+      cube([250, 0.49, 0.49], center=true);
 
       extrude_fingers(thickness=thickness, cavity=true, complement=true, rot=true);
     }
@@ -125,7 +128,10 @@ module finger_test(separation=0) {
     difference() {
       translate([-width/2, 0])
       cube([width, depth, thickness]);
-        
+
+      rotate([45, 0, 0])
+      cube([250, 0.49, 0.49], center=true);
+
       extrude_fingers(thickness=thickness, cavity=true);
     }
     extrude_fingers(thickness=thickness, cavity=false, complement=true, rot=true);
