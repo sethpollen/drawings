@@ -211,8 +211,8 @@ module mklayer(r, z) {
 }
 
 module knurl_segment(bend_radius, i, end=false) {
-  if ($grip_type == 2 && end) {
-    // Don't extend the groove all the way to the end.
+  if (($grip_type == 1 || $grip_type == 2) && end) {
+    // Don't extend the tongue and groove all the way to the end.
   } else {
     z = i*knurl_segment_length;
     
@@ -393,4 +393,4 @@ module grip_plate() {
   }
 }
 
-bottom();
+grip_plate();
