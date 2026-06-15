@@ -16,16 +16,16 @@ xy_slack = 0.1;
 // TODO: print a test of the revised finger joint.
 z_slack = 0.6;
 
-module finger_profile_2d(complement, x_scale) {
+module finger_profile_2d(complement) {
   if (complement) {
     rotate([0, 0, 180])
     difference() {
-      hull() finger_profile_2d(false, x_scale);
-      finger_profile_2d(false, x_scale);
+      hull() finger_profile_2d(false);
+      finger_profile_2d(false);
     }
   } else {
     for (a = [-1, 1])
-    scale([a * x_scale, 1]) {
+    scale([a, 1]) {
       for (b = [0:teeth_pairs-1])
       translate([b*finger_width, 0])
       difference() {      
@@ -62,37 +62,36 @@ module finger_base_2d() {
   square([2*universe, universe + 0.001]);
 }
 
-module finger_2d(complement, x_scale) {
+module finger_2d(complement) {
   difference() {
     offset(delta=-xy_slack)
     union() {
-      finger_profile_2d(complement, x_scale);
+      finger_profile_2d(complement);
       finger_base_2d();
     }
     finger_base_2d();
   }
 }
 
-module finger_cavity_2d(complement, x_scale) {
+module finger_cavity_2d(complement) {
   offset(delta=xy_slack)
-  finger_profile_2d(complement, x_scale);
+  finger_profile_2d(complement);
 }
 
 module extrude_fingers(thickness, cavity, complement, rot=false) {
   difference() {
     translate([0, 0, finger_floor + (cavity ? 0 : z_slack)])
     rotate([0, 0, rot ? 180 : 0]) {
-      // TODO: use x_scale
       linear_extrude(
         thickness
         - 2*finger_floor
         - (cavity ? 0 : 2*z_slack)
       ) {    
         if (cavity) {
-          finger_cavity_2d(complement, 1);
+          finger_cavity_2d(complement);
         } else {
           intersection() {
-            finger_2d(complement, 1);
+            finger_2d(complement);
             
             // Truncate the tips of the teeth, and prevent the backs from
             // sticking out.
