@@ -157,28 +157,36 @@ knurl_segment_length = knurl_slope + knurl_peak + knurl_slope + knurl_valley;
 //    0  Grip exterior.
 //    1  Central tongue.
 //    2  Central groove.
-module grip_2d() {
+module grip_2d(knurl_inset=false) {
   flats = 10;
+  bottom_sheet_width = 12;
 
-  if ($grip_type == 0)
-  intersection() {
-    // Main profile, rounded on both sides.
-    translate([0, -grip_offset])
-    hull()
-    for (a = [-1, 1])
-    scale([1, a])
-    translate([0, flats/2])
-    scale([grip_width/2, (1.12*grip_thickness - flats)/2])
-    intersection() {
-      circle($fn=18, r=1);
-      
-      translate([0, 2])
-      square(4, center=true);
-    }
+  if ($grip_type == 0) {
+    // This part is not inset when knurling. It ensures a continuous
+    // bottom sheet for strength.
+    translate([-bottom_sheet_width/2, max_thickness/2 - 1])
+    square([bottom_sheet_width, 1]);
     
-    // Cut off to meet the build plate.
-    translate([-30, max_thickness/2 - grip_thickness])
-    square([60, grip_thickness]);
+    offset(delta=knurl_inset ? -knurl_depth : 0)
+    intersection() {
+      // Main profile, rounded on both sides.
+      translate([0, -grip_offset])
+      hull()
+      for (a = [-1, 1])
+      scale([1, a])
+      translate([0, flats/2])
+      scale([grip_width/2, (1.12*grip_thickness - flats)/2])
+      intersection() {
+        circle($fn=18, r=1);
+        
+        translate([0, 2])
+        square(4, center=true);
+      }
+      
+      // Cut off to meet the build plate.
+      translate([-30, max_thickness/2 - grip_thickness])
+      square([60, grip_thickness]);
+    }
   }
 
   if ($grip_type == 1)
@@ -211,13 +219,11 @@ module mklayer(r, z) {
 }
 
 module knurl_segment(bend_radius, i, end=false) {
-  if (($grip_type == 1 || $grip_type == 2) && end) {
+  if (end && $grip_type != 0) {
     // Don't extend the tongue and groove all the way to the end.
   } else {
     z = i*knurl_segment_length;
-    
-    my_knurl_depth = ($grip_type == 0) ? knurl_depth : 0;
-    
+        
     groove_end_slack = ($grip_type == 2) ? 0.2 : 0;
     extra_height = groove_end_slack * 2;
     
@@ -225,8 +231,7 @@ module knurl_segment(bend_radius, i, end=false) {
     difference() {
       chain() {
         mklayer(bend_radius, z - groove_end_slack)
-        offset(delta=-my_knurl_depth)
-        grip_2d();
+        grip_2d(knurl_inset=true);
         
         mklayer(bend_radius, z + knurl_slope)
         grip_2d();
@@ -235,14 +240,13 @@ module knurl_segment(bend_radius, i, end=false) {
         grip_2d();
         
         mklayer(bend_radius, z + knurl_slope + knurl_peak + knurl_slope)
-        offset(delta=-my_knurl_depth)
-        grip_2d();
+        grip_2d(knurl_inset=true);
         
         mklayer(bend_radius,
                 z + knurl_slope + knurl_peak + knurl_slope +
                 knurl_valley + extra_height + groove_end_slack)
-        offset(delta=-my_knurl_depth + (end ? -0.9 : 0))
-        grip_2d();
+        offset(delta=end ? -0.9 : 0)
+        grip_2d(knurl_inset=true);
       }
       
       engrave_depth = 1.2;
@@ -296,7 +300,7 @@ module grip() {
     }
     
     bend_translate(shelf_r, -shelf_n*knurl_segment_length)
-    grip_stack([[70, 9], [1000, 12], [25, 2], [-28, 1, true]]);
+    grip_stack([[70, 9], [1000, 11], [27, 3], [-28, 1, true]]);
   }
 }
 
@@ -393,4 +397,4 @@ module grip_plate() {
   }
 }
 
-grip_plate();
+grip();
