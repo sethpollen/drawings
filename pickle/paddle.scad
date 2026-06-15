@@ -300,7 +300,7 @@ module grip() {
     }
     
     bend_translate(shelf_r, -shelf_n*knurl_segment_length)
-    grip_stack([[70, 9], [1000, 11], [27, 3], [-28, 1, true]]);
+    grip_stack([[70, 9], [1000, 11], [27, 3], [-50, 1, true]]);
   }
 }
 
