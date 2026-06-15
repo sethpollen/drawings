@@ -211,47 +211,51 @@ module mklayer(r, z) {
 }
 
 module knurl_segment(bend_radius, i, end=false) {
-  z = i*knurl_segment_length;
-  
-  my_knurl_depth = ($grip_type == 0) ? knurl_depth : 0;
-  
-  groove_end_slack = ($grip_type == 2) ? 0.2 : 0;
-  extra_height = groove_end_slack * 2;
-  
-  scale([1, 1, -1])
-  difference() {
-    chain() {
-      mklayer(bend_radius, z - groove_end_slack)
-      offset(delta=-my_knurl_depth)
-      grip_2d();
-      
-      mklayer(bend_radius, z + knurl_slope)
-      grip_2d();
-      
-      mklayer(bend_radius, z + knurl_slope + knurl_peak)
-      grip_2d();
-      
-      mklayer(bend_radius, z + knurl_slope + knurl_peak + knurl_slope)
-      offset(delta=-my_knurl_depth)
-      grip_2d();
-      
-      mklayer(bend_radius,
-              z + knurl_slope + knurl_peak + knurl_slope +
-              knurl_valley + extra_height + groove_end_slack)
-      offset(delta=-my_knurl_depth + (end ? -0.9 : 0))
-      grip_2d();
-    }
+  if ($grip_type == 2 && end) {
+    // Don't extend the groove all the way to the end.
+  } else {
+    z = i*knurl_segment_length;
     
-    engrave_depth = 1.2;
+    my_knurl_depth = ($grip_type == 0) ? knurl_depth : 0;
+    
+    groove_end_slack = ($grip_type == 2) ? 0.2 : 0;
+    extra_height = groove_end_slack * 2;
+    
+    scale([1, 1, -1])
+    difference() {
+      chain() {
+        mklayer(bend_radius, z - groove_end_slack)
+        offset(delta=-my_knurl_depth)
+        grip_2d();
+        
+        mklayer(bend_radius, z + knurl_slope)
+        grip_2d();
+        
+        mklayer(bend_radius, z + knurl_slope + knurl_peak)
+        grip_2d();
+        
+        mklayer(bend_radius, z + knurl_slope + knurl_peak + knurl_slope)
+        offset(delta=-my_knurl_depth)
+        grip_2d();
+        
+        mklayer(bend_radius,
+                z + knurl_slope + knurl_peak + knurl_slope +
+                knurl_valley + extra_height + groove_end_slack)
+        offset(delta=-my_knurl_depth + (end ? -0.9 : 0))
+        grip_2d();
+      }
+      
+      engrave_depth = 1.2;
 
-    // Numeral on the base.
-    if (end)
-    bend_translate(bend_radius, z+knurl_segment_length-engrave_depth+0.3)
-    translate([-7, 6])
-    scale([1, -1])
-    linear_extrude(engrave_depth)
-    offset(0.3)
-    text(str(mark_number), size=17);
+      // Numeral on the base.
+      if (end)
+      bend_translate(bend_radius, z+knurl_segment_length-engrave_depth+0.3)
+      translate([-7, 6])
+      scale([1, -1])
+      linear_extrude(engrave_depth)
+      offset(0.3)
+      text(str(mark_number), size=17);
+    }
   }
 }
 
@@ -388,3 +392,5 @@ module grip_plate() {
     }
   }
 }
+
+bottom();
