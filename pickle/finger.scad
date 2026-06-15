@@ -10,8 +10,12 @@ xy_slack = 0.05;
 
 layer_height = 0.2;
 
-z_slack = 0.4;
-finger_floor = 2.2;
+// TODO: previously this was 0.4. That worked for PLA. But I suspect PETG
+// sags more when bridging, so we need 0.6.
+//
+// TODO: print a test of the revised finger joint.
+z_slack = 0.6;
+finger_floor = 2;
 
 module finger_profile_2d(complement=false) {
   if (complement) {
@@ -101,11 +105,16 @@ module extrude_fingers(thickness, cavity, complement, rot=false) {
     // Slightly taper the tops of the teeth. Otherwise, the joint wants to
     // bend concavely upwards. I'm not sure why. I guess it has to do with
     // the inaccuracies of bridging over the cavities.
-    if (!cavity)
-    translate([0, 2])
-    rotate([-2.9, 0, rot ? 180 : 0])
-    translate([0, 15, 2 + thickness - finger_floor - z_slack])
-    cube([200, 30, 4], center=true);
+    //
+    // TODO: decide whether this asymmetry is needed. It could be motivated
+    // by the fact that I can file the bottom of the teeth but not the
+    // ceiling of the tooth cavity.
+    //
+    //if (!cavity)
+    //translate([0, 2])
+    //rotate([-2.9, 0, rot ? 180 : 0])
+    //translate([0, 15, 2 + thickness - finger_floor - z_slack])
+    //cube([200, 30, 4], center=true);
   }
 }
 

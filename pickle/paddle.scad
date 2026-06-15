@@ -70,7 +70,15 @@ module bulge_piece(r) {
   }
 }
 
-module fan_piece(flip, x, y, gentle_top_curve=false) {
+module fan_piece(flip, x, y,
+    // Set this to true for a shallower curve on the top, for the right
+    // hand thumb to rest in.
+    gentle_top_curve=false,
+    // Set this to a positive value to drop the piece on the left-hand
+    // side, to add more stiffness where I don't need clearance for my
+    // hand.
+    left_y_drop=0
+) {
   y_frac = y/wedge_length;
   thickness = (1 - y_frac)*max_thickness + y_frac*min_thickness;
   gentle_scale_factor = 0.72;
@@ -78,7 +86,7 @@ module fan_piece(flip, x, y, gentle_top_curve=false) {
   for (a = [-1, 1])
   for (b = [-1, (gentle_top_curve && a == 1) ? gentle_scale_factor : 1])
   scale([a, 1, b])
-  translate([x, y])
+  translate([x, y - left_y_drop * (a == -1 ? 1 : 0)])
   scale([1, flip ? -1 : 1])
   bulge_piece(bulge_radius(thickness, 45));
 }
@@ -104,13 +112,14 @@ module fan(base_only=false) {
 module bridge(i) {
   x_frac = [0.31, 0.166, 0.074, 0.03][i];
   y_frac = [0.28, 0.57, 0.8, 0.945][i];
+  left_y_drop = i*2.5;
 
   bridge_length = wedge_length + bridge_grip_overlap - fan_length;
 
   fan_piece(true,
     grip_width/2 + x_frac*0.5*(width-grip_width),
     bridge_length*(1-y_frac) - bridge_grip_overlap,
-    gentle_top_curve=true);
+    gentle_top_curve=true, left_y_drop=left_y_drop);
 }
 
 module wedge() {
@@ -397,4 +406,4 @@ module grip_plate() {
   }
 }
 
-grip();
+bottom_template();
