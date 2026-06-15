@@ -118,5 +118,32 @@ module extrude_fingers(thickness, cavity, complement, rot=false) {
   }
 }
 
-c = true;
-extrude_fingers(11, cavity=false, complement=c);
+module finger_test_bottom() {
+  width = 160;
+  thickness = 15;
+  separation = 1;
+
+  // "bottom"
+  translate([0, -separation]) {
+    difference() {
+      translate([-width/2, -30])
+      cube([width, 30, thickness]);
+
+      extrude_fingers(thickness=thickness, cavity=true, complement=true, rot=true);
+    }
+    extrude_fingers(thickness=thickness, cavity=false, complement=false);
+  }
+  
+  // "top"
+  translate([0, separation]) {
+    difference() {
+      translate([-width/2, 0])
+      cube([width, 30, thickness]);
+        
+      extrude_fingers(thickness=thickness, cavity=true);
+    }
+    extrude_fingers(thickness=thickness, cavity=false, complement=true, rot=true);
+  }
+}
+
+finger_test_bottom();
