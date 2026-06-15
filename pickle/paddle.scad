@@ -1,6 +1,6 @@
 use <finger.scad>
 
-mark_number = 5;
+mark_number = 6;
 
 // Parameters for the overall shape.
 width = 200;
@@ -40,6 +40,9 @@ wedge_angle = atan(
 
 grip_groove_floor = 6;
 grip_tongue_width = 4.6;
+
+// Default value, for convenience.
+$grip_type = 0;
 
 tab_x = 73; // TUNED
 
@@ -232,16 +235,18 @@ module knurl_segment(bend_radius, i, end=false) {
       offset(delta=-my_knurl_depth)
       grip_2d();
       
-      mklayer(bend_radius, z + knurl_slope + knurl_peak + knurl_slope + knurl_valley + extra_height + groove_end_slack)
+      mklayer(bend_radius,
+              z + knurl_slope + knurl_peak + knurl_slope +
+              knurl_valley + extra_height + groove_end_slack)
       offset(delta=-my_knurl_depth + (end ? -0.9 : 0))
       grip_2d();
     }
     
-    engrave_depth = 1;
+    engrave_depth = 1.2;
 
     // Numeral on the base.
     if (end)
-    bend_translate(bend_radius, z+knurl_segment_length-engrave_depth+0.1)
+    bend_translate(bend_radius, z+knurl_segment_length-engrave_depth+0.3)
     translate([-7, 6])
     scale([1, -1])
     linear_extrude(engrave_depth)
@@ -250,23 +255,29 @@ module knurl_segment(bend_radius, i, end=false) {
   }
 }
 
-module grip() {
-  segments = 26;
-  
-  r1 = 1000;
-  p1 = 2;
-  
-  r2 = 77;
-  p2 = 9;
-  
-  // TODO: make this into a better pommel.
-  r4 = 30;
-  p4 = 2;
+module grip_stack(prog, i=0) {
+  if (i < len(prog)) {
+    // Radius of curvature for this section.
+    r = prog[i][0];
+    // Number of segments in this section.
+    n = prog[i][1];
+    
+    // Optional parameter.
+    end = (len(prog[i]) > 2) ? prog[i][2] : false;
+    
+    for (i = [0:n-1])
+    knurl_segment(r, i, end=end);
+   
+    bend_translate(r, -n*knurl_segment_length)
+    grip_stack(prog, i+1);
+  }
+}
 
-  r3 = 1000;
-  p3 = segments - p1 - p2 - p4;
+module grip() {
+  shelf_r = 1000;
+  shelf_n = 2;
   
-  shelf_width = 8.8;
+  shelf_width = 9;
   
   translate([0, 0, max_thickness/2])
   rotate([-90, 0, 0]) {
@@ -275,34 +286,13 @@ module grip() {
       translate([0, max_thickness/2])
       scale([1, (max_thickness + shelf_width)/grip_thickness])
       translate([0, -max_thickness/2])
-      knurl_segment(r1, 0);
+      knurl_segment(shelf_r, 0);
     
-      knurl_segment(r1, 1);
+      knurl_segment(shelf_r, 1);
     }
     
-    bend_translate(r1, -p1*knurl_segment_length) {
-      for (i = [0:p2-1])
-      knurl_segment(r2, i);
-      
-      bend_translate(r2, -p2*knurl_segment_length) {
-        for (i = [0:p3-1])
-        knurl_segment(r3, i);
-        
-        bend_translate(r3, -p3*knurl_segment_length) {
-          for (i = [0:p4-1]) {
-            // No tongue for the last segments.
-            // TODO: just push this down; base it on end=true
-            my_grip_type = ($grip_type == 0) ? 0 : -1;
-            
-            // TODO: end=true
-            knurl_segment(r4, i,
-              $grip_type=my_grip_type,
-              end=(i == p3-1)
-            );
-          }
-        }
-      }
-    }
+    bend_translate(shelf_r, -shelf_n*knurl_segment_length)
+    grip_stack([[70, 9], [1000, 12], [25, 2], [-28, 1, true]]);
   }
 }
 
