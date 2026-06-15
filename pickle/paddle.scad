@@ -406,4 +406,12 @@ module grip_plate() {
   }
 }
 
-bottom_template();
+intersection() {
+  union() {
+    top();
+    translate([0, -20])
+    bottom();
+  }
+  translate([0, 43])
+  cube([63.5, 57, 100], center=true);
+}
