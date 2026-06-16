@@ -7,13 +7,7 @@ finger_width = 12.15;
 teeth_pairs = 6;
 finger_floor = 2;
 
-// TODO: previously this was 0.05.
 xy_slack = 0.1;
-
-// TODO: previously this was 0.4. That worked for PLA. But I suspect PETG
-// sags more when bridging, so we need 0.6.
-//
-// TODO: print a test of the revised finger joint.
 z_slack = 0.6;
 
 module finger_profile_2d(complement, additional_end_chop=0) {
@@ -136,10 +130,4 @@ module finger_test(separation=0) {
     }
     extrude_fingers(thickness=thickness, cavity=false, complement=true, rot=true);
   }
-}
-
-intersection() {
-  finger_test(9);
-  translate([64, 0])
-  cube(100, center=true);
 }

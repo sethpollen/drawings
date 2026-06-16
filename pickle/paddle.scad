@@ -112,7 +112,7 @@ module fan(base_only=false) {
 module bridge(i) {
   x_frac = [0.31, 0.166, 0.074, 0.03][i];
   y_frac = [0.28, 0.57, 0.8, 0.945][i];
-  left_y_drop = i*2.5;
+  left_y_drop = i*2.5; // TODO: more of this
 
   bridge_length = wedge_length + bridge_grip_overlap - fan_length;
 
@@ -406,12 +406,4 @@ module grip_plate() {
   }
 }
 
-intersection() {
-  union() {
-    top();
-    translate([0, -20])
-    bottom();
-  }
-  translate([0, 43])
-  cube([63.5, 57, 100], center=true);
-}
+wedge();
