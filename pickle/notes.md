@@ -26,7 +26,7 @@ The most important differences where these:
 * 10% grid infill
 * First layer overdrive: 110% for everything
 
-## Notes
+## Notes while printing
 
 Even the 110% initial layer overdrive seems to cause problems. I suspect that
 it causes extra material to cling to the extruder nozzle, which then falls
@@ -36,6 +36,31 @@ flow of 100%; adhesion will probably still be just fine.
 One worry I have is that the first knurl groove is a weak spot for the floor
 layer. The paddle could separate there. Maybe I should add extra floor layers
 over the knurl lines.
+
+## Notes from use
+
+The paddle failed very quickly while in use. Unlike Mk. 4, it seemed to have
+a reasonably strong connection between grip and fan. But the gyroid infill
+was clearly a bad idea, at least at the 10% density. After only a few hits,
+the floor and ceiling had separated from the infill. The paddle still looked
+intact, but its surface was yielding. You could hear the broken infill crinkling
+when you pressed the surface. After a few minutes of hard (but reasonable) play,
+the surface cracked, revealing loose strands of infill within.
+
+Now that I think about it, grid infill is probably more solid at a low fill
+percentage. The obliquely stacked gyroid layer lines probably dont' bond well
+enough.
+
+I should also probably not push the weight reduction so aggressively. Instead
+of 3 floor layers and 4 ceiling layers, I should do 4 floor layers and 5
+ceiling layers. An extra ceiling layer is justified because the first layer
+is always pretty nasty, and I sand off some of the top layer.
+
+Mk. 3 remains my only successful PETG paddle; the others have failed
+spectacularly. It could be explained by Mk. 4's flawed grip design and Mk. 5's
+use of gyroid infill. But remember that Mk. 3 also used 0.15mm layers. Maybe
+that really does provide better bonding. I'll keep that in mind, but for now
+I'm going to stick with 0.2mm.
 
 # Mk. 4
 
