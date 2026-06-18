@@ -14,7 +14,7 @@ wedge_length = 251;
 bridge_grip_overlap = 20;
 
 // Make a wedge shape.
-max_thickness = 20;
+max_thickness = 22;
 min_thickness = 8;
 
 grip_width = 34.6;
@@ -72,8 +72,11 @@ module bulge_piece(r) {
 
 module fan_piece(flip, x, y,
     // Set this to true for a shallower curve on the top, for the right
-    // hand thumb to rest in.
+    // hand thumb to rest in. This only shows up on one side.
     gentle_top_curve=false,
+    // Similar, but for the bottom, on both sides. This helps the wedge
+    // blend smoothly into the grip.
+    gentle_bottom_curve=false,
     // Set this to a positive value to drop the piece on the left-hand
     // side, to add more stiffness where I don't need clearance for my
     // hand.
@@ -83,12 +86,23 @@ module fan_piece(flip, x, y,
   thickness = (1 - y_frac)*max_thickness + y_frac*min_thickness;
   gentle_scale_factor = 0.72;
 
-  for (a = [-1, 1])
-  for (b = [-1, (gentle_top_curve && a == 1) ? gentle_scale_factor : 1])
-  scale([a, 1, b])
-  translate([x, y - left_y_drop * (a == -1 ? 1 : 0)])
-  scale([1, flip ? -1 : 1])
-  bulge_piece(bulge_radius(thickness, 45));
+  intersection() {
+    for (a = [-1, 1])   
+    for (b = [-1, 1]) {
+      gentle =
+        (gentle_top_curve && a == 1 && b == 1) ||
+        (gentle_bottom_curve && b == -1);
+
+      scale([a, 1, b * (gentle ? gentle_scale_factor : 1)])
+      translate([x, y - left_y_drop * (a == -1 ? 1 : 0)])
+      scale([1, flip ? -1 : 1])
+      bulge_piece(bulge_radius(thickness, 45));
+    }
+    
+    // Chop off anything that goes belong the max_thickness. This avoids
+    // flattening the gentle_top_curve when hull'ing with a taller piece.
+    cube([700, 700, max_thickness + 0.1], center=true);
+  }
 }
 
 module fan(base_only=false) {  
@@ -112,14 +126,18 @@ module fan(base_only=false) {
 module bridge(i) {
   x_frac = [0.31, 0.166, 0.074, 0.03][i];
   y_frac = [0.28, 0.57, 0.8, 0.945][i];
-  left_y_drop = [0, 5, 10, 21][i];
+  left_y_drop = [0, 5, 12, 25][i]; // TODO: more
 
   bridge_length = wedge_length + bridge_grip_overlap - fan_length;
 
   fan_piece(true,
     grip_width/2 + x_frac*0.5*(width-grip_width),
     bridge_length*(1-y_frac) - bridge_grip_overlap,
-    gentle_top_curve=true, left_y_drop=left_y_drop);
+    gentle_top_curve=true,
+    // TODO: This needs work. Currently it creates unsupported shallow
+    // inclines underneath.
+    gentle_bottom_curve=(i>=3),
+    left_y_drop=left_y_drop);
 }
 
 module wedge() {
@@ -393,6 +411,10 @@ module bottom() {
   }
 }
 
+// TODO: Make the tongue much shallower, so it doesn't stiffen the
+// grip. Really, the tongue could just be two pins to align the
+// grip plate during gluing. It should have one deep pin at its
+// upper end, to bind the grip layers together.
 module grip_plate() {
   intersection() {
     bottom_template();
@@ -406,4 +428,6 @@ module grip_plate() {
   }
 }
 
+//wedge();
+//for(i=[0:3])bridge(i);
 bottom();
