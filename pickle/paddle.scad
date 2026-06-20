@@ -422,4 +422,4 @@ module grip_plate() {
   }
 }
 
-bottom();
+wedge();
