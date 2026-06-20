@@ -30,6 +30,8 @@ top_length = 216 - finger_length()/2;
 // The distance between the two critical points: The shelf and the finger joint.
 middle_length = wedge_length - top_length;
 
+bridge_length = wedge_length + bridge_grip_overlap - fan_length;
+
 // Linear interpolation.
 finger_thickness =
   min_thickness*middle_length/wedge_length +
@@ -73,7 +75,8 @@ module bulge_piece(r) {
 module fan_piece(flip, x, y,
     // Set this to true for a shallower curve on the top, for the right
     // hand thumb to rest in. This only shows up on one side.
-    gentle_top_curve=false,
+    gentle_top_right_curve=false,
+    gentle_top_left_curve=false,
     // Set this to a positive value to drop the piece on the left-hand
     // side, to add more stiffness where I don't need clearance for my
     // hand.
@@ -86,7 +89,10 @@ module fan_piece(flip, x, y,
   intersection() {
     for (a = [-1, 1])   
     for (b = [-1, 1]) {
-      gentle = (gentle_top_curve && a == 1 && b == 1);
+      gentle =
+        (b == 1) &&
+        ((gentle_top_right_curve && a == 1) ||
+         (gentle_top_left_curve && a == -1));
       
       scale([a, 1, b * (gentle ? gentle_scale_factor : 1)])
       translate([x, y - left_y_drop * (a == -1 ? 1 : 0)])
@@ -122,17 +128,14 @@ module fan(base_only=false) {
 module bridge(i) {
   x_frac = [0.31, 0.166, 0.074, 0.03][i];
   y_frac = [0.28, 0.57, 0.8, 0.945][i];
-  left_y_drop = [0, 5, 10, 15][i]; // TODO: more
-
-  bridge_length = wedge_length + bridge_grip_overlap - fan_length;
+  left_y_drop = 5*i;
 
   fan_piece(true,
     grip_width/2 + x_frac*0.5*(width-grip_width),
     bridge_length*(1-y_frac) - bridge_grip_overlap,
-    gentle_top_curve=true, left_y_drop=left_y_drop);
+    gentle_top_right_curve=true,
+    left_y_drop=left_y_drop);
 }
-
-// TODO: numeral "6" is not centered anymore.
 
 module wedge() {
   difference() {
@@ -150,6 +153,20 @@ module wedge() {
           bridge(2);
           bridge(3);
         }
+        
+        // Fillet on the concave side of the grip, for strength at
+        // the weakest part of the whole paddle.
+        intersection() {
+          hull()
+          for (y = [15, -15])
+          translate([-0.5, y])
+          fan_piece(true,
+            grip_width/2 + 0.03*0.5*(width-grip_width),
+            bridge_length*(1-0.945) - bridge_grip_overlap - 15);
+          
+          translate([-200, 0])
+          cube(400, center=true);
+        }
       }   
     
       // Cut in the wedge surface.
@@ -162,8 +179,8 @@ module wedge() {
     }
 
     // Flatten the stem that intersects with the grip.
-    translate([-50, -50, max_thickness])
-    cube([100, 100, 10]);
+    translate([-100, -100, max_thickness])
+    cube([200, 200, 10]);
   }
 }
 
@@ -275,11 +292,11 @@ module knurl_segment(bend_radius, i, end=false) {
       // Numeral on the base.
       if (end)
       bend_translate(bend_radius, z+knurl_segment_length-engrave_depth+0.3)
-      translate([-7, 6])
+      translate([-6, 6])
       scale([1, -1])
       linear_extrude(engrave_depth)
       offset(0.3)
-      text(str(mark_number), size=17);
+      text(str(mark_number), size=15);
     }
   }
 }
@@ -422,4 +439,4 @@ module grip_plate() {
   }
 }
 
-wedge();
+bottom_template();
