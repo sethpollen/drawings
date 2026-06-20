@@ -22,7 +22,7 @@ grip_thickness = 24.4;
 
 // The grip is offset from the center of the wedge base. This "lifts" the grip
 // away from the build plate, allowing more of its full profile to be printed.
-grip_offset = 1.9;
+grip_offset = 1;
 
 // Parameter for slicing into printable sections.
 top_length = 216 - finger_length()/2;
@@ -74,9 +74,6 @@ module fan_piece(flip, x, y,
     // Set this to true for a shallower curve on the top, for the right
     // hand thumb to rest in. This only shows up on one side.
     gentle_top_curve=false,
-    // Similar, but for the bottom, on both sides. This helps the wedge
-    // blend smoothly into the grip.
-    gentle_bottom_curve=false,
     // Set this to a positive value to drop the piece on the left-hand
     // side, to add more stiffness where I don't need clearance for my
     // hand.
@@ -89,19 +86,18 @@ module fan_piece(flip, x, y,
   intersection() {
     for (a = [-1, 1])   
     for (b = [-1, 1]) {
-      gentle =
-        (gentle_top_curve && a == 1 && b == 1) ||
-        (gentle_bottom_curve && b == -1);
-
+      gentle = (gentle_top_curve && a == 1 && b == 1);
+      
       scale([a, 1, b * (gentle ? gentle_scale_factor : 1)])
       translate([x, y - left_y_drop * (a == -1 ? 1 : 0)])
       scale([1, flip ? -1 : 1])
       bulge_piece(bulge_radius(thickness, 45));
     }
     
-    // Chop off anything that goes belong the max_thickness. This avoids
+    // Chop off anything that goes above the max_thickness. This avoids
     // flattening the gentle_top_curve when hull'ing with a taller piece.
-    cube([700, 700, max_thickness + 0.1], center=true);
+    translate([-400, -400, max_thickness/2-100])
+    cube([800, 800, 101]);
   }
 }
 
@@ -126,19 +122,17 @@ module fan(base_only=false) {
 module bridge(i) {
   x_frac = [0.31, 0.166, 0.074, 0.03][i];
   y_frac = [0.28, 0.57, 0.8, 0.945][i];
-  left_y_drop = [0, 5, 12, 25][i]; // TODO: more
+  left_y_drop = [0, 5, 10, 15][i]; // TODO: more
 
   bridge_length = wedge_length + bridge_grip_overlap - fan_length;
 
   fan_piece(true,
     grip_width/2 + x_frac*0.5*(width-grip_width),
     bridge_length*(1-y_frac) - bridge_grip_overlap,
-    gentle_top_curve=true,
-    // TODO: This needs work. Currently it creates unsupported shallow
-    // inclines underneath.
-    gentle_bottom_curve=(i>=3),
-    left_y_drop=left_y_drop);
+    gentle_top_curve=true, left_y_drop=left_y_drop);
 }
+
+// TODO: numeral "6" is not centered anymore.
 
 module wedge() {
   difference() {
@@ -428,6 +422,4 @@ module grip_plate() {
   }
 }
 
-//wedge();
-//for(i=[0:3])bridge(i);
 bottom();
