@@ -5,7 +5,7 @@ function finger_length() = 36;
 
 finger_width = 12.15;
 teeth_pairs = 6;
-finger_floor = 2;
+finger_floor = 2.2;
 
 xy_slack = 0.1;
 z_slack = 0.6;
