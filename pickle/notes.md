@@ -22,6 +22,8 @@ Grip plate printed in TPU:
 
 * 0.2mm layers
 * 20% gyroid fill
+* Bottom layer inset: 0.2mm
+* Floor: 3 layers
 
 # Mk. 5
 
