@@ -418,4 +418,3 @@ module grip_plate() {
   }
 }
 
-bottom();
