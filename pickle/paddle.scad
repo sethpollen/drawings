@@ -22,7 +22,7 @@ grip_thickness = 24.4;
 
 // The grip is offset from the center of the wedge base. This "lifts" the grip
 // away from the build plate, allowing more of its full profile to be printed.
-grip_offset = 1;
+grip_offset = 0.8;
 
 // Parameter for slicing into printable sections.
 top_length = 216 - finger_length()/2;
@@ -42,9 +42,6 @@ wedge_angle = atan(
 
 grip_groove_floor = 6;
 grip_tongue_width = 4.6;
-
-// Default value, for convenience.
-$grip_type = 0;
 
 tab_x = 73; // TUNED
 
@@ -190,57 +187,35 @@ knurl_slope = 0.5;
 knurl_valley = 0.8;
 knurl_segment_length = knurl_slope + knurl_peak + knurl_slope + knurl_valley;
 
-// Values for `$grip_type`:
-//   -1  Nothing at all.
-//    0  Grip exterior.
-//    1  Central tongue.
-//    2  Central groove.
 module grip_2d(knurl_inset=false) {
   flats = 10;
   bottom_sheet_width = 12;
 
-  if ($grip_type == 0) {
-    // This part is not inset when knurling. It ensures a continuous
-    // bottom sheet for strength.
-    translate([-bottom_sheet_width/2, max_thickness/2 - 1])
-    square([bottom_sheet_width, 1]);
-    
-    offset(delta=knurl_inset ? -knurl_depth : 0)
-    intersection() {
-      // Main profile, rounded on both sides.
-      translate([0, -grip_offset])
-      hull()
-      for (a = [-1, 1])
-      scale([1, a])
-      translate([0, flats/2])
-      scale([grip_width/2, (1.12*grip_thickness - flats)/2])
-      intersection() {
-        circle($fn=18, r=1);
-        
-        translate([0, 2])
-        square(4, center=true);
-      }
-      
-      // Cut off to meet the build plate.
-      translate([-30, max_thickness/2 - grip_thickness])
-      square([60, grip_thickness]);
-    }
-  }
-
-  if ($grip_type == 1)
-  translate([0, max_thickness/2 - grip_thickness - 0.0001])
-  hull() {
-    translate([-0.4, 0])
-    square([0.8, grip_thickness - grip_groove_floor]);
-    
-    square([grip_tongue_width, 0.0001], center=true);
-  }
+  // This part is not inset when knurling. It ensures a continuous
+  // bottom sheet for strength.
+  translate([-bottom_sheet_width/2, max_thickness/2 - 1])
+  square([bottom_sheet_width, 1]);
   
-  groove_slack = 0.1;
-
-  if ($grip_type == 2)
-  offset(delta=groove_slack)
-  grip_2d($grip_type=1);
+  offset(delta=knurl_inset ? -knurl_depth : 0)
+  intersection() {
+    // Main profile, rounded on both sides.
+    translate([0, -grip_offset])
+    hull()
+    for (a = [-1, 1])
+    scale([1, a])
+    translate([0, flats/2])
+    scale([grip_width/2, (1.12*grip_thickness - flats)/2])
+    intersection() {
+      circle($fn=18, r=1);
+      
+      translate([0, 2])
+      square(4, center=true);
+    }
+    
+    // Cut off to meet the build plate.
+    translate([-30, max_thickness/2 - grip_thickness])
+    square([60, grip_thickness]);
+  }
 }
 
 module bend_translate(r, z) {
@@ -257,47 +232,39 @@ module mklayer(r, z) {
 }
 
 module knurl_segment(bend_radius, i, end=false) {
-  if (end && $grip_type != 0) {
-    // Don't extend the tongue and groove all the way to the end.
-  } else {
-    z = i*knurl_segment_length;
-        
-    groove_end_slack = ($grip_type == 2) ? 0.2 : 0;
-    extra_height = groove_end_slack * 2;
-    
-    scale([1, 1, -1])
-    difference() {
-      chain() {
-        mklayer(bend_radius, z - groove_end_slack)
-        grip_2d(knurl_inset=true);
-        
-        mklayer(bend_radius, z + knurl_slope)
-        grip_2d();
-        
-        mklayer(bend_radius, z + knurl_slope + knurl_peak)
-        grip_2d();
-        
-        mklayer(bend_radius, z + knurl_slope + knurl_peak + knurl_slope)
-        grip_2d(knurl_inset=true);
-        
-        mklayer(bend_radius,
-                z + knurl_slope + knurl_peak + knurl_slope +
-                knurl_valley + extra_height + groove_end_slack)
-        offset(delta=end ? -0.9 : 0)
-        grip_2d(knurl_inset=true);
-      }
+  z = i*knurl_segment_length;
+  
+  scale([1, 1, -1])
+  difference() {
+    chain() {
+      mklayer(bend_radius, z)
+      grip_2d(knurl_inset=true);
       
-      engrave_depth = 1.2;
-
-      // Numeral on the base.
-      if (end)
-      bend_translate(bend_radius, z+knurl_segment_length-engrave_depth+0.3)
-      translate([-6, 6])
-      scale([1, -1])
-      linear_extrude(engrave_depth)
-      offset(0.3)
-      text(str(mark_number), size=15);
+      mklayer(bend_radius, z + knurl_slope)
+      grip_2d();
+      
+      mklayer(bend_radius, z + knurl_slope + knurl_peak)
+      grip_2d();
+      
+      mklayer(bend_radius, z + knurl_slope + knurl_peak + knurl_slope)
+      grip_2d(knurl_inset=true);
+      
+      mklayer(bend_radius,
+              z + knurl_slope + knurl_peak + knurl_slope + knurl_valley)
+      offset(delta=end ? -0.9 : 0)
+      grip_2d(knurl_inset=true);
     }
+    
+    engrave_depth = 1.2;
+
+    // Numeral on the base.
+    if (end)
+    bend_translate(bend_radius, z+knurl_segment_length-engrave_depth+0.3)
+    translate([-6, 6])
+    scale([1, -1])
+    linear_extrude(engrave_depth)
+    offset(0.3)
+    text(str(mark_number), size=15);
   }
 }
 
@@ -386,7 +353,7 @@ module bottom_template() {
     cube([400, 400, 70], center=true);
   }
   
-  grip($grip_type=0);
+  grip();
 }
 
 module bottom() {
@@ -404,9 +371,6 @@ module bottom() {
     // Cut off the grip piece.
     translate([-200, -200, max_thickness])
     cube([400, 400, 30]);
-    
-    // Groove.
-    grip($grip_type=2);
   }
 
   translate([0, middle_length]) {
@@ -422,21 +386,15 @@ module bottom() {
   }
 }
 
-// TODO: Make the tongue much shallower, so it doesn't stiffen the
-// grip. Really, the tongue could just be two pins to align the
-// grip plate during gluing. It should have one deep pin at its
-// upper end, to bind the grip layers together.
+// TODO: bosses for alignment
+
 module grip_plate() {
   intersection() {
     bottom_template();
 
-    union() {
-      translate([-200, -200, max_thickness])
-      cube([400, 200, 30]);
-      
-      grip($grip_type=1);
-    }
+    translate([-200, -200, max_thickness + 0.001])
+    cube([400, 200, 30]);
   }
 }
 
-bottom_template();
+bottom();
