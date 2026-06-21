@@ -155,7 +155,7 @@ module wedge() {
         // the weakest part of the whole paddle.
         intersection() {
           hull()
-          for (y = [15, -15])
+          for (y = [15, -11])
           translate([-0.5, y])
           fan_piece(true,
             grip_width/2 + 0.03*0.5*(width-grip_width),
@@ -268,21 +268,23 @@ module knurl_segment(bend_radius, i, end=false) {
   }
 }
 
-module grip_stack(prog, i=0) {
-  if (i < len(prog)) {
+grip_prog = [[70, 9], [1000, 11], [27, 3], [-50, 1, true]];
+
+module grip_stack(i=0) {
+  if (i < len(grip_prog)) {
     // Radius of curvature for this section.
-    r = prog[i][0];
+    r = grip_prog[i][0];
     // Number of segments in this section.
-    n = prog[i][1];
+    n = grip_prog[i][1];
     
     // Optional parameter.
-    end = (len(prog[i]) > 2) ? prog[i][2] : false;
+    end = (len(grip_prog[i]) > 2) ? grip_prog[i][2] : false;
     
     for (i = [0:n-1])
     knurl_segment(r, i, end=end);
    
     bend_translate(r, -n*knurl_segment_length)
-    grip_stack(prog, i+1);
+    grip_stack(i+1);
   }
 }
 
@@ -305,7 +307,7 @@ module grip() {
     }
     
     bend_translate(shelf_r, -shelf_n*knurl_segment_length)
-    grip_stack([[70, 9], [1000, 11], [27, 3], [-50, 1, true]]);
+    grip_stack();
   }
 }
 
@@ -368,10 +370,12 @@ module bottom() {
                       cavity=true, complement=true, rot=true);
     }
     
-    // Cut off the grip piece.
+    // Cut off the grip plate.
     translate([-200, -200, max_thickness])
     cube([400, 400, 30]);
   }
+  
+  grip_plate_bosses(cavity=false);
 
   translate([0, middle_length]) {
     // Positive fingers.
@@ -386,14 +390,31 @@ module bottom() {
   }
 }
 
-// TODO: bosses for alignment
+module grip_plate_bosses(cavity) {
+  $fn = 10;
+  
+  r = 1.3 + (cavity ? 0.2 : 0);
+  h = 1.3 + (cavity ? 0.2 : 0);
+  
+  for (xy = [[0, -12.2], [-52, -100]]) // TUNED to avoid knurl grooves.
+  translate(xy) {
+    translate([0, 0, max_thickness-1])
+    cylinder(r=r, h=1.001);
+      
+    translate([0, 0, max_thickness])
+    cylinder(r1=r, r2=0, h=h);
+  }
+}
 
 module grip_plate() {
-  intersection() {
+  difference() {
     bottom_template();
+    
+    grip_plate_bosses(cavity=true);
 
-    translate([-200, -200, max_thickness + 0.001])
-    cube([400, 200, 30]);
+    // Cut off the bottom.
+    translate([-200, -200, -1])
+    cube([400, 400, max_thickness + 1.001]);
   }
 }
 
