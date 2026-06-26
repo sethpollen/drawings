@@ -17,7 +17,7 @@ module setting() {
 }
 
 module gem() {
-  slack = 0.4;
+  slack = 0.6;
   h = 15;
   
   difference() {
@@ -38,5 +38,4 @@ module gem() {
   }
 }
 
-setting();
 gem();
