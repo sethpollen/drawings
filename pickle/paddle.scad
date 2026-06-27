@@ -134,6 +134,22 @@ module bridge(i) {
     left_y_drop=left_y_drop);
 }
 
+// Fillet on the concave side of the grip, for strength at
+// the weakest part of the whole paddle.
+module fillet() {
+  intersection() {
+    hull()
+    for (y = [15, -11])
+    translate([-0.5, y])
+    fan_piece(true,
+      grip_width/2 + 0.03*0.5*(width-grip_width),
+      bridge_length*(1-0.945) - bridge_grip_overlap - 15);
+    
+    translate([-200, 0])
+    cube(400, center=true);
+  }
+}
+
 module wedge() {
   difference() {
     // "Unwedge" the piece, so that one surface coincides with the xy-plane.
@@ -151,19 +167,7 @@ module wedge() {
           bridge(3);
         }
         
-        // Fillet on the concave side of the grip, for strength at
-        // the weakest part of the whole paddle.
-        intersection() {
-          hull()
-          for (y = [15, -11])
-          translate([-0.5, y])
-          fan_piece(true,
-            grip_width/2 + 0.03*0.5*(width-grip_width),
-            bridge_length*(1-0.945) - bridge_grip_overlap - 15);
-          
-          translate([-200, 0])
-          cube(400, center=true);
-        }
+        fillet();
       }   
     
       // Cut in the wedge surface.
@@ -418,4 +422,4 @@ module grip_plate() {
   }
 }
 
-top();
+bottom();
