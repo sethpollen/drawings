@@ -25,6 +25,11 @@ Grip plate printed in TPU:
 * Bottom layer inset: 0.2mm
 * Floor: 3 layers
 
+## Notes
+
+I think 0.15mm layers is key for strength. The honeycomb infill seems fine,
+though grid infill is probably also fine.
+
 # Mk. 5
 
 Some changes relative to Mk. 4. In general I am walking back some of the
