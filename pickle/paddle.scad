@@ -14,7 +14,7 @@ wedge_length = 251;
 bridge_grip_overlap = 20;
 
 // Make a wedge shape.
-max_thickness = 22; // TODO: increase this so it equals grip_thickness; then simplify.
+max_thickness = 24;
 min_thickness = 8;
 
 // TODO: add interior voids at the corners of the neck, for strength
@@ -25,11 +25,9 @@ min_thickness = 8;
 // TODO: rework knurling or use grip tape
 
 grip_width = 34.6;
-grip_thickness = 24.4;
 
-// The grip is offset from the center of the wedge base. This "lifts" the grip
-// away from the build plate, allowing more of its full profile to be printed.
-grip_offset = 0.8;
+// TODO: simplify; this is now the same as max_thickness
+grip_thickness = 24;
 
 // Parameter for slicing into printable sections.
 top_length = 216 - finger_length()/2;
@@ -79,8 +77,7 @@ module bulge_piece(r) {
 module fan_piece(flip, x, y,
     // Set this to true for a shallower curve on the top, for the right
     // hand thumb to rest in. This only shows up on one side.
-    gentle_top_right_curve=false,
-    gentle_top_left_curve=false,
+    gentle_right_curve=false,
     // Set this to a positive value to drop the piece on the left-hand
     // side, to add more stiffness where I don't need clearance for my
     // hand.
@@ -88,17 +85,16 @@ module fan_piece(flip, x, y,
 ) {
   y_frac = y/wedge_length;
   thickness = (1 - y_frac)*max_thickness + y_frac*min_thickness;
-  gentle_scale_factor = 0.72;
 
   intersection() {
     for (a = [-1, 1])   
     for (b = [-1, 1]) {
-      gentle =
-        (b == 1) &&
-        ((gentle_top_right_curve && a == 1) ||
-         (gentle_top_left_curve && a == -1));
+      gentle_factor =
+        (!gentle_right_curve || a != 1) ? 1 // No gentle curve.
+        // More gentle on top than on the bottom.
+        : (b == 1) ? 0.72 : 0.86;
       
-      scale([a, 1, b * (gentle ? gentle_scale_factor : 1)])
+      scale([a, 1, b * gentle_factor])
       translate([x, y - left_y_drop * (a == -1 ? 1 : 0)])
       scale([1, flip ? -1 : 1])
       bulge_piece(bulge_radius(thickness, 45));
@@ -132,12 +128,12 @@ module fan(base_only=false) {
 module bridge(i) {
   x_frac = [0.31, 0.166, 0.074, 0.03][i];
   y_frac = [0.28, 0.57, 0.8, 0.945][i];
-  left_y_drop = 5*i;
+  left_y_drop = 4*i;
 
   fan_piece(true,
     grip_width/2 + x_frac*0.5*(width-grip_width),
     bridge_length*(1-y_frac) - bridge_grip_overlap,
-    gentle_top_right_curve=true,
+    gentle_right_curve=true,
     left_y_drop=left_y_drop);
 }
 
@@ -210,7 +206,6 @@ module grip_2d(knurl_inset=false) {
   offset(delta=knurl_inset ? -knurl_depth : 0)
   intersection() {
     // Main profile, rounded on both sides.
-    translate([0, -grip_offset])
     hull()
     for (a = [-1, 1])
     scale([1, a])
@@ -358,20 +353,20 @@ module top() {
   }
 }
 
-module bottom_template() {
-  difference() {
-    wedge();
-  
-    translate([0, 200 + middle_length])
-    cube([400, 400, 70], center=true);
-  }
-  
-  grip();
-}
-
 module bottom() {
   difference() {
-    bottom_template();
+    // Combine the wedge and grip.
+    union() {
+      difference() {
+        wedge();
+      
+        // Cut off the `top`.
+        translate([0, 200 + middle_length])
+        cube([400, 400, 70], center=true);
+      }
+      
+      grip();
+    }
 
     translate([0, middle_length]) {
       joint_chamfer();
@@ -380,14 +375,8 @@ module bottom() {
       extrude_fingers(thickness=finger_thickness,
                       cavity=true, complement=true, rot=true);
     }
-    
-    // Cut off the grip plate.
-    translate([-200, -200, max_thickness])
-    cube([400, 400, 30]);
   }
   
-  grip_plate_bosses(cavity=false);
-
   translate([0, middle_length]) {
     // Positive fingers.
     extrude_fingers(thickness=finger_thickness,
@@ -398,34 +387,6 @@ module bottom() {
     for (a = [-1, 1])
     translate([a*tab_x, 0])
     circle(d=10);
-  }
-}
-
-module grip_plate_bosses(cavity) {
-  $fn = 10;
-  
-  r = 1.3 + (cavity ? 0.2 : 0);
-  h = 1.3 + (cavity ? 0.2 : 0);
-  
-  for (xy = [[0, -12.2], [-52, -100]]) // TUNED to avoid knurl grooves.
-  translate(xy) {
-    translate([0, 0, max_thickness-1])
-    cylinder(r=r, h=1.001);
-      
-    translate([0, 0, max_thickness])
-    cylinder(r1=r, r2=0, h=h);
-  }
-}
-
-module grip_plate() {
-  difference() {
-    bottom_template();
-    
-    grip_plate_bosses(cavity=true);
-
-    // Cut off the bottom.
-    translate([-200, -200, -1])
-    cube([400, 400, max_thickness + 1.001]);
   }
 }
 
