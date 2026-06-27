@@ -14,8 +14,15 @@ wedge_length = 251;
 bridge_grip_overlap = 20;
 
 // Make a wedge shape.
-max_thickness = 22;
+max_thickness = 22; // TODO: increase this so it equals grip_thickness; then simplify.
 min_thickness = 8;
+
+// TODO: add interior voids at the corners of the neck, for strength
+
+// TODO: get rid of grip_plate; print shelf directly onto bottom. Include
+// interior voids to ensure a continuous upper sheet.
+
+// TODO: rework knurling or use grip tape
 
 grip_width = 34.6;
 grip_thickness = 24.4;
