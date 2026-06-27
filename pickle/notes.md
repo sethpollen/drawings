@@ -1,3 +1,35 @@
+# Mk. 6
+
+Going back to some of the settings from Mk. 3 (which was my most successful
+design so far). But I am still trying to avoid any modification of the infill.
+
+Top and bottom are printed in PETG with these settings:
+
+* 0.15mm layers
+* Floor: 6 layers for `top`; 7 for `bottom`
+* Ceiling: 8 layers for `top`; 9 for `bottom`
+* 10% honeycomb infill. I was tempted to go back to my tried-and-true grid
+  infill, but hexagonal avoids the intersection lines that cause material
+  to accumulate on the print head. The hexagons are about the same size as the
+  squares, so it should be about as strong.
+* Bottom layer inset: 0.2mm
+* Head temp: 240 C
+* Print speed: 40 mm/s
+* Randomized z seam alignment
+* Infill skin support: DISABLED
+
+Grip plate printed in TPU:
+
+* 0.2mm layers
+* 20% gyroid fill
+* Bottom layer inset: 0.2mm
+* Floor: 3 layers
+
+## Notes
+
+I think 0.15mm layers is key for strength. The honeycomb infill seems fine,
+though grid infill is probably also fine.
+
 # Mk. 5
 
 Some changes relative to Mk. 4. In general I am walking back some of the
