@@ -329,9 +329,9 @@ module shelf_perforations() {
       grip();
     }
 
-    for (x = [-20:1.2:20])
-    translate([x, 0, 20])
-    cube([0.2, 40, 40], center=true);
+    for (y = [-20:2:20])
+    translate([0, y, 20])
+    cube([40, 0.15, 40], center=true);
   }
 }
 
