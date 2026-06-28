@@ -247,6 +247,8 @@ module linear_extrude_eps(h) {
 knurl_groove_width = 0.9;
 knurl_groove_depth = 0.3;
 
+// TODO: add an angle_end parameter to avoid generating
+// rays which are not needed for the wedge knurling.
 module knurling_rays(angle_start=0) {
   translate([-120, 0, -1])
   for (a = [0:1.9:95])
