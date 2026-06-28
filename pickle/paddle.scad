@@ -281,36 +281,33 @@ module grip() {
     straight1 = 9.8;
     elbow1 = [70, 39];
     straight2 = 63;
-    elbow2 = [33, 110];
     
-    intersection() {
-      // The serpentine shape of the grip.
-      translate([0, 0, max_thickness/2])
-      rotate([90, 0, 0])
-      {
-        linear_extrude_eps(straight1) grip_2d();
-        translate([0, 0, straight1])
-        scale([-1, 1]) {
-          rotate_up_extrude(elbow1) grip_2d();
-          rotate_up(elbow1) {
-            linear_extrude_eps(straight2) grip_2d();
-            translate([0, 0, straight2]) {
-              rotate_up_extrude(elbow2, $fn=23) grip_2d();
+    translate([0, 0, max_thickness/2])
+    rotate([90, 0, 0])
+    {
+      linear_extrude_eps(straight1) grip_2d();
+      translate([0, 0, straight1])
+      scale([-1, 1]) {
+        rotate_up_extrude(elbow1) grip_2d();
+        rotate_up(elbow1) {
+          linear_extrude_eps(straight2) grip_2d();
+          translate([0, 0, straight2])
+          intersection() {
+            // The final elbow is the intersection of two different
+            // extrusions, which lets us taper the end.
+            rotate_up_extrude([33, 110], $fn=19) grip_2d();
+            
+            tight_r = 14.6;
+            rotate_up_extrude([tight_r, 180], $fn=22)
+            intersection() {
+              grip_2d();
+              // Avoid a negative x-coordinate for the tight
+              // rotate_extrude.
+              translate([tight_r-grip_width/2, 0])
+              square(grip_width, center=true);
             }
           }
         }
-      }
-      
-      // Chop the end.
-      translate([-80, -80]) {
-        rotate([0, 0, -40])
-        translate([-150, 0])
-        cube([300, 300, max_thickness]);
-        
-        translate([18, 3, max_thickness/2])
-        rotate_extrude($fn=26)
-        translate([25, 0])
-        grip_2d();
       }
     }
   }
@@ -445,4 +442,4 @@ module bottom() {
   }
 }
 
-shelf_perforations();
+grip();
