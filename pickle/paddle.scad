@@ -44,9 +44,9 @@ finger_thickness =
   
 wedge_angle = atan(
   (max_thickness - min_thickness) / (2 * wedge_length));
-
-grip_groove_floor = 6;
-grip_tongue_width = 4.6;
+  
+// Default values.
+$grip_offs = 0;
 
 tab_x = 73; // TUNED
 
@@ -189,8 +189,9 @@ module wedge() {
 }
 
 module grip_2d() {
-  flats = 10;
+  flats = 11;
   
+  offset(delta=$grip_offs)
   intersection() {
     // Main profile, rounded on both sides.
     hull()
@@ -231,31 +232,59 @@ module rotate_up_extrude(ra) {
   children();
 }
 
-module grip() {
+module linear_extrude_eps(h) {
   eps = 0.001;
-  
-  straight1 = 9.8;
-  elbow1 = [70, 39];
-  straight2 = 53;
-  elbow2 = [18, 39];
-  elbow3 = [18, 12];
-  
-  translate([0, 0, max_thickness/2])
-  rotate([90, 0, 0])
-  {
-    linear_extrude(straight1 + eps) grip_2d();
-    translate([0, 0, straight1])
-    // Bend right.
-    scale([-1, 1]) {
-      rotate_up_extrude(elbow1, $fn=40) grip_2d();
-      rotate_up(elbow1) {
-        linear_extrude(straight2 + eps) grip_2d();
-        translate([0, 0, straight2]) {
-          rotate_up_extrude(elbow2, $fn=40) grip_2d();
-          rotate_up(elbow2)
-          // Bend left.
-          scale([-1, 1]) {
-            rotate_up_extrude(elbow3, $fn=40) grip_2d();
+  translate([0, 0, -eps])
+  linear_extrude(h + 2*eps)
+  children();
+}
+
+knurl_groove_width = 0.9;
+knurl_groove_depth = 0.3;
+
+module knurling_rays(angle_start=0) {
+  translate([-120, 0, -1])
+  for (a = [0:1.9:95])
+  if (a >= angle_start)
+  rotate([0, 0, -a])
+  cube([200, knurl_groove_width, grip_thickness + 2]);
+}
+
+module grip(knurl=true) {
+  if (knurl) {
+    // Apply knurling and then recurse.
+    difference() {
+      grip(knurl=false);
+      
+      intersection() {
+        knurling_rays();
+        
+        difference() {
+          grip(knurl=false, $grip_offs=0.1);
+          grip(knurl=false, $grip_offs=-knurl_groove_depth);
+        }
+      }
+    }
+  } else {
+    $fn = 40;
+    
+    straight1 = 9.8;
+    elbow1 = [70, 39];
+    straight2 = 63;
+    elbow2 = [30, 120];
+    
+    translate([0, 0, max_thickness/2])
+    rotate([90, 0, 0])
+    {
+      linear_extrude_eps(straight1) grip_2d();
+      translate([0, 0, straight1])
+      // Bend right.
+      scale([-1, 1]) {
+        rotate_up_extrude(elbow1) grip_2d();
+        rotate_up(elbow1) {
+          linear_extrude_eps(straight2) grip_2d();
+          translate([0, 0, straight2]) {
+            rotate_up_extrude(elbow2) grip_2d();
           }
         }
       }
@@ -312,6 +341,14 @@ module bottom() {
       }
       
       grip();
+    }
+    
+    // Knurl the top and bottom, to align with the grip knurl grooves.
+    intersection() {
+      knurling_rays(6);
+      for(z = [0, max_thickness])
+      translate([0, 0, z])
+      cube([500, 500, knurl_groove_depth*2], center=true);
     }
 
     translate([0, middle_length]) {
