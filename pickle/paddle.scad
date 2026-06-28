@@ -188,22 +188,9 @@ module wedge() {
   }
 }
 
-knurl_depth = 0.4;
-knurl_peak = 3.1;
-knurl_slope = 0.5;
-knurl_valley = 0.8;
-knurl_segment_length = knurl_slope + knurl_peak + knurl_slope + knurl_valley;
-
-module grip_2d(knurl_inset=false) {
+module grip_2d() {
   flats = 10;
-  bottom_sheet_width = 12;
-
-  // This part is not inset when knurling. It ensures a continuous
-  // bottom sheet for strength.
-  translate([-bottom_sheet_width/2, max_thickness/2 - 1])
-  square([bottom_sheet_width, 1]);
   
-  offset(delta=knurl_inset ? -knurl_depth : 0)
   intersection() {
     // Main profile, rounded on both sides.
     hull()
@@ -211,12 +198,7 @@ module grip_2d(knurl_inset=false) {
     scale([1, a])
     translate([0, flats/2])
     scale([grip_width/2, (1.12*grip_thickness - flats)/2])
-    intersection() {
-      circle($fn=18, r=1);
-      
-      translate([0, 2])
-      square(4, center=true);
-    }
+    circle($fn=18, r=1);
     
     // Cut off to meet the build plate.
     translate([-30, max_thickness/2 - grip_thickness])
@@ -224,96 +206,60 @@ module grip_2d(knurl_inset=false) {
   }
 }
 
-module bend_translate(r, z) {
-  translate([-r, 0, 0])
-  rotate([0, -360*z/(2*PI*r), 0])
-  translate([r, 0, 0])
+// TODO: more pronounced hook at the end of the grip.
+
+// TODO: engrave numeral on base
+
+// TODO: add shelf to grip. 9mm wide.
+
+module rotate_up(ra) {
+  r = ra[0];
+  a = ra[1];
+  translate([r, 0])
+  rotate([0, a, 0])
+  translate([-r, 0])
   children();
 }
 
-module mklayer(r, z) {
-  bend_translate(r, z)
-  linear_extrude(0.01)
+module rotate_up_extrude(ra) {
+  r = ra[0];
+  a = ra[1];
+  rotate([-90, 0])
+  translate([r, 0])
+  rotate_extrude(angle=a)
+  translate([-r, 0])
   children();
-}
-
-module knurl_segment(bend_radius, i, end=false) {
-  z = i*knurl_segment_length;
-  
-  scale([1, 1, -1])
-  difference() {
-    chain() {
-      mklayer(bend_radius, z)
-      grip_2d(knurl_inset=true);
-      
-      mklayer(bend_radius, z + knurl_slope)
-      grip_2d();
-      
-      mklayer(bend_radius, z + knurl_slope + knurl_peak)
-      grip_2d();
-      
-      mklayer(bend_radius, z + knurl_slope + knurl_peak + knurl_slope)
-      grip_2d(knurl_inset=true);
-      
-      mklayer(bend_radius,
-              z + knurl_slope + knurl_peak + knurl_slope + knurl_valley)
-      offset(delta=end ? -0.9 : 0)
-      grip_2d(knurl_inset=true);
-    }
-    
-    engrave_depth = 1.2;
-
-    // Numeral on the base.
-    if (end)
-    bend_translate(bend_radius, z+knurl_segment_length-engrave_depth+0.3)
-    translate([-6, 6])
-    scale([1, -1])
-    linear_extrude(engrave_depth)
-    offset(0.3)
-    text(str(mark_number), size=15);
-  }
-}
-
-grip_prog = [[70, 9], [1000, 11], [27, 3], [-50, 1, true]];
-
-module grip_stack(i=0) {
-  if (i < len(grip_prog)) {
-    // Radius of curvature for this section.
-    r = grip_prog[i][0];
-    // Number of segments in this section.
-    n = grip_prog[i][1];
-    
-    // Optional parameter.
-    end = (len(grip_prog[i]) > 2) ? grip_prog[i][2] : false;
-    
-    for (i = [0:n-1])
-    knurl_segment(r, i, end=end);
-   
-    bend_translate(r, -n*knurl_segment_length)
-    grip_stack(i+1);
-  }
 }
 
 module grip() {
-  shelf_r = 1000;
-  shelf_n = 2;
+  eps = 0.001;
   
-  shelf_width = 9;
+  straight1 = 9.8;
+  elbow1 = [70, 39];
+  straight2 = 53;
+  elbow2 = [18, 39];
+  elbow3 = [18, 12];
   
   translate([0, 0, max_thickness/2])
-  rotate([-90, 0, 0]) {
-    // Form the shelf.
-    hull() {
-      translate([0, max_thickness/2])
-      scale([1, (max_thickness + shelf_width)/grip_thickness])
-      translate([0, -max_thickness/2])
-      knurl_segment(shelf_r, 0);
-    
-      knurl_segment(shelf_r, 1);
+  rotate([90, 0, 0])
+  {
+    linear_extrude(straight1 + eps) grip_2d();
+    translate([0, 0, straight1])
+    // Bend right.
+    scale([-1, 1]) {
+      rotate_up_extrude(elbow1, $fn=40) grip_2d();
+      rotate_up(elbow1) {
+        linear_extrude(straight2 + eps) grip_2d();
+        translate([0, 0, straight2]) {
+          rotate_up_extrude(elbow2, $fn=40) grip_2d();
+          rotate_up(elbow2)
+          // Bend left.
+          scale([-1, 1]) {
+            rotate_up_extrude(elbow3, $fn=40) grip_2d();
+          }
+        }
+      }
     }
-    
-    bend_translate(shelf_r, -shelf_n*knurl_segment_length)
-    grip_stack();
   }
 }
 
