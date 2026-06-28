@@ -213,8 +213,6 @@ module grip_2d() {
 
 // TODO: engrave numeral on base
 
-// TODO: add shelf to grip. 9mm wide.
-
 module rotate_up(ra) {
   r = ra[0];
   a = ra[1];
@@ -294,6 +292,49 @@ module grip(knurl=enable_knurl) {
   }
 }
 
+module shelf() {
+  shelf_width = 9;
+  shelf_thickness = 4.6;
+  shelf_chamfer = 0.9;
+  
+  // Narrow it slightly.
+  scale([0.95, 1, 1])
+  translate([0, 0, max_thickness/2])
+  rotate([90, 0, 0])
+  hull() {
+    translate([0, shelf_width, 0]) {
+      linear_extrude(shelf_thickness)
+      grip_2d($grip_offs=-shelf_chamfer);
+      
+      translate([0, 0, shelf_chamfer])
+      linear_extrude(shelf_thickness-2*shelf_chamfer)
+      grip_2d();
+    }
+    
+    linear_extrude(shelf_thickness + 7)
+    grip_2d($grip_offs=-shelf_chamfer);
+  }
+}
+
+module shelf_perforations() {
+  intersection() {
+    shelf();
+    
+    difference() {
+      translate([0, 0, 0.15]) {
+        wedge();
+        grip();
+      }
+      wedge();
+      grip();
+    }
+
+    for (x = [-20:1.2:20])
+    translate([x, 0, 20])
+    cube([0.2, 40, 40], center=true);
+  }
+}
+
 // Chamfer the bottom edge at the finger joint. This avoids elephant
 // foot in a critical area.
 module joint_chamfer() {
@@ -343,7 +384,10 @@ module bottom() {
       }
       
       grip();
+      shelf();
     }
+    
+    shelf_perforations();
     
     // Knurl the top and bottom, to align with the grip knurl grooves.
     if (enable_knurl)
