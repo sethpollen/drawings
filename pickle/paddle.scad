@@ -78,7 +78,6 @@ module fan_piece(flip, x, y,
     // hand thumb to rest in. This only shows up on one side.
     gentle_right_curve=false,
     gentle_left_curve=false,
-    extra_gentle_bottom=false,
     // Extra width to add on the left side, to strengthen the neck.
     left_x=0
 ) {
@@ -95,7 +94,7 @@ module fan_piece(flip, x, y,
         !gentle ? 1 // No gentle curve.
         // More gentle on top than on the bottom, unless
         // the bottom is "extra gentle."
-        : (b == 1 || extra_gentle_bottom) ? 0.72 : 0.86;
+        : (b == 1) ? 0.72 : 0.86;
       
       translate([(a == -1) ? -left_x : 0, 0])
       scale([a, 1, b])
@@ -130,7 +129,7 @@ module fan(base_only=false) {
 }
 
 // `i` should be in the range [0, 3].
-module bridge(i, extra_gentle_bottom=false) {
+module bridge(i) {
   x_frac = [0.31, 0.166, 0.074, 0.03][i];
   y_frac = [0.28, 0.57, 0.8, 0.945][i];
 
@@ -139,7 +138,6 @@ module bridge(i, extra_gentle_bottom=false) {
     bridge_length*(1-y_frac) - bridge_grip_overlap,
     gentle_right_curve=true,
     gentle_left_curve=(i>=3),
-    extra_gentle_bottom=extra_gentle_bottom,
     left_x=(1.8*i));
 }
 
@@ -155,7 +153,7 @@ module fillet() {
     translate(xy)
     intersection() {
       // Take the left-hand piece of bridge(3).
-      bridge(3, extra_gentle_bottom=true);
+      bridge(3);
       translate([-50, 0])
       cube(100, center=true);
     }
