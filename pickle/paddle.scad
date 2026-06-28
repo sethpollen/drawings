@@ -38,10 +38,11 @@ wedge_angle = atan(
   (max_thickness - min_thickness) / (2 * wedge_length));
   
 // Default values.
+$grip_knurl = false;
 $grip_offs = 0;
 
 // Set to false to make computation cheaper.
-enable_knurl = false;
+enable_knurl = true;
 
 tab_x = 73; // TUNED
 
@@ -250,18 +251,20 @@ module knurling_rays(angle_start=0) {
   cube([200, knurl_groove_width, max_thickness + 2]);
 }
 
-module grip(knurl=enable_knurl) {
-  if (knurl) {
+module grip() {
+  if ($grip_knurl) {
+    $grip_knurl = false;
+
     // Apply knurling and then recurse.
     difference() {
-      grip(knurl=false);
+      grip();
       
       intersection() {
         knurling_rays();
         
         difference() {
-          grip(knurl=false, $grip_offs=0.1);
-          grip(knurl=false, $grip_offs=-knurl_groove_depth);
+          grip($grip_offs=0.1);
+          grip($grip_offs=-knurl_groove_depth);
         }
       }
     }
@@ -316,6 +319,8 @@ module shelf() {
   }
 }
 
+// TODO: need to subtract this from `bottom` when printing. Might
+// have to do this as a 2-stage render.
 module shelf_perforations() {
   intersection() {
     shelf();
@@ -383,16 +388,14 @@ module bottom() {
         cube([400, 400, 70], center=true);
       }
       
-      grip();
+      grip($grip_knurl=enable_knurl);
       shelf();
     }
-    
-    shelf_perforations();
     
     // Knurl the top and bottom, to align with the grip knurl grooves.
     if (enable_knurl)
     intersection() {
-      knurling_rays(3);
+      knurling_rays(6);
       for(z = [0, max_thickness])
       translate([0, 0, z])
       cube([500, 500, knurl_groove_depth*2], center=true);
