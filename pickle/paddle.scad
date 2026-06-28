@@ -213,8 +213,6 @@ module grip_2d() {
   }
 }
 
-// TODO: more pronounced hook at the end of the grip.
-
 // TODO: engrave numeral on base
 
 module rotate_up(ra) {
@@ -246,12 +244,10 @@ module linear_extrude_eps(h) {
 knurl_groove_width = 0.8;
 knurl_groove_depth = 0.3;
 
-// TODO: add an angle_end parameter to avoid generating
-// rays which are not needed for the wedge knurling.
-module knurling_rays(angle_start=0) {
+module knurling_rays(angle_start=0, angle_end=95) {
   translate([-120, 0, -1])
   for (a = [0:2.1:95])
-  if (a >= angle_start)
+  if (a >= angle_start && a <= angle_end)
   rotate([0, 0, -a])
   cube([200, knurl_groove_width, max_thickness + 2]);
 }
@@ -412,7 +408,7 @@ module bottom() {
     // Knurl the top and bottom, to align with the grip knurl grooves.
     if (enable_knurl)
     intersection() {
-      knurling_rays(6);
+      knurling_rays(angle_start=6, angle_end=25);
       for(z = [0, max_thickness])
       translate([0, 0, z])
       cube([500, 500, knurl_groove_depth*2], center=true);
