@@ -60,6 +60,8 @@ module chain() {
   }
 }
 
+// TODO: round off the very tip of the grip.
+
 module bulge_piece(r) {
   // A 1/8th slice of a sphere.
   translate([-r, -r])
