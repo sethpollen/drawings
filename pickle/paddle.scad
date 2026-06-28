@@ -78,6 +78,7 @@ module fan_piece(flip, x, y,
     // hand thumb to rest in. This only shows up on one side.
     gentle_right_curve=false,
     gentle_left_curve=false,
+    extra_gentle_bottom=false,
     // Extra width to add on the left side, to strengthen the neck.
     left_x=0
 ) {
@@ -92,8 +93,9 @@ module fan_piece(flip, x, y,
         (gentle_left_curve && a == -1);
       gentle_factor =
         !gentle ? 1 // No gentle curve.
-        // More gentle on top than on the bottom.
-        : (b == 1) ? 0.72 : 0.86;
+        // More gentle on top than on the bottom, unless
+        // the bottom is "extra gentle."
+        : (b == 1 || extra_gentle_bottom) ? 0.72 : 0.86;
       
       translate([(a == -1) ? -left_x : 0, 0])
       scale([a, 1, b])
@@ -128,7 +130,7 @@ module fan(base_only=false) {
 }
 
 // `i` should be in the range [0, 3].
-module bridge(i) {
+module bridge(i, extra_gentle_bottom=false) {
   x_frac = [0.31, 0.166, 0.074, 0.03][i];
   y_frac = [0.28, 0.57, 0.8, 0.945][i];
 
@@ -137,25 +139,29 @@ module bridge(i) {
     bridge_length*(1-y_frac) - bridge_grip_overlap,
     gentle_right_curve=true,
     gentle_left_curve=(i>=3),
+    extra_gentle_bottom=extra_gentle_bottom,
     left_x=(1.8*i));
 }
 
 // Fillet on the concave side of the grip, for strength at
 // the weakest part of the whole paddle.
 module fillet() {
-  rotate([0, 0, 5])
-  translate([-5, 0])
   intersection() {
     hull()
-    for (y = [15, -16])
-    translate([0, y])
-    fan_piece(true,
-      grip_width/2 + 0.03*0.5*(width-grip_width),
-      bridge_length*(1-0.945) - bridge_grip_overlap - 15,
-      gentle_left_curve=true);
+    for (xy = [
+      [0, 0],
+      [3, -33] // TUNED
+    ])
+    translate(xy)
+    intersection() {
+      // Take the left-hand piece of bridge(3).
+      bridge(3, extra_gentle_bottom=true);
+      translate([-50, 0])
+      cube(100, center=true);
+    }
     
-    translate([-200, 0])
-    cube(400, center=true);
+    // Cut to the right thickness.
+    cube([200, 200, max_thickness], center=true);
   }
 }
 
@@ -175,8 +181,6 @@ module wedge() {
           bridge(2);
           bridge(3);
         }
-        
-        fillet();
       }   
     
       // Cut in the wedge surface.
@@ -192,6 +196,10 @@ module wedge() {
     translate([-100, -100, max_thickness])
     cube([200, 200, 10]);
   }
+  
+  // Don't tilt the fillet by the wedge_angle.
+  translate([0, 0, max_thickness/2])
+  fillet();
 }
 
 module grip_2d() {
