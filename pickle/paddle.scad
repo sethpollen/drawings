@@ -8,6 +8,7 @@ fan_length = 225;
 fan_roundoff = 69;
 
 // TODO: Consider lengthening the bridge/neck, to give more reach.
+// Maybe increase the fan_roundoff.
 
 // The length of the flat striking surface, before it hits the grip
 // shelf. This is the part that has a tapered "wedge" shape.
@@ -341,6 +342,7 @@ module shelf() {
 
 // TODO: need to subtract this from `bottom` when printing. Might
 // have to do this as a 2-stage render.
+
 module shelf_perforations() {
   intersection() {
     shelf();
@@ -354,9 +356,9 @@ module shelf_perforations() {
       grip();
     }
 
-    for (y = [-20:2:20])
+    for (y = [-15:2:5])
     translate([0, y, 20])
-    cube([40, 0.15, 40], center=true);
+    cube([40, 0.2, 40], center=true);
   }
 }
 
@@ -443,5 +445,4 @@ module bottom() {
   }
 }
 
-bottom();
-top();
+shelf_perforations();
