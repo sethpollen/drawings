@@ -78,10 +78,8 @@ module fan_piece(flip, x, y,
     // Set this to true for a shallower curve on the top, for the right
     // hand thumb to rest in. This only shows up on one side.
     gentle_right_curve=false,
-    // Set this to a positive value to drop the piece on the left-hand
-    // side, to add more stiffness where I don't need clearance for my
-    // hand.
-    left_y_drop=0
+    // Extra width to add on the left side, to strengthen the neck.
+    left_x=0
 ) {
   y_frac = y/wedge_length;
   thickness = (1 - y_frac)*max_thickness + y_frac*min_thickness;
@@ -94,9 +92,11 @@ module fan_piece(flip, x, y,
         // More gentle on top than on the bottom.
         : (b == 1) ? 0.72 : 0.86;
       
-      scale([a, 1, b * gentle_factor])
-      translate([x, y - left_y_drop * (a == -1 ? 1 : 0)])
+      translate([(a == -1) ? -left_x : 0, 0])
+      scale([a, 1, b])
+      translate([x, y])
       scale([1, flip ? -1 : 1])
+      scale([1, 1, gentle_factor])
       bulge_piece(bulge_radius(thickness, 45));
     }
     
@@ -128,22 +128,22 @@ module fan(base_only=false) {
 module bridge(i) {
   x_frac = [0.31, 0.166, 0.074, 0.03][i];
   y_frac = [0.28, 0.57, 0.8, 0.945][i];
-  left_y_drop = 4*i;
 
   fan_piece(true,
     grip_width/2 + x_frac*0.5*(width-grip_width),
     bridge_length*(1-y_frac) - bridge_grip_overlap,
     gentle_right_curve=true,
-    left_y_drop=left_y_drop);
+    left_x=1.4*i);
 }
 
 // Fillet on the concave side of the grip, for strength at
 // the weakest part of the whole paddle.
 module fillet() {
+  rotate([0, 0, 5])
   intersection() {
     hull()
     for (y = [15, -11])
-    translate([-0.5, y])
+    translate([-3.4, y])
     fan_piece(true,
       grip_width/2 + 0.03*0.5*(width-grip_width),
       bridge_length*(1-0.945) - bridge_grip_overlap - 15);
