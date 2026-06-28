@@ -61,8 +61,6 @@ module chain() {
   }
 }
 
-// TODO: round off the very tip of the grip.
-
 module bulge_piece(r) {
   // A 1/8th slice of a sphere.
   translate([-r, -r])
@@ -245,14 +243,14 @@ module linear_extrude_eps(h) {
   children();
 }
 
-knurl_groove_width = 0.9;
+knurl_groove_width = 0.8;
 knurl_groove_depth = 0.3;
 
 // TODO: add an angle_end parameter to avoid generating
 // rays which are not needed for the wedge knurling.
 module knurling_rays(angle_start=0) {
   translate([-120, 0, -1])
-  for (a = [0:1.9:95])
+  for (a = [0:2.1:95])
   if (a >= angle_start)
   rotate([0, 0, -a])
   cube([200, knurl_groove_width, max_thickness + 2]);
@@ -442,4 +440,4 @@ module bottom() {
   }
 }
 
-grip();
+bottom();
