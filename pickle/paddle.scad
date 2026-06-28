@@ -19,15 +19,7 @@ min_thickness = 8;
 
 // TODO: add interior voids at the corners of the neck, for strength
 
-// TODO: get rid of grip_plate; print shelf directly onto bottom. Include
-// interior voids to ensure a continuous upper sheet.
-
-// TODO: rework knurling or use grip tape
-
 grip_width = 34.6;
-
-// TODO: simplify; this is now the same as max_thickness
-grip_thickness = 24;
 
 // Parameter for slicing into printable sections.
 top_length = 216 - finger_length()/2;
@@ -47,6 +39,9 @@ wedge_angle = atan(
   
 // Default values.
 $grip_offs = 0;
+
+// Set to false to make computation cheaper.
+enable_knurl = false;
 
 tab_x = 73; // TUNED
 
@@ -78,6 +73,7 @@ module fan_piece(flip, x, y,
     // Set this to true for a shallower curve on the top, for the right
     // hand thumb to rest in. This only shows up on one side.
     gentle_right_curve=false,
+    gentle_left_curve=false,
     // Extra width to add on the left side, to strengthen the neck.
     left_x=0
 ) {
@@ -87,8 +83,11 @@ module fan_piece(flip, x, y,
   intersection() {
     for (a = [-1, 1])   
     for (b = [-1, 1]) {
+      gentle =
+        (gentle_right_curve && a == 1) ||
+        (gentle_left_curve && a == -1);
       gentle_factor =
-        (!gentle_right_curve || a != 1) ? 1 // No gentle curve.
+        !gentle ? 1 // No gentle curve.
         // More gentle on top than on the bottom.
         : (b == 1) ? 0.72 : 0.86;
       
@@ -133,20 +132,23 @@ module bridge(i) {
     grip_width/2 + x_frac*0.5*(width-grip_width),
     bridge_length*(1-y_frac) - bridge_grip_overlap,
     gentle_right_curve=true,
-    left_x=1.4*i);
+    gentle_left_curve=(i>=3),
+    left_x=(1.8*i));
 }
 
 // Fillet on the concave side of the grip, for strength at
 // the weakest part of the whole paddle.
 module fillet() {
   rotate([0, 0, 5])
+  translate([-5, 0])
   intersection() {
     hull()
-    for (y = [15, -11])
-    translate([-3.4, y])
+    for (y = [15, -16])
+    translate([0, y])
     fan_piece(true,
       grip_width/2 + 0.03*0.5*(width-grip_width),
-      bridge_length*(1-0.945) - bridge_grip_overlap - 15);
+      bridge_length*(1-0.945) - bridge_grip_overlap - 15,
+      gentle_left_curve=true);
     
     translate([-200, 0])
     cube(400, center=true);
@@ -198,12 +200,12 @@ module grip_2d() {
     for (a = [-1, 1])
     scale([1, a])
     translate([0, flats/2])
-    scale([grip_width/2, (1.12*grip_thickness - flats)/2])
+    scale([grip_width/2, (1.12*max_thickness - flats)/2])
     circle($fn=18, r=1);
     
     // Cut off to meet the build plate.
-    translate([-30, max_thickness/2 - grip_thickness])
-    square([60, grip_thickness]);
+    translate([-30, max_thickness/2 - max_thickness])
+    square([60, max_thickness]);
   }
 }
 
@@ -247,10 +249,10 @@ module knurling_rays(angle_start=0) {
   for (a = [0:1.9:95])
   if (a >= angle_start)
   rotate([0, 0, -a])
-  cube([200, knurl_groove_width, grip_thickness + 2]);
+  cube([200, knurl_groove_width, max_thickness + 2]);
 }
 
-module grip(knurl=true) {
+module grip(knurl=enable_knurl) {
   if (knurl) {
     // Apply knurling and then recurse.
     difference() {
@@ -344,8 +346,9 @@ module bottom() {
     }
     
     // Knurl the top and bottom, to align with the grip knurl grooves.
+    if (enable_knurl)
     intersection() {
-      knurling_rays(6);
+      knurling_rays(3);
       for(z = [0, max_thickness])
       translate([0, 0, z])
       cube([500, 500, knurl_groove_depth*2], center=true);
