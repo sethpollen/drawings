@@ -7,6 +7,8 @@ width = 200;
 fan_length = 225;
 fan_roundoff = 69;
 
+// TODO: Consider lengthening the bridge/neck, to give more reach.
+
 // The length of the flat striking surface, before it hits the grip
 // shelf. This is the part that has a tapered "wedge" shape.
 wedge_length = 251;
@@ -274,22 +276,36 @@ module grip() {
     straight1 = 9.8;
     elbow1 = [70, 39];
     straight2 = 63;
-    elbow2 = [30, 120];
+    elbow2 = [33, 110];
     
-    translate([0, 0, max_thickness/2])
-    rotate([90, 0, 0])
-    {
-      linear_extrude_eps(straight1) grip_2d();
-      translate([0, 0, straight1])
-      // Bend right.
-      scale([-1, 1]) {
-        rotate_up_extrude(elbow1) grip_2d();
-        rotate_up(elbow1) {
-          linear_extrude_eps(straight2) grip_2d();
-          translate([0, 0, straight2]) {
-            rotate_up_extrude(elbow2) grip_2d();
+    intersection() {
+      // The serpentine shape of the grip.
+      translate([0, 0, max_thickness/2])
+      rotate([90, 0, 0])
+      {
+        linear_extrude_eps(straight1) grip_2d();
+        translate([0, 0, straight1])
+        scale([-1, 1]) {
+          rotate_up_extrude(elbow1) grip_2d();
+          rotate_up(elbow1) {
+            linear_extrude_eps(straight2) grip_2d();
+            translate([0, 0, straight2]) {
+              rotate_up_extrude(elbow2, $fn=23) grip_2d();
+            }
           }
         }
+      }
+      
+      // Chop the end.
+      translate([-80, -80]) {
+        rotate([0, 0, -40])
+        translate([-150, 0])
+        cube([300, 300, max_thickness]);
+        
+        translate([18, 3, max_thickness/2])
+        rotate_extrude($fn=26)
+        translate([25, 0])
+        grip_2d();
       }
     }
   }
@@ -424,3 +440,4 @@ module bottom() {
 }
 
 bottom();
+top();
