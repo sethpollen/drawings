@@ -249,15 +249,25 @@ module linear_extrude_eps(h) {
   children();
 }
 
-knurl_groove_width = 0.8;
-knurl_groove_depth = 0.3;
+knurl_groove_width = 0.9;
+knurl_groove_depth = 0.45;
 
 module knurling_rays(angle_end=95) {
-  translate([-110, -13, -1])
-  for (a = [0:2.2:angle_end])
-  if (a <= angle_end)
-  rotate([0, 0, -a])
-  cube([200, knurl_groove_width, max_thickness + 2]);
+  difference() {
+    translate([-110, -13, -1])
+    for (a = [0:2.9:angle_end])
+    if (a <= angle_end)
+    rotate([0, 0, -a])
+    cube([200, knurl_groove_width, max_thickness + 2]);
+    
+    // Fill the knurl grooves in the center of the top and bottom
+    // surfaces, to ensure a continuous sheet to take the main
+    // loads.
+    linear_extrude(max_thickness)
+    offset(-12)
+    projection()
+    grip($grip_knurl=false);
+  }
 }
 
 module grip() {
@@ -350,6 +360,7 @@ module wedge_and_grip() {
 perforation_thickness = 0.15; // 1 layer.
 perforation_width = 0.2; // Seems to work.
 
+// Make sure the top sheet continues under the shelf.
 module shelf_perforations() {
   intersection() {
     shelf();
@@ -367,11 +378,12 @@ module shelf_perforations() {
   }
 }
 
+// Add material at the corners of the neck.
 module strength_perforations_fence() {
   inset = 7;
   bounding_box = [300, 160];
 
-  linear_extrude(max_thickness+10)
+  linear_extrude(max_thickness+1)
   difference() {
     intersection() {
       square(bounding_box, center=true);
@@ -512,10 +524,13 @@ module bottom() {
   }
 }
 
-// Handle test.
-intersection() {
-  bottom();
-  
-  translate([0, -115])
-  cube(300, center=true);
+// TODO: print this
+module handle_test() {
+  intersection() {
+    bottom();
+    
+    translate([0, -115])
+    cube(300, center=true);
+  }
 }
+handle_test();
