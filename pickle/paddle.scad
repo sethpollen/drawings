@@ -126,8 +126,8 @@ module fan(base_only=false) {
 
 // `i` should be in the range [0, 3].
 module bridge(i) {
-  x_frac = [0.31, 0.166, 0.074, 0.02][i]; // TODO: 0.02
-  y_frac = [0.28, 0.57, 0.8, 0.985][i];  // TODO: 0.985
+  x_frac = [0.31, 0.166, 0.074, 0.02][i];
+  y_frac = [0.28, 0.57, 0.8, 0.985][i];
 
   fan_piece(true,
     grip_width/2 + x_frac*0.5*(width-grip_width),
@@ -194,6 +194,14 @@ module wedge() {
   // Don't tilt the fillet by the wedge_angle.
   translate([0, 0, max_thickness/2])
   fillet();
+}
+
+module wedge_top_cut() {
+  rotate([-wedge_angle, 0, 0])
+  translate([0, 0, max_thickness])
+  rotate([-wedge_angle, 0, 0])
+  translate([0, 0, 20])
+  cube([width, 600, 40], center=true);
 }
 
 module grip_2d() {
@@ -282,9 +290,7 @@ module grip() {
       // Add 10 to make sure the grip smoothly meets the wedge.
       translate([0, 0, -10])
       linear_extrude_eps(straight1 + 10) grip_2d();
-      
-      // TODO: cut in the top wedge face after adding the grip and fillet.
-      
+            
       translate([0, 0, straight1])
       scale([-1, 1]) {
         rotate_up_extrude(elbow1) grip_2d();
@@ -340,9 +346,6 @@ module wedge_and_grip() {
   wedge();
   grip();
 }
-
-// TODO: need to subtract this from `bottom` when printing. Might
-// have to do this as a 2-stage render.
 
 perforation_thickness = 0.15; // 1 layer.
 perforation_width = 0.2; // Seems to work.
@@ -465,8 +468,10 @@ module bottom() {
       }
       
       grip($grip_knurl=enable_knurl);
-      shelf();
     }
+    
+    // Cut the parts of the grip and fillet that go above the wedge surface.
+    wedge_top_cut();
     
     // Knurl the top and bottom, to align with the grip knurl grooves.
     if (enable_knurl)
@@ -492,6 +497,8 @@ module bottom() {
     text(str(mark_number), size=13);
   }
   
+  shelf();
+  
   translate([0, middle_length]) {
     // Positive fingers.
     extrude_fingers(thickness=finger_thickness,
@@ -505,5 +512,10 @@ module bottom() {
   }
 }
 
-wedge();
-grip();
+// Handle test.
+intersection() {
+  bottom();
+  
+  translate([0, -115])
+  cube(300, center=true);
+}
