@@ -285,7 +285,7 @@ module grip() {
   } else {
     $fn = 40;
     
-    straight1 = 9.8;
+    straight1 = 12;
     elbow1 = [70, 39];
     straight2 = 63;
     
