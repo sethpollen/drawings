@@ -1,6 +1,6 @@
 use <finger.scad>
 
-mark_number = 6;
+mark_number = 7;
 
 // Parameters for the overall shape.
 width = 200;
@@ -223,8 +223,6 @@ module grip_2d() {
   }
 }
 
-// TODO: engrave numeral on base
-
 module rotate_up(ra) {
   r = ra[0];
   a = ra[1];
@@ -431,6 +429,12 @@ module bottom() {
       extrude_fingers(thickness=finger_thickness,
                       cavity=true, complement=true, rot=true);
     }
+    
+    translate([-74, -124, 6]) // TUNED
+    rotate([90, 0])
+    linear_extrude(10)
+    offset(delta=0.7)
+    text(str(mark_number), size=13);
   }
   
   translate([0, middle_length]) {
