@@ -1,3 +1,6 @@
 use <paddle.scad>
 
-bottom();
+difference() {
+  bottom();
+  import("bottom_perforations.stl", convexity=3);
+}

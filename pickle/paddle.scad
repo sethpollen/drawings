@@ -359,7 +359,7 @@ module shelf_perforations() {
       wedge_and_grip();
     }
 
-    for (y = [-15:2:5])
+    for (y = [-15:1.5:5])
     translate([0, y, 20])
     cube([40, perforation_width, 40], center=true);
   }
@@ -386,7 +386,7 @@ module strength_perforations_fence() {
 // Perforations along the four corners of the neck, to add material for
 // strength.
 module strength_perforations() {
-  depth = 1;
+  depth = 1.1;
   
   // Top perforation.
   difference() {
