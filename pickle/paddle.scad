@@ -89,7 +89,8 @@ module fan_piece(flip, x, y,
         !gentle ? 1 // No gentle curve.
         // More gentle on top than on the bottom, unless
         // the bottom is "extra gentle."
-        : (b == 1) ? 0.74 : 0.86;
+        : (b == 1) ? 0.72
+        : 0.86;
       
       translate([(a == -1) ? -left_x : 0, 0])
       scale([a, 1, b])
@@ -125,8 +126,8 @@ module fan(base_only=false) {
 
 // `i` should be in the range [0, 3].
 module bridge(i) {
-  x_frac = [0.31, 0.166, 0.074, 0.03][i];
-  y_frac = [0.28, 0.57, 0.8, 0.945][i];
+  x_frac = [0.31, 0.166, 0.074, 0.02][i]; // TODO: 0.02
+  y_frac = [0.28, 0.57, 0.8, 0.985][i];  // TODO: 0.985
 
   fan_piece(true,
     grip_width/2 + x_frac*0.5*(width-grip_width),
@@ -139,29 +140,22 @@ module bridge(i) {
 // Fillet on the concave side of the grip, for strength at
 // the weakest part of the whole paddle.
 module fillet() {
-  difference() {
+  intersection() {
+    hull()
+    for (xy = [
+      [-1.4, 3],
+      [1.6, -35] // TUNED
+    ])
+    translate(xy)
     intersection() {
-      hull()
-      for (xy = [
-        [0, 0],
-        [3, -35] // TUNED
-      ])
-      translate(xy)
-      intersection() {
-        // Take the left-hand piece of bridge(3).
-        bridge(3);
-        translate([-50, 0])
-        cube(100, center=true);
-      }
-      
-      // Cut to the right thickness.
-      cube([200, 200, max_thickness], center=true);
+      // Take the left-hand piece of bridge(3).
+      bridge(3);
+      translate([-50, 0])
+      cube(100, center=true);
     }
     
-    // Nip the very top edge, so it doesn't poke through the wedge surface.
-    translate([0, 0, max_thickness/2])
-    rotate([45, 0, 0])
-    cube([70, 2, 2], center=true);
+    // Cut to the right thickness.
+    cube([200, 200, max_thickness], center=true);
   }
 }
 
@@ -285,7 +279,12 @@ module grip() {
     translate([0, 0, max_thickness/2])
     rotate([90, 0, 0])
     {
-      linear_extrude_eps(straight1) grip_2d();
+      // Add 10 to make sure the grip smoothly meets the wedge.
+      translate([0, 0, -10])
+      linear_extrude_eps(straight1 + 10) grip_2d();
+      
+      // TODO: cut in the top wedge face after adding the grip and fillet.
+      
       translate([0, 0, straight1])
       scale([-1, 1]) {
         rotate_up_extrude(elbow1) grip_2d();
@@ -366,17 +365,22 @@ module shelf_perforations() {
 }
 
 module strength_perforations_fence() {
+  inset = 7;
   bounding_box = [300, 160];
 
   linear_extrude(max_thickness+10)
   difference() {
     intersection() {
       square(bounding_box, center=true);
-      offset(delta=-6) projection() wedge_and_grip();
+
+      offset(delta=-inset)
+      projection() wedge_and_grip();
     }
     intersection() {
       square(bounding_box, center=true);
-      offset(delta=-6-perforation_width) projection() wedge_and_grip();
+
+      offset(delta=-inset-perforation_width)
+      projection() wedge_and_grip();
     }
   }
 }
@@ -501,4 +505,5 @@ module bottom() {
   }
 }
 
-bottom_perforations();
+wedge();
+grip();
