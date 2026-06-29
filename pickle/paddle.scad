@@ -7,9 +7,6 @@ width = 200;
 fan_length = 233;
 fan_roundoff = 80;
 
-// TODO: Consider lengthening the bridge/neck, to give more reach.
-// Maybe increase the fan_roundoff.
-
 // The length of the flat striking surface, before it hits the grip
 // shelf. This is the part that has a tapered "wedge" shape.
 wedge_length = 261;
@@ -302,9 +299,9 @@ module grip() {
           intersection() {
             // The final elbow is the intersection of two different
             // extrusions, which lets us taper the end.
-            rotate_up_extrude([33, 110], $fn=19) grip_2d();
+            rotate_up_extrude([32, 115], $fn=19) grip_2d();
             
-            tight_r = 14.6;
+            tight_r = 14;
             rotate_up_extrude([tight_r, 180], $fn=22)
             intersection() {
               grip_2d();
@@ -449,8 +446,4 @@ module bottom() {
   }
 }
 
-{
-  wedge();
-  grip();
-  shelf();
-}
+bottom();
