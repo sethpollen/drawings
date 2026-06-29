@@ -4,20 +4,20 @@ mark_number = 6;
 
 // Parameters for the overall shape.
 width = 200;
-fan_length = 225;
-fan_roundoff = 69;
+fan_length = 233;
+fan_roundoff = 80;
 
 // TODO: Consider lengthening the bridge/neck, to give more reach.
 // Maybe increase the fan_roundoff.
 
 // The length of the flat striking surface, before it hits the grip
 // shelf. This is the part that has a tapered "wedge" shape.
-wedge_length = 251;
+wedge_length = 261;
 
 bridge_grip_overlap = 20;
 
 // Make a wedge shape.
-max_thickness = 24;
+max_thickness = 24.2;
 min_thickness = 8;
 
 // TODO: add interior voids at the corners of the neck, for strength
@@ -144,22 +144,29 @@ module bridge(i) {
 // Fillet on the concave side of the grip, for strength at
 // the weakest part of the whole paddle.
 module fillet() {
-  intersection() {
-    hull()
-    for (xy = [
-      [0, 0],
-      [3, -33] // TUNED
-    ])
-    translate(xy)
+  difference() {
     intersection() {
-      // Take the left-hand piece of bridge(3).
-      bridge(3);
-      translate([-50, 0])
-      cube(100, center=true);
+      hull()
+      for (xy = [
+        [0, 0],
+        [3, -33] // TUNED
+      ])
+      translate(xy)
+      intersection() {
+        // Take the left-hand piece of bridge(3).
+        bridge(3);
+        translate([-50, 0])
+        cube(100, center=true);
+      }
+      
+      // Cut to the right thickness.
+      cube([200, 200, max_thickness], center=true);
     }
     
-    // Cut to the right thickness.
-    cube([200, 200, max_thickness], center=true);
+    // Nip the very top edge, so it doesn't poke through the wedge surface.
+    translate([0, 0, max_thickness/2])
+    rotate([45, 0, 0])
+    cube([70, 2, 2], center=true);
   }
 }
 
@@ -442,4 +449,8 @@ module bottom() {
   }
 }
 
-bottom();
+{
+  wedge();
+  grip();
+  shelf();
+}
