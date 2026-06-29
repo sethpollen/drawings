@@ -17,8 +17,6 @@ bridge_grip_overlap = 20;
 max_thickness = 24.2;
 min_thickness = 8;
 
-// TODO: add interior voids at the corners of the neck, for strength
-
 grip_width = 34.6;
 
 // Parameter for slicing into printable sections.
@@ -91,7 +89,7 @@ module fan_piece(flip, x, y,
         !gentle ? 1 // No gentle curve.
         // More gentle on top than on the bottom, unless
         // the bottom is "extra gentle."
-        : (b == 1) ? 0.72 : 0.86;
+        : (b == 1) ? 0.74 : 0.86;
       
       translate([(a == -1) ? -left_x : 0, 0])
       scale([a, 1, b])
@@ -339,26 +337,79 @@ module shelf() {
   }
 }
 
+module wedge_and_grip() {
+  wedge();
+  grip();
+}
+
 // TODO: need to subtract this from `bottom` when printing. Might
 // have to do this as a 2-stage render.
+
+perforation_thickness = 0.15; // 1 layer.
+perforation_width = 0.2; // Seems to work.
 
 module shelf_perforations() {
   intersection() {
     shelf();
     
     difference() {
-      translate([0, 0, 0.15]) {
-        wedge();
-        grip();
-      }
-      wedge();
-      grip();
+      translate([0, 0, perforation_thickness])
+      wedge_and_grip();
+      
+      wedge_and_grip();
     }
 
     for (y = [-15:2:5])
     translate([0, y, 20])
-    cube([40, 0.2, 40], center=true);
+    cube([40, perforation_width, 40], center=true);
   }
+}
+
+module strength_perforations_fence() {
+  bounding_box = [300, 160];
+
+  linear_extrude(max_thickness+10)
+  difference() {
+    intersection() {
+      square(bounding_box, center=true);
+      offset(delta=-6) projection() wedge_and_grip();
+    }
+    intersection() {
+      square(bounding_box, center=true);
+      offset(delta=-6-perforation_width) projection() wedge_and_grip();
+    }
+  }
+}
+
+// TODO: need to test the strength_perforations in cura.
+
+// Perforations along the four corners of the neck, to add material for
+// strength.
+module strength_perforations() {
+  depth = 1;
+  
+  // Top perforation.
+  difference() {
+    intersection() {
+      strength_perforations_fence();
+      translate([0, 0, -depth]) wedge_and_grip();
+    }
+    translate([0, 0, -depth-perforation_thickness]) wedge_and_grip();
+  }
+  
+  // Bottom perforation.
+  difference() {
+    intersection() {
+      strength_perforations_fence();
+      translate([0, 0, depth]) wedge_and_grip();
+    }
+    translate([0, 0, depth+perforation_thickness]) wedge_and_grip();
+  }
+}
+
+module bottom_perforations() {
+  shelf_perforations();
+  strength_perforations();
 }
 
 // Chamfer the bottom edge at the finger joint. This avoids elephant
@@ -450,4 +501,4 @@ module bottom() {
   }
 }
 
-bottom();
+bottom_perforations();
