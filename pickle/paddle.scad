@@ -149,7 +149,7 @@ module fillet() {
       hull()
       for (xy = [
         [0, 0],
-        [3, -33] // TUNED
+        [3, -35] // TUNED
       ])
       translate(xy)
       intersection() {
