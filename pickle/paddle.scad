@@ -523,14 +523,3 @@ module bottom() {
     circle(d=10);
   }
 }
-
-// TODO: print this
-module handle_test() {
-  intersection() {
-    bottom();
-    
-    translate([0, -115])
-    cube(300, center=true);
-  }
-}
-handle_test();
