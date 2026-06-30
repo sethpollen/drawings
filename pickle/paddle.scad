@@ -545,8 +545,8 @@ module handle_test() {
   intersection() {
     bottom();
     
-    translate([0, -115])
-    cube(300, center=true);
+    translate([0, -30, 10])
+    cube(90, center=true);
   }
 }
 handle_test();
