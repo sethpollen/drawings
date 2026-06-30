@@ -73,8 +73,8 @@ module fan_piece(flip, x, y,
     // hand thumb to rest in. This only shows up on one side.
     gentle_right_curve=false,
     gentle_left_curve=false,
-    // Extra width to add on the left side, to strengthen the neck.
-    left_x=0
+    // Extra translation to add on the left side, to strengthen the neck.
+    left_xy=[0, 0]
 ) {
   y_frac = y/wedge_length;
   thickness = (1 - y_frac)*max_thickness + y_frac*min_thickness;
@@ -92,7 +92,7 @@ module fan_piece(flip, x, y,
         : (b == 1) ? 0.72
         : 0.86;
       
-      translate([(a == -1) ? -left_x : 0, 0])
+      translate((a == -1) ? left_xy : [0, 0])
       scale([a, 1, b])
       translate([x, y])
       scale([1, flip ? -1 : 1])
@@ -129,12 +129,18 @@ module bridge(i) {
   x_frac = [0.31, 0.166, 0.074, 0.02][i];
   y_frac = [0.28, 0.57, 0.8, 0.985][i];
 
-  fan_piece(true,
+  fan_piece(
+    true,
     grip_width/2 + x_frac*0.5*(width-grip_width),
     bridge_length*(1-y_frac) - bridge_grip_overlap,
     gentle_right_curve=true,
+    // TODO: make this curve less gentle.
     gentle_left_curve=(i>=3),
-    left_x=(1.8*i));
+    left_xy=[
+      [0, -1.5, -1.5, -1.5][i],
+      [0, 0, -5, -10][i]
+    ]
+  );
 }
 
 // Fillet on the concave side of the grip, for strength at
@@ -142,16 +148,14 @@ module bridge(i) {
 module fillet() {
   intersection() {
     hull()
-    for (xy = [
-      [-1.4, 3],
-      [1.6, -35] // TUNED
-    ])
-    translate(xy)
-    intersection() {
+    for (y = [0, -30]) // TUNED
+    translate([0, y])
+    intersection() {      
       // Take the left-hand piece of bridge(3).
-      bridge(3);
       translate([-50, 0])
       cube(100, center=true);
+      
+      bridge(3);
     }
     
     // Cut to the right thickness.
@@ -264,10 +268,15 @@ module knurling_rays(angle_end=95) {
     // surfaces, to ensure a continuous sheet to take the main
     // loads.
     linear_extrude(max_thickness)
-    offset(-12)
+    offset(delta=5.5-grip_width/2)
     projection()
     grip($grip_knurl=false);
   }
+  
+  linear_extrude(max_thickness+1)
+  offset(delta=knurl_groove_width/2-grip_width/2)
+  projection()
+  grip($grip_knurl=false);
 }
 
 module grip() {
@@ -292,7 +301,7 @@ module grip() {
     
     straight1 = 12;
     elbow1 = [70, 39];
-    straight2 = 63;
+    straight2 = 53;
     
     translate([0, 0, max_thickness/2])
     rotate([90, 0, 0])
@@ -523,3 +532,5 @@ module bottom() {
     circle(d=10);
   }
 }
+
+bottom();
