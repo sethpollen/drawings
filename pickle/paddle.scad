@@ -134,7 +134,7 @@ module bridge(i) {
     // TODO: make this curve less gentle.
     gentle_left_curve=(i>=3),
     left_xy=[
-      [0, -1.5, -1.5, -1.5][i],
+      [0, -1.5, -1.8, -2][i],
       [0, 0, -5, -10][i]
     ]
   );
