@@ -250,13 +250,13 @@ module linear_extrude_eps(h) {
   children();
 }
 
-knurl_groove_width = 0.9;
+knurl_groove_width = 1.4;
 knurl_groove_depth = 0.45;
 
 module knurling_rays(angle_end=95) {
   difference() {
     translate([-110, -13, -1])
-    for (a = [0:2.9:angle_end])
+    for (a = [0:2.95:angle_end])
     if (a <= angle_end)
     rotate([0, 0, -a])
     cube([200, knurl_groove_width, max_thickness + 2]);
@@ -265,13 +265,13 @@ module knurling_rays(angle_end=95) {
     // surfaces, to ensure a continuous sheet to take the main
     // loads.
     linear_extrude(max_thickness)
-    offset(delta=5.5-grip_width/2)
+    offset(delta=5.8-grip_width/2)
     projection()
     grip($grip_knurl=false);
   }
   
   linear_extrude(max_thickness+1)
-  offset(delta=knurl_groove_width/2-grip_width/2)
+  offset(delta=0.5-grip_width/2)
   projection()
   grip($grip_knurl=false);
 }
@@ -298,7 +298,7 @@ module grip() {
     
     straight1 = 12;
     elbow1 = [70, 39];
-    straight2 = 53;
+    straight2 = 63;
     
     translate([0, 0, max_thickness/2])
     rotate([90, 0, 0])
@@ -508,7 +508,7 @@ module bottom() {
                       cavity=true, complement=true, rot=true);
     }
 
-    translate([-66, -117, 4.8]) // TUNED
+    translate([-72, -125.4, 4.8]) // TUNED
     rotate([90, 0])
     linear_extrude(10)
     offset(delta=0.7)
