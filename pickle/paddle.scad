@@ -39,9 +39,6 @@ wedge_angle = atan(
 $grip_knurl = false;
 $grip_offs = 0;
 
-// Set to false to make computation cheaper.
-enable_knurl = true;
-
 tab_x = 73; // TUNED
 
 function bulge_radius(thickness, intercept_angle) =
@@ -485,21 +482,12 @@ module bottom() {
         cube([400, 400, 70], center=true);
       }
       
-      grip($grip_knurl=enable_knurl);
+      grip($grip_knurl=true);
     }
     
     // Cut the parts of the grip and fillet that go above the wedge surface.
     wedge_top_cut();
     
-    // Knurl the top and bottom, to align with the grip knurl grooves.
-    if (enable_knurl)
-    intersection() {
-      knurling_rays(angle_end=25);
-      for(z = [0, max_thickness])
-      translate([0, 0, z])
-      cube([500, 500, knurl_groove_depth*2], center=true);
-    }
-
     translate([0, middle_length]) {
       joint_chamfer();
 
@@ -508,14 +496,36 @@ module bottom() {
                       cavity=true, complement=true, rot=true);
     }
 
+    // Mark number.
     translate([-72, -125.4, 4.8]) // TUNED
     rotate([90, 0])
     linear_extrude(10)
     offset(delta=0.7)
     text(str(mark_number), size=14.5);
+    
+    // Knurl the top and bottom surfaces, to align with the grip knurl
+    // grooves.
+    intersection() {
+      knurling_rays(angle_end=25);
+
+      for(z = [0, max_thickness])
+      translate([0, 0, z])
+      cube([500, 500, knurl_groove_depth*2], center=true);
+    }
   }
   
-  shelf();
+  difference() {
+    shelf();
+    
+    // Extend the central knurl groove under the shelf, for more
+    // strength.
+    translate([
+      -knurl_groove_width/2,
+      -15,
+      max_thickness-knurl_groove_depth
+    ])
+    cube([knurl_groove_width, 30, knurl_groove_depth]);
+  }
   
   translate([0, middle_length]) {
     // Positive fingers.
