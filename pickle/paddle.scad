@@ -73,8 +73,8 @@ module fan_piece(flip, x, y,
     // hand thumb to rest in. This only shows up on one side.
     gentle_right_curve=false,
     gentle_left_curve=false,
-    // Extra width to add on the left side, to strengthen the neck.
-    left_x=0
+    // Extra translation to add on the left side, to strengthen the neck.
+    left_xy=[0, 0]
 ) {
   y_frac = y/wedge_length;
   thickness = (1 - y_frac)*max_thickness + y_frac*min_thickness;
@@ -82,17 +82,14 @@ module fan_piece(flip, x, y,
   intersection() {
     for (a = [-1, 1])   
     for (b = [-1, 1]) {
-      gentle =
-        (gentle_right_curve && a == 1) ||
-        (gentle_left_curve && a == -1);
       gentle_factor =
-        !gentle ? 1 // No gentle curve.
-        // More gentle on top than on the bottom, unless
-        // the bottom is "extra gentle."
-        : (b == 1) ? 0.72
-        : 0.86;
+          (gentle_right_curve && a == 1 && b == 1) ? 0.72 // top right
+        : (gentle_right_curve && a == 1)           ? 0.86 // bottom right
+        : (gentle_left_curve && a == -1 && b == 1) ? 0.86 // top left
+        : (gentle_left_curve && a == -1)           ? 0.86 // bottom left
+        : 1;
       
-      translate([(a == -1) ? -left_x : 0, 0])
+      translate((a == -1) ? left_xy : [0, 0])
       scale([a, 1, b])
       translate([x, y])
       scale([1, flip ? -1 : 1])
@@ -129,12 +126,18 @@ module bridge(i) {
   x_frac = [0.31, 0.166, 0.074, 0.02][i];
   y_frac = [0.28, 0.57, 0.8, 0.985][i];
 
-  fan_piece(true,
+  fan_piece(
+    true,
     grip_width/2 + x_frac*0.5*(width-grip_width),
     bridge_length*(1-y_frac) - bridge_grip_overlap,
     gentle_right_curve=true,
+    // TODO: make this curve less gentle.
     gentle_left_curve=(i>=3),
-    left_x=(1.8*i));
+    left_xy=[
+      [0, -1.5, -1.8, -2][i],
+      [0, 0, -5, -10][i]
+    ]
+  );
 }
 
 // Fillet on the concave side of the grip, for strength at
@@ -142,16 +145,14 @@ module bridge(i) {
 module fillet() {
   intersection() {
     hull()
-    for (xy = [
-      [-1.4, 3],
-      [1.6, -35] // TUNED
-    ])
-    translate(xy)
-    intersection() {
+    for (y = [0, -30]) // TUNED
+    translate([0, y])
+    intersection() {      
       // Take the left-hand piece of bridge(3).
-      bridge(3);
       translate([-50, 0])
       cube(100, center=true);
+      
+      bridge(3);
     }
     
     // Cut to the right thickness.
@@ -249,13 +250,13 @@ module linear_extrude_eps(h) {
   children();
 }
 
-knurl_groove_width = 0.9;
+knurl_groove_width = 1.4;
 knurl_groove_depth = 0.45;
 
 module knurling_rays(angle_end=95) {
   difference() {
     translate([-110, -13, -1])
-    for (a = [0:2.9:angle_end])
+    for (a = [0:2.95:angle_end])
     if (a <= angle_end)
     rotate([0, 0, -a])
     cube([200, knurl_groove_width, max_thickness + 2]);
@@ -264,10 +265,15 @@ module knurling_rays(angle_end=95) {
     // surfaces, to ensure a continuous sheet to take the main
     // loads.
     linear_extrude(max_thickness)
-    offset(-12)
+    offset(delta=5.8-grip_width/2)
     projection()
     grip($grip_knurl=false);
   }
+  
+  linear_extrude(max_thickness+1)
+  offset(delta=0.5-grip_width/2)
+  projection()
+  grip($grip_knurl=false);
 }
 
 module grip() {
@@ -501,12 +507,12 @@ module bottom() {
       extrude_fingers(thickness=finger_thickness,
                       cavity=true, complement=true, rot=true);
     }
-    
-    translate([-74, -124, 6]) // TUNED
+
+    translate([-72, -125.4, 4.8]) // TUNED
     rotate([90, 0])
     linear_extrude(10)
     offset(delta=0.7)
-    text(str(mark_number), size=13);
+    text(str(mark_number), size=14.5);
   }
   
   shelf();
@@ -523,3 +529,13 @@ module bottom() {
     circle(d=10);
   }
 }
+
+module handle_test() {
+  intersection() {
+    bottom();
+    
+    translate([0, -115])
+    cube(300, center=true);
+  }
+}
+handle_test();
