@@ -249,6 +249,7 @@ module linear_extrude_eps(h) {
 
 knurl_groove_width = 1.4;
 knurl_groove_depth = 0.45;
+central_knurl_groove_width = 1;
 
 module knurling_rays(angle_end=95) {
   difference() {
@@ -268,7 +269,7 @@ module knurling_rays(angle_end=95) {
   }
   
   linear_extrude(max_thickness+1)
-  offset(delta=0.5-grip_width/2)
+  offset(delta=central_knurl_groove_width/2-grip_width/2)
   projection()
   grip($grip_knurl=false);
 }
@@ -520,11 +521,11 @@ module bottom() {
     // Extend the central knurl groove under the shelf, for more
     // strength.
     translate([
-      -knurl_groove_width/2,
-      -15,
+      -central_knurl_groove_width/2,
+      -25,
       max_thickness-knurl_groove_depth
     ])
-    cube([knurl_groove_width, 30, knurl_groove_depth]);
+    cube([central_knurl_groove_width, 20, knurl_groove_depth]);
   }
   
   translate([0, middle_length]) {
