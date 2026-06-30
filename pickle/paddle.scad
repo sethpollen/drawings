@@ -82,15 +82,12 @@ module fan_piece(flip, x, y,
   intersection() {
     for (a = [-1, 1])   
     for (b = [-1, 1]) {
-      gentle =
-        (gentle_right_curve && a == 1) ||
-        (gentle_left_curve && a == -1);
       gentle_factor =
-        !gentle ? 1 // No gentle curve.
-        // More gentle on top than on the bottom, unless
-        // the bottom is "extra gentle."
-        : (b == 1) ? 0.72
-        : 0.86;
+          (gentle_right_curve && a == 1 && b == 1) ? 0.72 // top right
+        : (gentle_right_curve && a == 1)           ? 0.86 // bottom right
+        : (gentle_left_curve && a == -1 && b == 1) ? 0.86 // top left
+        : (gentle_left_curve && a == -1)           ? 0.86 // bottom left
+        : 1;
       
       translate((a == -1) ? left_xy : [0, 0])
       scale([a, 1, b])
@@ -510,12 +507,12 @@ module bottom() {
       extrude_fingers(thickness=finger_thickness,
                       cavity=true, complement=true, rot=true);
     }
-    
-    translate([-74, -124, 6]) // TUNED
+
+    translate([-66, -117, 4.8]) // TUNED
     rotate([90, 0])
     linear_extrude(10)
     offset(delta=0.7)
-    text(str(mark_number), size=13);
+    text(str(mark_number), size=14.5);
   }
   
   shelf();
