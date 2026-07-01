@@ -363,9 +363,8 @@ module wedge_and_grip() {
 
 // These were chosen to be just barely large enough to cause a
 // void in Cura.
-// TODO:
-perforation_thickness = 4;
-perforation_width = 4;
+perforation_thickness = 0.15;
+perforation_width = 0.2;
 
 // Make sure the top sheet continues under the shelf.
 module shelf_perforations() {
@@ -435,7 +434,7 @@ module strength_perforations() {
 
 module bottom_perforations() {
   shelf_perforations();
-  strength_perforations();
+  // TODO: strength_perforations();
 }
 
 // Chamfer the bottom edge at the finger joint. This avoids elephant
@@ -524,11 +523,11 @@ module bottom() {
     // Extend the central knurl groove under the shelf, for more
     // strength.
     translate([
-      -0.3,
+      -0.2,
       -25,
       max_thickness-knurl_groove_depth+0.001
     ])
-    cube([0.6, 20, knurl_groove_depth]);
+    cube([0.4, 20, knurl_groove_depth]);
   }
   
   translate([0, middle_length]) {
