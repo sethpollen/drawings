@@ -251,6 +251,8 @@ knurl_groove_depth = 0.45;
 central_knurl_groove_width = 1;
 
 module knurling_rays(angle_end=95) {
+  center_smooth_band = 13.2;
+  
   difference() {
     translate([-110, -13, -1])
     for (a = [0:2.95:angle_end])
@@ -262,7 +264,7 @@ module knurling_rays(angle_end=95) {
     // surfaces, to ensure a continuous sheet to take the main
     // loads.
     linear_extrude(max_thickness)
-    offset(delta=5.8-grip_width/2)
+    offset(delta=center_smooth_band/2-grip_width/2)
     projection()
     grip($grip_knurl=false);
   }
@@ -388,8 +390,9 @@ module shelf_perforations() {
 }
 
 module strength_perforations_bounding_box() {
-  translate([0, -23])
-  square([300, 140], center=true);
+  scale([1, -1])
+  translate([-150, -23])
+  square([300, 83]);
 }
 
 // Add material at the corners of the neck.
