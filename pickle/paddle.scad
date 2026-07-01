@@ -128,7 +128,6 @@ module bridge(i) {
     grip_width/2 + x_frac*0.5*(width-grip_width),
     bridge_length*(1-y_frac) - bridge_grip_overlap,
     gentle_right_curve=true,
-    // TODO: make this curve less gentle.
     gentle_left_curve=(i>=3),
     left_xy=[
       [0, -1.5, -1.8, -2][i],
@@ -552,4 +551,4 @@ module bottom() {
   }
 }
 
-strength_perforations();
+bottom();
