@@ -361,18 +361,22 @@ module wedge_and_grip() {
   grip();
 }
 
-// These were chosen to be just barely large enough to cause a
-// void in Cura.
-perforation_thickness = 0.15;
-perforation_width = 0.2;
+// Causes generation of internal floors and ceilings, but
+// now alls.
+perforation_width_small = 0.2;
+
+// Generates walls.
+perforation_width_large = 0.5;
 
 // Make sure the top sheet continues under the shelf.
 module shelf_perforations() {
+  thickness = 0.15; // 1 layer.
+  
   intersection() {
     shelf();
     
     difference() {
-      translate([0, 0, perforation_thickness])
+      translate([0, 0, thickness])
       wedge_and_grip();
       
       wedge_and_grip();
@@ -380,38 +384,41 @@ module shelf_perforations() {
 
     for (y = [-15:1.5:5])
     translate([0, y, 20])
-    cube([40, perforation_width, 40], center=true);
+    cube([40, perforation_width_small, 40], center=true);
   }
+}
+
+module strength_perforations_bounding_box() {
+  translate([0, -23])
+  square([300, 140], center=true);
 }
 
 // Add material at the corners of the neck.
 module strength_perforations_fence() {
-  inset = 7;
-  bounding_box = [300, 160];
+  inset = 9;
 
   linear_extrude(max_thickness+1)
   difference() {
     intersection() {
-      square(bounding_box, center=true);
+      strength_perforations_bounding_box();
 
       offset(delta=-inset)
       projection() wedge_and_grip();
     }
     intersection() {
-      square(bounding_box, center=true);
+      strength_perforations_bounding_box();
 
-      offset(delta=-inset-perforation_width)
+      offset(delta=-inset-perforation_width_large)
       projection() wedge_and_grip();
     }
   }
 }
 
-// TODO: need to test the strength_perforations in cura.
-
 // Perforations along the four corners of the neck, to add material for
 // strength.
 module strength_perforations() {
-  depth = 1.1;
+  depth = 1.5;
+  thickness = 0.15; // 1 layer.
   
   // Top perforation.
   difference() {
@@ -419,7 +426,8 @@ module strength_perforations() {
       strength_perforations_fence();
       translate([0, 0, -depth]) wedge_and_grip();
     }
-    translate([0, 0, -depth-perforation_thickness]) wedge_and_grip();
+    translate([0, 0, -depth-thickness])
+    wedge_and_grip();
   }
   
   // Bottom perforation.
@@ -428,13 +436,14 @@ module strength_perforations() {
       strength_perforations_fence();
       translate([0, 0, depth]) wedge_and_grip();
     }
-    translate([0, 0, depth+perforation_thickness]) wedge_and_grip();
+    translate([0, 0, depth+thickness])
+    wedge_and_grip();
   }
 }
 
 module bottom_perforations() {
   shelf_perforations();
-  // TODO: strength_perforations();
+  strength_perforations();
 }
 
 // Chamfer the bottom edge at the finger joint. This avoids elephant
@@ -543,4 +552,4 @@ module bottom() {
   }
 }
 
-bottom();
+strength_perforations();
