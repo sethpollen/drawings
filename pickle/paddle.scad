@@ -524,11 +524,11 @@ module bottom() {
     // Extend the central knurl groove under the shelf, for more
     // strength.
     translate([
-      -central_knurl_groove_width/2,
+      -0.3,
       -25,
-      max_thickness-knurl_groove_depth
+      max_thickness-knurl_groove_depth+0.001
     ])
-    cube([central_knurl_groove_width, 20, knurl_groove_depth]);
+    cube([0.6, 20, knurl_groove_depth]);
   }
   
   translate([0, middle_length]) {
