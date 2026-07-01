@@ -361,8 +361,11 @@ module wedge_and_grip() {
   grip();
 }
 
-perforation_thickness = 0.15; // 1 layer.
-perforation_width = 0.2; // Seems to work.
+// These were chosen to be just barely large enough to cause a
+// void in Cura.
+// TODO:
+perforation_thickness = 4;
+perforation_width = 4;
 
 // Make sure the top sheet continues under the shelf.
 module shelf_perforations() {
@@ -541,12 +544,4 @@ module bottom() {
   }
 }
 
-module handle_test() {
-  intersection() {
-    bottom();
-    
-    translate([0, -30, 10])
-    cube(90, center=true);
-  }
-}
-handle_test();
+bottom();
