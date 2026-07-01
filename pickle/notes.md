@@ -1,3 +1,24 @@
+# Mk. 7
+
+This time there is no TPU piece; just two PETG prints. Mostly we will keep the
+same settings as Mk. 6, but let's try to push down the weight by reducing
+floor and ceiling layers. There is no longer a need for an extra layer over
+the entire `bottom` print, since I added specific reinforcing perforations
+to the narrow areas.
+
+I am also slowing the print speed even further (from 40mm/s to 35mm/s). I don't
+mind a longer print time, and any improvement to bonding is good.
+
+* Layer height: 0.15mm
+* Floor: 5 layers
+* Ceiling: 7 layers
+* Infill: 10% honeycomb
+* Bottom layer inset: 0.2mm
+* Head temp: 240 C
+* Print speed: 35 mm/s
+* Z seam alignment: random
+* Infill skin support: disabled
+
 # Mk. 6
 
 Going back to some of the settings from Mk. 3 (which was my most successful
@@ -27,8 +48,10 @@ Grip plate printed in TPU:
 
 ## Notes
 
-I think 0.15mm layers is key for strength. The honeycomb infill seems fine,
-though grid infill is probably also fine.
+Mk. 6 has been a success. It seems springy and responsive, and it has not
+shown any signs of structural failure. It is on th heavy side though (245
+grams). I think 0.15mm layers is key for strength. The honeycomb infill seems
+fine, though grid infill is probably also fine.
 
 # Mk. 5
 
