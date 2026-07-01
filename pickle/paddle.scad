@@ -392,7 +392,7 @@ module shelf_perforations() {
 module strength_perforations_bounding_box() {
   scale([1, -1])
   translate([-150, -23])
-  square([300, 83]);
+  square([300, 105]);
 }
 
 // Add material at the corners of the neck.
@@ -554,4 +554,4 @@ module bottom() {
   }
 }
 
-bottom();
+bottom_perforations();
