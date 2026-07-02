@@ -459,6 +459,24 @@ module joint_chamfer() {
   cube([250, w, w], center=true);
 }
 
+// TODO: tune this
+lock_hole_play = 0.06;
+
+// A hole through which I can insert a piece of filament, to lock the two
+// parts together while the epoxy sets.
+module lock_hole() {
+  // A strand of filament is nominally 1.75mm. Allow some play, but not much.
+  diam = 1.75 + 0.2; // TODO: tune this
+  
+  translate([-width/2, middle_length-3, finger_thickness/2])
+  rotate([0, 90, 0])
+  linear_extrude(width)
+  // Octagonal cross-section.
+  intersection_for(a = [0, 45])
+  rotate([0, 0, a])
+  square(diam, center=true);
+}
+
 module top() {
   translate([0, middle_length]) {
     difference() {
@@ -476,9 +494,14 @@ module top() {
     }
       
     // Positive fingers.
-    extrude_fingers(thickness=finger_thickness,
-                    cavity=false, complement=true, rot=true);
+    difference() {
+      extrude_fingers(thickness=finger_thickness,
+                      cavity=false, complement=true, rot=true);
       
+      translate([0, -middle_length-lock_hole_play])
+      lock_hole();
+    }
+
     // Tabs.
     linear_extrude(tab_height)
     for (a = [-1, 1])
@@ -501,6 +524,9 @@ module bottom() {
       
       grip($grip_knurl=true);
     }
+    
+    translate([0, lock_hole_play])
+    lock_hole();
     
     // Cut the parts of the grip and fillet that go above the wedge surface.
     wedge_top_cut();
@@ -557,4 +583,5 @@ module bottom() {
   }
 }
 
+top();
 bottom();
