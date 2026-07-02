@@ -39,6 +39,7 @@ wedge_angle = atan(
 $grip_knurl = false;
 $grip_offs = 0;
 
+tab_height = 0.45;
 tab_x = 73; // TUNED
 
 function bulge_radius(thickness, intercept_angle) =
@@ -477,7 +478,7 @@ module top() {
                     cavity=false, complement=true, rot=true);
       
     // Tabs.
-    linear_extrude(0.4)
+    linear_extrude(tab_height)
     for (a = [-1, 1])
     translate([a*tab_x, 0])
     circle(d=10);
@@ -547,11 +548,11 @@ module bottom() {
                     cavity=false, complement=false);
 
     // Tabs.
-    linear_extrude(0.4)
+    linear_extrude(tab_height)
     for (a = [-1, 1])
     translate([a*tab_x, 0])
     circle(d=10);
   }
 }
 
-bottom_perforations();
+top();
