@@ -131,7 +131,7 @@ module bridge(i) {
     gentle_right_curve=true,
     gentle_left_curve=(i>=3),
     left_xy=[
-      [0, -1.5, -1.8, -2][i],
+      [0, -1.5, -1.8, -2.7][i],
       [0, 0, -5, -10][i]
     ]
   );
