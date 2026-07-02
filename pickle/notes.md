@@ -10,7 +10,7 @@ I am also slowing the print speed even further (from 40mm/s to 35mm/s). I don't
 mind a longer print time, and any improvement to bonding is good.
 
 * Layer height: 0.15mm
-* Floor: 5 layers
+* Floor: 6 layers
 * Ceiling: 7 layers
 * Infill: 10% honeycomb
 * Bottom layer inset: 0.2mm
