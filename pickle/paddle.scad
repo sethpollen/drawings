@@ -512,7 +512,7 @@ module bottom() {
     }
 
     // Mark number.
-    translate([-72, -125.4, 4.8]) // TUNED
+    translate([-71, -124.8, 4.8]) // TUNED
     rotate([90, 0])
     linear_extrude(10)
     offset(delta=0.7)
@@ -555,4 +555,4 @@ module bottom() {
   }
 }
 
-top();
+bottom();
