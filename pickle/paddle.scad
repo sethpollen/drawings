@@ -249,7 +249,6 @@ module linear_extrude_eps(h) {
 
 knurl_groove_width = 1.4;
 knurl_groove_depth = 0.45;
-central_knurl_groove_width = 1;
 
 module knurling_rays(angle_end=95) {
   center_smooth_band = 13.2;
@@ -270,8 +269,9 @@ module knurling_rays(angle_end=95) {
     grip($grip_knurl=false);
   }
   
+  // Central, axial groove on top and bottom.
   linear_extrude(max_thickness+1)
-  offset(delta=central_knurl_groove_width/2-grip_width/2)
+  offset(delta=knurl_groove_width/2-grip_width/2)
   projection()
   grip($grip_knurl=false);
 }
@@ -301,11 +301,13 @@ module grip() {
     straight2 = 63;
     
     translate([0, 0, max_thickness/2])
-    rotate([90, 0, 0])
-    {
-      // Add 10 to make sure the grip smoothly meets the wedge.
-      translate([0, 0, -10])
-      linear_extrude_eps(straight1 + 10) grip_2d();
+    rotate([90, 0, 0]) {
+      // Add some length to make sure the grip smoothly meets the wedge. This
+      // also makes the bottom axial groove extend into the wedge a bit,
+      // avoiding correlated weak areas.
+      straight_extension = 18;
+      translate([0, 0, -straight_extension])
+      linear_extrude_eps(straight1 + straight_extension) grip_2d();
             
       translate([0, 0, straight1])
       scale([-1, 1]) {
@@ -539,7 +541,7 @@ module bottom() {
       -25,
       max_thickness-knurl_groove_depth+0.001
     ])
-    cube([0.4, 20, knurl_groove_depth]);
+    cube([0.5, 20, knurl_groove_depth]);
   }
   
   translate([0, middle_length]) {
