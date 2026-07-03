@@ -460,7 +460,7 @@ module joint_chamfer() {
 }
 
 // TODO: tune this
-lock_hole_play = 0.06;
+lock_hole_play = 0.03;
 
 // A hole through which I can insert a piece of filament, to lock the two
 // parts together while the epoxy sets.
@@ -470,7 +470,7 @@ module lock_hole() {
   linear_extrude(width)
   // A strand of filament is nominally 1.75mm. Allow some play, but not much.
   // A bit more play vertically, where the tightness doesn't matter.
-  scale([1.75, 1.75] + [0.6, 0.2])
+  scale([1.75, 1.75] + [0.6, 0.23])
   // Octagonal cross-section.
   intersection_for(a = [0, 45])
   rotate([0, 0, a])
