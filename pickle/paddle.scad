@@ -621,5 +621,15 @@ module lock_hole_test() {
   }
 }
 
-translate([0, 0, -30])
-bottom();
+intersection() {
+  bottom();
+  
+  union() {
+    translate([-50, -40])
+    cube([100, 50, 100]);
+    
+    translate([-80, -30])
+    rotate([0, 0, -30])
+    cube([100, 45, 100]);
+  }
+}
