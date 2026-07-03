@@ -465,16 +465,16 @@ lock_hole_play = 0.06;
 // A hole through which I can insert a piece of filament, to lock the two
 // parts together while the epoxy sets.
 module lock_hole() {
-  // A strand of filament is nominally 1.75mm. Allow some play, but not much.
-  diam = 1.75 + 0.2; // TODO: tune this
-  
   translate([-width/2, middle_length-3, finger_thickness/2])
   rotate([0, 90, 0])
   linear_extrude(width)
+  // A strand of filament is nominally 1.75mm. Allow some play, but not much.
+  // A bit more play vertically, where the tightness doesn't matter.
+  scale([1.75, 1.75] + [0.6, 0.2])
   // Octagonal cross-section.
   intersection_for(a = [0, 45])
   rotate([0, 0, a])
-  square(diam, center=true);
+  square(1, center=true);
 }
 
 module top() {
@@ -583,5 +583,18 @@ module bottom() {
   }
 }
 
-top();
-bottom();
+module lock_hole_test() {
+  intersection() {
+    union() {
+      top();
+    
+      translate([0, -19])
+      bottom();
+    }
+    
+    translate([22, 23.5])
+    cube([58, 61.5, 100]);
+  }
+}
+
+lock_hole_test();
