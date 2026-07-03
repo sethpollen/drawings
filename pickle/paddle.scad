@@ -465,7 +465,7 @@ lock_hole_play = 0.06;
 // A hole through which I can insert a piece of filament, to lock the two
 // parts together while the epoxy sets.
 module lock_hole() {
-  translate([-width/2, middle_length-3, finger_thickness/2])
+  translate([-width/2, middle_length-2.5, finger_thickness/2])
   rotate([0, 90, 0])
   linear_extrude(width)
   // A strand of filament is nominally 1.75mm. Allow some play, but not much.
