@@ -314,11 +314,11 @@ module grip() {
         rotate_up_extrude(elbow1) grip_2d();
         
         // Finger notch.
-        rotate_up(elbow1 - [0, 5.5])
+        rotate_up(elbow1 - [0, 10.3])
         hull() {
           chamfer = 1.5;
           peak_thickness = 1;
-          peak_height = 2;
+          peak_height = 2.4;
           
           translate([0, 0, -chamfer])
           linear_extrude_eps(chamfer*2 + peak_thickness)
