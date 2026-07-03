@@ -268,8 +268,9 @@ module knurling_rays(angle_end=95) {
     // Fill the knurl grooves in the center of the top and bottom
     // surfaces, to ensure a continuous sheet to take the main
     // loads.
-    linear_extrude(max_thickness)
-    offset(delta=center_smooth_band/2-grip_width/2)
+    for (depth_width = [[0.3, 1], [0.15, 0.7], [0, 0.3]])
+    linear_extrude(max_thickness - depth_width[0])
+    offset(delta=depth_width[1] * center_smooth_band/2 - grip_width/2)
     projection()
     grip();
   }
