@@ -38,6 +38,7 @@ wedge_angle = atan(
 // Default values.
 $grip_knurl = false;
 $grip_offs = 0;
+$finger_notch = true;
 
 tab_height = 0.45;
 tab_x = 74; // TUNED
@@ -251,6 +252,10 @@ knurl_groove_width = 1.4;
 knurl_groove_depth = 0.45;
 
 module knurling_rays(angle_end=95) {
+  // Suppress special features when generating projections of the grip.
+  $grip_knurl = false;
+  $finger_notch = false;
+  
   center_smooth_band = 13.2;
   
   difference() {
@@ -266,14 +271,14 @@ module knurling_rays(angle_end=95) {
     linear_extrude(max_thickness)
     offset(delta=center_smooth_band/2-grip_width/2)
     projection()
-    grip($grip_knurl=false);
+    grip();
   }
   
   // Central, axial groove on top and bottom.
   linear_extrude(max_thickness+1)
   offset(delta=knurl_groove_width/2-grip_width/2)
   projection()
-  grip($grip_knurl=false);
+  grip();
 }
 
 module grip() {
@@ -314,6 +319,7 @@ module grip() {
         rotate_up_extrude(elbow1) grip_2d();
         
         // Finger notch.
+        if ($finger_notch)
         rotate_up(elbow1 - [0, 10.3])
         hull() {
           chamfer = 1.5;
