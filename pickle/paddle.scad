@@ -459,7 +459,6 @@ module joint_chamfer() {
   cube([250, w, w], center=true);
 }
 
-// TODO: tune this
 lock_hole_play = 0.03;
 
 // A hole through which I can insert a piece of filament, to lock the two
@@ -598,4 +597,5 @@ module lock_hole_test() {
   }
 }
 
-lock_hole_test();
+bottom();
+top();
