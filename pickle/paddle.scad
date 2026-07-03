@@ -40,7 +40,7 @@ $grip_knurl = false;
 $grip_offs = 0;
 
 tab_height = 0.45;
-tab_x = 73; // TUNED
+tab_x = 74; // TUNED
 
 function bulge_radius(thickness, intercept_angle) =
   thickness / (2 * sin(intercept_angle));
@@ -592,8 +592,9 @@ module lock_hole_test() {
       bottom();
     }
     
-    translate([22, 23.5])
-    cube([58, 61.5, 100]);
+    translate([19, 24])
+    rotate([0, 0, -5])
+    cube([58, 63.5, 100]);
   }
 }
 
