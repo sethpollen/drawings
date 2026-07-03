@@ -131,7 +131,7 @@ module bridge(i) {
     gentle_right_curve=true,
     gentle_left_curve=(i>=3),
     left_xy=[
-      [0, -1.5, -1.8, -2.7][i],
+      [0, -1.5, -1.8, -1.8][i],
       [0, 0, -5, -10][i]
     ]
   );
@@ -142,8 +142,8 @@ module bridge(i) {
 module fillet() {
   intersection() {
     hull()
-    for (y = [0, -30]) // TUNED
-    translate([0, y])
+    for (xy = [[0, 0], [2, -25]]) // TUNED
+    translate(xy)
     intersection() {      
       // Take the left-hand piece of bridge(3).
       translate([-50, 0])
@@ -312,8 +312,32 @@ module grip() {
       translate([0, 0, straight1])
       scale([-1, 1]) {
         rotate_up_extrude(elbow1) grip_2d();
+        
+        // Finger notch.
+        rotate_up(elbow1 - [0, 5.5])
+        hull() {
+          chamfer = 1.5;
+          peak_thickness = 1;
+          peak_height = 2;
+          
+          translate([0, 0, -chamfer])
+          linear_extrude_eps(chamfer*2 + peak_thickness)
+          intersection() {
+            grip_2d();
+            
+            // Chop the negative-x area, to avoid a protrusion on the opposite
+            // side caused by the `translate` above.
+            translate([50, 0]) square(100, center=true);
+          }
+          
+          linear_extrude_eps(peak_thickness)
+          translate([peak_height, 0])
+          grip_2d();
+        }
+
         rotate_up(elbow1) {
           linear_extrude_eps(straight2) grip_2d();
+          
           translate([0, 0, straight2])
           intersection() {
             // The final elbow is the intersection of two different
@@ -597,4 +621,5 @@ module lock_hole_test() {
   }
 }
 
+translate([0, 0, -30])
 bottom();
