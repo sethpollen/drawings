@@ -321,7 +321,7 @@ module grip() {
         
         // Finger notch.
         if ($finger_notch)
-        rotate_up(elbow1 - [0, 11.2])
+        rotate_up(elbow1 - [0, 10.4])
         hull() {
           chamfer = 1.8;
           peak_thickness = 1;
@@ -613,30 +613,4 @@ module bottom() {
   }
 }
 
-module lock_hole_test() {
-  intersection() {
-    union() {
-      top();
-    
-      translate([0, -19])
-      bottom();
-    }
-    
-    translate([19, 24])
-    rotate([0, 0, -5])
-    cube([58, 63.5, 100]);
-  }
-}
-
-intersection() {
-  bottom();
-  
-  union() {
-    translate([-50, -40])
-    cube([100, 50, 100]);
-    
-    translate([-80, -30])
-    rotate([0, 0, -30])
-    cube([100, 45, 100]);
-  }
-}
+bottom();
