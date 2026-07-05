@@ -268,7 +268,7 @@ module knurling_rays(angle_end=95) {
     // Fill the knurl grooves in the center of the top and bottom
     // surfaces, to ensure a continuous sheet to take the main
     // loads.
-    for (depth_width = [[0.3, 1], [0.15, 0.7], [0, 0.3]])
+    for (depth_width = [[0.3, 1], [0.15, 0.75], [0, 0.5]])
     linear_extrude(max_thickness - depth_width[0])
     offset(delta=depth_width[1] * center_smooth_band/2 - grip_width/2)
     projection()
@@ -276,10 +276,16 @@ module knurling_rays(angle_end=95) {
   }
   
   // Central, axial groove on top and bottom.
-  linear_extrude(max_thickness+1)
-  offset(delta=knurl_groove_width/2-grip_width/2)
-  projection()
-  grip();
+  difference() {    
+    linear_extrude(max_thickness+1)
+    offset(delta=knurl_groove_width/2-grip_width/2)
+    projection()
+    grip();
+    
+    // Remove the part that would go past the shelf into the `top`.
+    translate([-50, -1, -50])
+    cube(100);
+  }
 }
 
 module grip() {
