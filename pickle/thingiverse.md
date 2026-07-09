@@ -9,12 +9,12 @@ one-handed grip changes, allowing diverse styles of play. See the photos for
 the different grip holds that I use when playing with this paddle.
 
 This paddle is about 15.5 inches long and 8 inches wide, which is compliant with
-the USA Pickleball regulations for paddle size
-(https://usapickleball.org/docs/rules/USAP-Equipment-Standards-Manual.pdf). I
-do not know whether it complies with the regulations for surface roughness and
-friction.
+the
+[USA Pickleball regulations](https://usapickleball.org/docs/rules/USAP-Equipment-Standards-Manual.pdf)
+for paddle size. I do not know whether it complies with the regulations for
+surface roughness and friction.
 
-# Print settings
+## Print settings
 
 I recommend PETG. I've printed and used several PETG paddles, and they stand up
 pretty well with normal use. The weak spot is the edge; they are prone to crack
@@ -38,7 +38,7 @@ avoiding weak spots in the final result. It is especially important that there
 be a continuous ceiling for the whole print, without any interruption underneath
 the thumb lug.
 
-# Assembly instructions
+## Assembly instructions
 
 1. Print the two pieces (`bottom.stl` and `top.stl`).
 
@@ -64,10 +64,10 @@ the thumb lug.
    optional, but it makes the texture more consistent between the two sides of
    the paddle.
 
-# Tweaks
+## Tweaks
 
-This paddle was created in OpenSCAD. You can find the source code at
-https://github.com/sethpollen/drawings/tree/693eac99b73ce2ef4bbddbd91d39560510053811/pickle.
+This paddle was created in OpenSCAD. You can find the
+[source code here](https://github.com/sethpollen/drawings/tree/693eac99b73ce2ef4bbddbd91d39560510053811/pickle).
 The two STL files are generated from `top.scad` and `bottom.scad`. Feel free to
 tweak it; it should be straightforward to adjust the thickness, length, width,
 and grip angle.
