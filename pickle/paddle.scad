@@ -395,6 +395,11 @@ module shelf() {
     linear_extrude(shelf_thickness + 7)
     grip_2d($grip_offs=-shelf_chamfer);
   }
+  
+  // Fill the angle between the shelf and surface, just a little bit.
+  translate([-grip_width*0.05, 0, max_thickness-1])
+  rotate([45, 0, 0])
+  cube([grip_width*0.55, 3.3, 3.3], center=true);
 }
 
 module wedge_and_grip() {
