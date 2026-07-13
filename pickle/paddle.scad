@@ -252,40 +252,11 @@ knurl_groove_width = 1.4;
 knurl_groove_depth = 0.45;
 
 module knurling_rays(angle_end=95) {
-  // Suppress special features when generating projections of the grip.
-  $grip_knurl = false;
-  $finger_notch = false;
-  
-  center_smooth_band = 13.2;
-  
-  difference() {
-    translate([-110, -13, -1])
-    for (a = [0:2.95:angle_end])
-    if (a <= angle_end)
-    rotate([0, 0, -a])
-    cube([200, knurl_groove_width, max_thickness + 2]);
-    
-    // Fill the knurl grooves in the center of the top and bottom
-    // surfaces, to ensure a continuous sheet to take the main
-    // loads.
-    for (depth_width = [[0.3, 1], [0.15, 0.75], [0, 0.5]])
-    linear_extrude(max_thickness - depth_width[0])
-    offset(delta=depth_width[1] * center_smooth_band/2 - grip_width/2)
-    projection()
-    grip();
-  }
-  
-  // Central, axial groove on top and bottom.
-  difference() {    
-    linear_extrude(max_thickness+1)
-    offset(delta=knurl_groove_width/2-grip_width/2)
-    projection()
-    grip();
-    
-    // Remove the part that would go past the shelf into the `top`.
-    translate([-50, -1, -50])
-    cube(100);
-  }
+  translate([-110, -13, -1])
+  for (a = [0:2.95:angle_end])
+  if (a <= angle_end)
+  rotate([0, 0, -a])
+  cube([200, knurl_groove_width, max_thickness + 2]);
 }
 
 module grip() {
@@ -441,9 +412,7 @@ module strength_perforations_bounding_box() {
 }
 
 // Add material at the corners of the neck.
-module strength_perforations_fence() {
-  inset = 9;
-
+module strength_perforations_fence(inset) {
   linear_extrude(max_thickness+1)
   difference() {
     intersection() {
@@ -470,7 +439,7 @@ module strength_perforations() {
   // Top perforation.
   difference() {
     intersection() {
-      strength_perforations_fence();
+      strength_perforations_fence(9);
       translate([0, 0, -depth]) wedge_and_grip();
     }
     translate([0, 0, -depth-thickness])
@@ -480,7 +449,7 @@ module strength_perforations() {
   // Bottom perforation.
   difference() {
     intersection() {
-      strength_perforations_fence();
+      strength_perforations_fence(9);
       translate([0, 0, depth]) wedge_and_grip();
     }
     translate([0, 0, depth+thickness])
@@ -597,19 +566,8 @@ module bottom() {
       cube([500, 500, knurl_groove_depth*2], center=true);
     }
   }
-  
-  difference() {
-    shelf();
-    
-    // Extend the central knurl groove under the shelf, for more
-    // strength.
-    translate([
-      -0.2,
-      -25,
-      max_thickness-knurl_groove_depth+0.001
-    ])
-    cube([0.5, 20, knurl_groove_depth]);
-  }
+
+  shelf();
   
   translate([0, middle_length]) {
     // Positive fingers.
@@ -624,4 +582,4 @@ module bottom() {
   }
 }
 
-bottom();
+strength_perforations();
