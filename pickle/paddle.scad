@@ -405,41 +405,28 @@ module shelf_perforations() {
   }
 }
 
-module strength_perforations_bounding_box() {
-  scale([1, -1])
-  translate([-150, -23])
-  square([300, 105]);
-}
-
 // Add material at the corners of the neck.
 module strength_perforations_fence(inset) {
   linear_extrude(max_thickness+1)
   difference() {
-    intersection() {
-      strength_perforations_bounding_box();
+    offset(delta=-inset)
+    projection() wedge_and_grip();
 
-      offset(delta=-inset)
-      projection() wedge_and_grip();
-    }
-    intersection() {
-      strength_perforations_bounding_box();
-
-      offset(delta=-inset-perforation_width_large)
-      projection() wedge_and_grip();
-    }
+    offset(delta=-inset-perforation_width_large)
+    projection() wedge_and_grip();
   }
 }
 
 // Perforations along the four corners of the neck, to add material for
 // strength.
-module strength_perforations() {
+module strength_perforations(inset) {
   depth = 1.5;
   thickness = 0.15; // 1 layer.
   
   // Top perforation.
   difference() {
     intersection() {
-      strength_perforations_fence(9);
+      strength_perforations_fence(inset);
       translate([0, 0, -depth]) wedge_and_grip();
     }
     translate([0, 0, -depth-thickness])
@@ -449,7 +436,7 @@ module strength_perforations() {
   // Bottom perforation.
   difference() {
     intersection() {
-      strength_perforations_fence(9);
+      strength_perforations_fence(inset);
       translate([0, 0, depth]) wedge_and_grip();
     }
     translate([0, 0, depth+thickness])
@@ -459,7 +446,24 @@ module strength_perforations() {
 
 module bottom_perforations() {
   shelf_perforations();
-  strength_perforations();
+  
+  intersection() {
+    strength_perforations(inset=9);
+    
+    linear_extrude(max_thickness)
+    scale([1, -1])
+    translate([-150, -30])
+    square([300, 112]);
+  }
+  
+  intersection() {
+    strength_perforations(13);
+    
+    linear_extrude(max_thickness)
+    scale([1, -1])
+    translate([-150, -21])
+    square([300, 85]);
+  }
 }
 
 // Chamfer the bottom edge at the finger joint. This avoids elephant
@@ -582,4 +586,4 @@ module bottom() {
   }
 }
 
-strength_perforations();
+bottom_perforations();
