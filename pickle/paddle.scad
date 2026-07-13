@@ -248,15 +248,15 @@ module linear_extrude_eps(h) {
   children();
 }
 
-knurl_groove_width = 1.4;
 knurl_groove_depth = 0.45;
 
-module knurling_rays(angle_end=95) {
+module knurling_rays(angle_end=95, groove_width=1.4) {
   translate([-110, -13, -1])
-  for (a = [0:2.95:angle_end])
+  for (a = [0:3:angle_end])
   if (a <= angle_end)
   rotate([0, 0, -a])
-  cube([200, knurl_groove_width, max_thickness + 2]);
+  translate([0, -groove_width/2, 0])
+  cube([200, groove_width, max_thickness + 2]);
 }
 
 module grip() {
@@ -267,12 +267,23 @@ module grip() {
     difference() {
       grip();
       
+      // Deep, narrow.
       intersection() {
         knurling_rays();
         
         difference() {
           grip($grip_offs=0.1);
           grip($grip_offs=-knurl_groove_depth);
+        }
+      }
+      
+      // Shallow, wide.
+      intersection() {
+        knurling_rays(groove_width=2.2);
+        
+        difference() {
+          grip($grip_offs=0.1);
+          grip($grip_offs=-knurl_groove_depth/2);
         }
       }
     }
@@ -586,4 +597,4 @@ module bottom() {
   }
 }
 
-bottom_perforations();
+grip($grip_knurl=true);
