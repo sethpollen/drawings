@@ -1,3 +1,14 @@
+// TODO: Shorten the "fan" slightly (10mm?). Mk.7 feels too large and heavy.
+//
+// TODO: Shorten the grip and remove the notch. The hook on the end should
+// provide the reference point for the standard hold. There is no need to
+// support an "extended" hold.
+//
+// TODO: Try printing the ceiling and floor as a sandwich, with 2 layers
+// of solid and 2-3 layers of 50% lines. We can do this by setting the
+// overall infill to 50%. Then have a "core" piece with 2 ceiling and
+// floor layers which modifies the fill to 10%.
+
 use <finger.scad>
 
 mark_number = 7;
@@ -249,8 +260,10 @@ module linear_extrude_eps(h) {
 }
 
 knurl_groove_depth = 0.45;
+knurl_groove_width_1 = 1.4;
+knurl_groove_width_2 = 2.2;
 
-module knurling_rays(angle_end=95, groove_width=1.4) {
+module knurling_rays(angle_end=95, groove_width=knurl_groove_width_1) {
   translate([-110, -13, -1])
   for (a = [0:3:angle_end])
   if (a <= angle_end)
@@ -267,7 +280,7 @@ module grip() {
     difference() {
       grip();
       
-      // Deep, narrow.
+      // Deep, narrow grooves.
       intersection() {
         knurling_rays();
         
@@ -276,10 +289,9 @@ module grip() {
           grip($grip_offs=-knurl_groove_depth);
         }
       }
-      
-      // Shallow, wide.
+      // Shallow, wide grooves.
       intersection() {
-        knurling_rays(groove_width=2.2);
+        knurling_rays(groove_width=knurl_groove_width_2);
         
         difference() {
           grip($grip_offs=0.1);
@@ -573,6 +585,16 @@ module bottom() {
     
     // Knurl the top and bottom surfaces, to align with the grip knurl
     // grooves.
+    //
+    // Shallow, wide grooves.
+    intersection() {
+      knurling_rays(angle_end=25, groove_width=knurl_groove_width_2);
+
+      for(z = [0, max_thickness])
+      translate([0, 0, z])
+      cube([500, 500, knurl_groove_depth], center=true);
+    }
+    // Deep, narrow grooves.
     intersection() {
       knurling_rays(angle_end=25);
 
@@ -597,4 +619,4 @@ module bottom() {
   }
 }
 
-grip($grip_knurl=true);
+bottom();
