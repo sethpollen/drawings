@@ -1,3 +1,24 @@
+# Mk. 8
+
+The only real change is the introduction of the `core` piece, to get finer
+control of floor and ceiling layers. Base settings:
+
+* Layer height: 0.15mm
+* Bottom layer inset: 0.2mm
+* Head temp: 240 C
+* Print speed: 35 mm/s
+* Z seam alignment: random
+* Infill skin support: disabled
+* Infill: 50% lines (this only affects the sandwich layer)
+* Floor: 2 layers
+* Ceiling: 3 layers
+
+The `core` piece modifies the infill with the following settings:
+
+* Floor: 1 layer
+* Ceiling: 2 layers
+* Infill: 10% honeycomb
+
 # Mk. 7
 
 This time there is no TPU piece; just two PETG prints. Mostly we will keep the

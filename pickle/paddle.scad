@@ -1,8 +1,3 @@
-// TODO: Try printing the ceiling and floor as a sandwich, with 2 layers
-// of solid and 2-3 layers of 50% lines. We can do this by setting the
-// overall infill to 50%. Then have a "core" piece with 2 ceiling and
-// floor layers which modifies the fill to 10%.
-
 use <finger.scad>
 
 mark_number = 7;
@@ -577,6 +572,16 @@ module bottom() {
       cube([500, 500, knurl_groove_depth*2], center=true);
     }
   }
+  
+  // Make the knurl grooves 1 layer shallower on the top and
+  // bottom surfaces, for a more continuous sheet.
+  intersection() {
+    grip($grip_offs=-0.3);
+
+    for(z = [0, max_thickness])
+    translate([0, 0, z])
+    cube([500, 500, knurl_groove_depth*2], center=true);
+  }
 
   shelf();
   
@@ -592,3 +597,6 @@ module bottom() {
     circle(d=10);
   }
 }
+
+render()
+bottom();
