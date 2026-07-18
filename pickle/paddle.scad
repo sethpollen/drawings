@@ -252,8 +252,8 @@ knurl_groove_width_1 = 1.4;
 knurl_groove_width_2 = 2.2;
 
 module knurling_rays(angle_end=95, groove_width=knurl_groove_width_1) {
-  translate([-110, -13, -1])
-  for (a = [0:3:angle_end])
+  translate([-90, -13, -1])
+  for (a = [0:3.5:angle_end])
   if (a <= angle_end)
   rotate([0, 0, -a])
   translate([0, -groove_width/2, 0])
@@ -598,5 +598,4 @@ module bottom() {
   }
 }
 
-render()
-bottom();
+grip($grip_knurl=true);

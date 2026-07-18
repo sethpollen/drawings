@@ -13,6 +13,14 @@ intersection_for(z = layer * [
 translate([0, 0, z])
 simple_exterior();
 
+// Force the shelf to 10% infill.
+difference() {
+  shelf();
+  
+  translate([0, 0, -0.3])
+  simple_exterior();
+}
+
 // A reference for positioning the model vertically in Cura.
 translate([-50, 0])
 cube(1);
