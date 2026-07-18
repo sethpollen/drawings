@@ -372,6 +372,7 @@ module shelf() {
   cube([grip_width*0.55, 3.3, 3.3], center=true);
 }
 
+// No knurling, no shelf.
 module simple_exterior() {
   wedge();
   grip();
@@ -591,5 +592,3 @@ module bottom() {
     circle(d=10);
   }
 }
-
-render() bottom();
