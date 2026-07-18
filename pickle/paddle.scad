@@ -1,5 +1,3 @@
-// TODO: Shorten the "fan" slightly (10mm?). Mk.7 feels too large and heavy.
-//
 // TODO: Try printing the ceiling and floor as a sandwich, with 2 layers
 // of solid and 2-3 layers of 50% lines. We can do this by setting the
 // overall infill to 50%. Then have a "core" piece with 2 ceiling and
@@ -11,12 +9,12 @@ mark_number = 7;
 
 // Parameters for the overall shape.
 width = 200;
-fan_length = 233;
+fan_length = 232;
 fan_roundoff = 80;
 
 // The length of the flat striking surface, before it hits the grip
 // shelf. This is the part that has a tapered "wedge" shape.
-wedge_length = 261;
+wedge_length = 257;
 
 bridge_grip_overlap = 20;
 
