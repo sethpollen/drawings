@@ -1,9 +1,5 @@
 // TODO: Shorten the "fan" slightly (10mm?). Mk.7 feels too large and heavy.
 //
-// TODO: Shorten the grip and remove the notch. The hook on the end should
-// provide the reference point for the standard hold. There is no need to
-// support an "extended" hold.
-//
 // TODO: Try printing the ceiling and floor as a sandwich, with 2 layers
 // of solid and 2-3 layers of 50% lines. We can do this by setting the
 // overall infill to 50%. Then have a "core" piece with 2 ceiling and
@@ -49,7 +45,6 @@ wedge_angle = atan(
 // Default values.
 $grip_knurl = false;
 $grip_offs = 0;
-$finger_notch = true;
 
 tab_height = 0.45;
 tab_x = 74; // TUNED
@@ -304,7 +299,7 @@ module grip() {
     
     straight1 = 12;
     elbow1 = [70, 39];
-    straight2 = 63;
+    straight2 = 37.5;
     
     translate([0, 0, max_thickness/2])
     rotate([90, 0, 0]) {
@@ -318,29 +313,6 @@ module grip() {
       translate([0, 0, straight1])
       scale([-1, 1]) {
         rotate_up_extrude(elbow1) grip_2d();
-        
-        // Finger notch.
-        if ($finger_notch)
-        rotate_up(elbow1 - [0, 10.4])
-        hull() {
-          chamfer = 1.8;
-          peak_thickness = 1;
-          peak_height = 2.9;
-          
-          translate([0, 0, -chamfer])
-          linear_extrude_eps(chamfer*2 + peak_thickness)
-          intersection() {
-            grip_2d();
-            
-            // Chop the negative-x area, to avoid a protrusion on the opposite
-            // side caused by the `translate` above.
-            translate([50, 0]) square(100, center=true);
-          }
-          
-          linear_extrude_eps(peak_thickness)
-          translate([peak_height, 0])
-          grip_2d();
-        }
 
         rotate_up(elbow1) {
           linear_extrude_eps(straight2) grip_2d();
@@ -619,4 +591,7 @@ module bottom() {
   }
 }
 
-bottom();
+render() {
+  bottom();
+  top();
+}
