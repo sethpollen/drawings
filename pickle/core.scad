@@ -1,8 +1,8 @@
 use <paddle.scad>
 
-inset = 4 * 0.15;
+layer = 0.15;
 
-intersection_for(z = inset * [-1, 1])
+intersection_for(z = layer * [5, 5])
 translate([0, 0, z])
 simple_exterior();
 
