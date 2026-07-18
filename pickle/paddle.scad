@@ -299,40 +299,46 @@ module grip() {
     elbow1 = [70, 39];
     straight2 = 37.5;
     
-    translate([0, 0, max_thickness/2])
-    rotate([90, 0, 0]) {
-      // Add some length to make sure the grip smoothly meets the wedge. This
-      // also makes the bottom axial groove extend into the wedge a bit,
-      // avoiding correlated weak areas.
-      straight_extension = 18;
-      translate([0, 0, -straight_extension])
-      linear_extrude_eps(straight1 + straight_extension) grip_2d();
-            
-      translate([0, 0, straight1])
-      scale([-1, 1]) {
-        rotate_up_extrude(elbow1) grip_2d();
+    difference() {
+      translate([0, 0, max_thickness/2])
+      rotate([90, 0, 0]) {
+        // Add some length to make sure the grip smoothly meets the wedge. This
+        // also makes the bottom axial groove extend into the wedge a bit,
+        // avoiding correlated weak areas.
+        straight_extension = 18;
+        translate([0, 0, -straight_extension])
+        linear_extrude_eps(straight1 + straight_extension) grip_2d();
+              
+        translate([0, 0, straight1])
+        scale([-1, 1]) {
+          rotate_up_extrude(elbow1) grip_2d();
 
-        rotate_up(elbow1) {
-          linear_extrude_eps(straight2) grip_2d();
-          
-          translate([0, 0, straight2])
-          intersection() {
-            // The final elbow is the intersection of two different
-            // extrusions, which lets us taper the end.
-            rotate_up_extrude([32, 115], $fn=19) grip_2d();
+          rotate_up(elbow1) {
+            linear_extrude_eps(straight2) grip_2d();
             
-            tight_r = 14;
-            rotate_up_extrude([tight_r, 180], $fn=22)
+            translate([0, 0, straight2])
             intersection() {
-              grip_2d();
-              // Avoid a negative x-coordinate for the tight
-              // rotate_extrude.
-              translate([tight_r-grip_width/2, 0])
-              square(grip_width, center=true);
+              // The final elbow is the intersection of two different
+              // extrusions, which lets us taper the end.
+              rotate_up_extrude([32, 115], $fn=19) grip_2d();
+              
+              tight_r = 14;
+              rotate_up_extrude([tight_r, 180], $fn=22)
+              intersection() {
+                grip_2d();
+                // Avoid a negative x-coordinate for the tight
+                // rotate_extrude.
+                translate([tight_r-grip_width/2, 0])
+                square(grip_width, center=true);
+              }
             }
           }
         }
       }
+      
+      // Cut the part of the grip that would protrude above the hitting
+      // surface.
+      wedge_top_cut();
     }
   }
 }
@@ -366,7 +372,7 @@ module shelf() {
   cube([grip_width*0.55, 3.3, 3.3], center=true);
 }
 
-module wedge_and_grip() {
+module simple_exterior() {
   wedge();
   grip();
 }
@@ -387,9 +393,9 @@ module shelf_perforations() {
     
     difference() {
       translate([0, 0, thickness])
-      wedge_and_grip();
+      simple_exterior();
       
-      wedge_and_grip();
+      simple_exterior();
     }
 
     for (y = [-15:1.5:5])
@@ -403,10 +409,10 @@ module strength_perforations_fence(inset) {
   linear_extrude(max_thickness+1)
   difference() {
     offset(delta=-inset)
-    projection() wedge_and_grip();
+    projection() simple_exterior();
 
     offset(delta=-inset-perforation_width_large)
-    projection() wedge_and_grip();
+    projection() simple_exterior();
   }
 }
 
@@ -420,20 +426,20 @@ module strength_perforations(inset) {
   difference() {
     intersection() {
       strength_perforations_fence(inset);
-      translate([0, 0, -depth]) wedge_and_grip();
+      translate([0, 0, -depth]) simple_exterior();
     }
     translate([0, 0, -depth-thickness])
-    wedge_and_grip();
+    simple_exterior();
   }
   
   // Bottom perforation.
   difference() {
     intersection() {
       strength_perforations_fence(inset);
-      translate([0, 0, depth]) wedge_and_grip();
+      translate([0, 0, depth]) simple_exterior();
     }
     translate([0, 0, depth+thickness])
-    wedge_and_grip();
+    simple_exterior();
   }
 }
 
@@ -535,9 +541,6 @@ module bottom() {
     translate([0, lock_hole_play])
     lock_hole();
     
-    // Cut the parts of the grip and fillet that go above the wedge surface.
-    wedge_top_cut();
-    
     translate([0, middle_length]) {
       joint_chamfer();
 
@@ -589,7 +592,4 @@ module bottom() {
   }
 }
 
-render() {
-  bottom();
-  top();
-}
+render() bottom();
