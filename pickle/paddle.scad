@@ -1,6 +1,6 @@
 use <finger.scad>
 
-mark_number = 7;
+mark_number = 8;
 
 // Parameters for the overall shape.
 width = 200;
@@ -253,7 +253,7 @@ knurl_groove_width_2 = 2.2;
 
 module knurling_rays(angle_end=95, groove_width=knurl_groove_width_1) {
   translate([-90, -13, -1])
-  for (a = [0:3.5:angle_end])
+  for (a = [0:3.56:angle_end])
   if (a <= angle_end)
   rotate([0, 0, -a])
   translate([0, -groove_width/2, 0])
@@ -559,7 +559,7 @@ module bottom() {
     }
 
     // Mark number.
-    translate([-71, -124.8, 4.8]) // TUNED
+    translate([-56, -105, 4.8]) // TUNED
     rotate([90, 0])
     linear_extrude(10)
     offset(delta=0.7)
@@ -611,5 +611,4 @@ module bottom() {
   }
 }
 
-render()
-bottom_perforations();
+render() bottom();
