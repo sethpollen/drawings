@@ -404,24 +404,27 @@ module shelf_perforations() {
 module strength_perforations_fence(inset) {
   linear_extrude(max_thickness+1)
   difference() {
-    offset(delta=-inset)
+    // Don't use `delta` for these offsets; it leads to weird
+    // corners.
+    
+    offset(-inset)
     projection() simple_exterior();
 
-    offset(delta=-inset-perforation_width_large)
+    offset(-inset-perforation_width_large)
     projection() simple_exterior();
   }
 }
 
 // Perforations along the four corners of the neck, to add material for
-// strength.
-module strength_perforations(inset) {
+// strength. Requires 1 child, which defines the vertical "fence."
+module strength_perforations() {
   depth = 1.5;
   thickness = 0.15; // 1 layer.
   
   // Top perforation.
   difference() {
     intersection() {
-      strength_perforations_fence(inset);
+      children();
       translate([0, 0, -depth]) simple_exterior();
     }
     translate([0, 0, -depth-thickness])
@@ -431,7 +434,7 @@ module strength_perforations(inset) {
   // Bottom perforation.
   difference() {
     intersection() {
-      strength_perforations_fence(inset);
+      children();
       translate([0, 0, depth]) simple_exterior();
     }
     translate([0, 0, depth+thickness])
@@ -442,8 +445,10 @@ module strength_perforations(inset) {
 module bottom_perforations() {
   shelf_perforations();
   
+  // Outermost.
   intersection() {
-    strength_perforations(inset=9);
+    strength_perforations()
+    strength_perforations_fence(9);
     
     linear_extrude(max_thickness)
     scale([1, -1])
@@ -451,8 +456,10 @@ module bottom_perforations() {
     square([300, 112]);
   }
   
+  // Inner.
   intersection() {
-    strength_perforations(13);
+    strength_perforations()
+    strength_perforations_fence(13);
     
     linear_extrude(max_thickness)
     scale([1, -1])
@@ -598,4 +605,5 @@ module bottom() {
   }
 }
 
-grip($grip_knurl=true);
+render()
+bottom_perforations();
