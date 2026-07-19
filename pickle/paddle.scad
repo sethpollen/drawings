@@ -40,7 +40,7 @@ $grip_knurl = false;
 $grip_offs = 0;
 
 tab_height = 0.45;
-tab_x = 74; // TUNED
+tab_x = 72; // TUNED
 
 function bulge_radius(thickness, intercept_angle) =
   thickness / (2 * sin(intercept_angle));

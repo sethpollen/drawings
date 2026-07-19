@@ -19,6 +19,9 @@ The `core` piece modifies the infill with the following settings:
 * Ceiling: 2 layers
 * Infill: 10% honeycomb
 
+The `core` piece will automatically orient itself along the Z axis to create
+the sandwich layers. It has to be positioned manually on the XY plane.
+
 # Mk. 7
 
 This time there is no TPU piece; just two PETG prints. Mostly we will keep the
