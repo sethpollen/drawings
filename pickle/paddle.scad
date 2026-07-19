@@ -469,8 +469,9 @@ module bottom_perforations() {
   
   strength_perforations()
   linear_extrude(max_thickness+1)
-  translate([-2, -11])
-  square([perforation_width_large, 30], center=true);
+  rotate([0, 0, -2])
+  translate([-2, -13])
+  square([perforation_width_large, 42], center=true);
 }
 
 // Chamfer the bottom edge at the finger joint. This avoids elephant
