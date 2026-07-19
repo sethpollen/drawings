@@ -453,7 +453,7 @@ module bottom_perforations() {
     linear_extrude(max_thickness)
     scale([1, -1])
     translate([-150, -28])
-    square([300, 96]);
+    square([300, 99]);
   }
   
   // Inner.
@@ -464,7 +464,7 @@ module bottom_perforations() {
     linear_extrude(max_thickness)
     scale([1, -1])
     translate([-150, -19])
-    square([300, 71]);
+    square([300, 72]);
   }
   
   strength_perforations()
