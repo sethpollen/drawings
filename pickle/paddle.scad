@@ -1,3 +1,15 @@
+// TODO: shorten grip a bit more
+//
+// TODO: simplify strength perforations into a single sheet
+//
+// TODO: suppress supports inside the knurl grooves on the bottom
+// surface.
+//
+// TODO: three steps for knurl grooves instead of just 2
+//
+// TODO: decide whether to add more floor or ceiling layers to
+// hitting surface.
+
 use <finger.scad>
 
 mark_number = 8;
@@ -251,9 +263,9 @@ knurl_groove_depth = 0.45;
 knurl_groove_width_1 = 1.4;
 knurl_groove_width_2 = 2.2;
 
-module knurling_rays(angle_end=95, groove_width=knurl_groove_width_1) {
-  translate([-90, -13, -1])
-  for (a = [0:3.56:angle_end])
+module knurling_rays(angle_end=80, groove_width=knurl_groove_width_1) {
+  translate([-100, 0, -1])
+  for (a = [8.5:3.3:angle_end])
   if (a <= angle_end)
   rotate([0, 0, -a])
   translate([0, -groove_width/2, 0])
@@ -612,3 +624,4 @@ module bottom() {
 }
 
 render() bottom();
+//grip($grip_knurl=true);
