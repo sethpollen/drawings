@@ -44,8 +44,8 @@ tab_height = 0.45;
 tab_x = 72; // TUNED
 
 // Optimization switches. Set to true for the real build.
-opt_finger_joint = true;
-opt_knurl = true;
+$opt_fingers = true;
+$opt_knurl = true;
 
 function bulge_radius(thickness, intercept_angle) =
   thickness / (2 * sin(intercept_angle));
@@ -268,7 +268,7 @@ module knurling_rays(groove_width) {
 }
 
 module knurling() {
-  if (opt_knurl) {
+  if ($opt_knurl) {
     // Deep, narrow grooves.
     intersection() {
       knurling_rays(1.2);
@@ -506,14 +506,14 @@ module top() {
       joint_chamfer();
 
       // Negative fingers.
-      if (opt_finger_joint)
+      if ($opt_fingers)
       extrude_fingers(thickness=finger_thickness,
                       cavity=true);
     }
       
     // Positive fingers.
     difference() {
-      if (opt_finger_joint)
+      if ($opt_fingers)
       extrude_fingers(thickness=finger_thickness,
                       cavity=false, complement=true, rot=true);
       
@@ -551,7 +551,7 @@ module bottom() {
       joint_chamfer();
 
       // Negative fingers.
-      if (opt_finger_joint)
+      if ($opt_fingers)
       extrude_fingers(thickness=finger_thickness,
                       cavity=true, complement=true, rot=true);
     }
@@ -582,7 +582,7 @@ module bottom() {
   
   translate([0, middle_length]) {
     // Positive fingers.
-    if (opt_finger_joint)
+    if ($opt_fingers)
     extrude_fingers(thickness=finger_thickness,
                     cavity=false, complement=false);
 
