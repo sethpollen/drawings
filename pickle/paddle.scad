@@ -1,8 +1,5 @@
 // TODO: shorten grip a bit more
 //
-// TODO: suppress supports inside the knurl grooves on the bottom
-// surface.
-//
 // TODO: decide whether to add more floor or ceiling layers to
 // hitting surface.
 //
@@ -604,5 +601,4 @@ module bottom() {
   }
 }
 
-render()
-strength_perforations();
+bottom();
