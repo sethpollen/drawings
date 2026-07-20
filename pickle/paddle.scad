@@ -5,8 +5,6 @@
 // TODO: suppress supports inside the knurl grooves on the bottom
 // surface.
 //
-// TODO: three steps for knurl grooves instead of just 2
-//
 // TODO: decide whether to add more floor or ceiling layers to
 // hitting surface.
 
@@ -56,7 +54,8 @@ tab_height = 0.45;
 tab_x = 72; // TUNED
 
 // Optimization switches. Set to true for the real build.
-finger_joint = false;
+opt_finger_joint = false;
+opt_knurl = false;
 
 function bulge_radius(thickness, intercept_angle) =
   thickness / (2 * sin(intercept_angle));
@@ -269,35 +268,45 @@ module linear_extrude_eps(h) {
 }
 
 knurl_groove_depth = 0.45;
-knurl_groove_width_1 = 1.4;
-knurl_groove_width_2 = 2.2;
 
-module knurling_rays(angle_end=80, groove_width=knurl_groove_width_1) {
+module knurling_rays(groove_width) {
   translate([-100, 0, -1])
-  for (a = [8.5:3.3:angle_end])
-  if (a <= angle_end)
+  for (a = [8.5:3.3:80])
   rotate([0, 0, -a])
   translate([0, -groove_width/2, 0])
   cube([200, groove_width, max_thickness + 2]);
 }
 
 module knurling() {
-  // Deep, narrow grooves.
-  intersection() {
-    knurling_rays();
-    
-    difference() {
-      grip($grip_offs=0.1);
-      grip($grip_offs=-knurl_groove_depth);
+  if (opt_knurl) {
+    // Deep, narrow grooves.
+    intersection() {
+      knurling_rays(1.2);
+      
+      difference() {
+        grip($grip_offs=0.1);
+        grip($grip_offs=-knurl_groove_depth);
+      }
     }
-  }
-  // Shallow, wide grooves.
-  intersection() {
-    knurling_rays(groove_width=knurl_groove_width_2);
     
-    difference() {
-      grip($grip_offs=0.1);
-      grip($grip_offs=-knurl_groove_depth/2);
+    // Middle step.
+    intersection() {
+      knurling_rays(1.7);
+      
+      difference() {
+        grip($grip_offs=0.1);
+        grip($grip_offs=-knurl_groove_depth*2/3);
+      }
+    }
+
+    // Shallow, wide grooves.
+    intersection() {
+      knurling_rays(2.2);
+      
+      difference() {
+        grip($grip_offs=0.1);
+        grip($grip_offs=-knurl_groove_depth*1/3);
+      }
     }
   }
 }
@@ -535,14 +544,14 @@ module top() {
       joint_chamfer();
 
       // Negative fingers.
-      if (finger_joint)
+      if (opt_finger_joint)
       extrude_fingers(thickness=finger_thickness,
                       cavity=true);
     }
       
     // Positive fingers.
     difference() {
-      if (finger_joint)
+      if (opt_finger_joint)
       extrude_fingers(thickness=finger_thickness,
                       cavity=false, complement=true, rot=true);
       
@@ -580,7 +589,7 @@ module bottom() {
       joint_chamfer();
 
       // Negative fingers.
-      if (finger_joint)
+      if (opt_finger_joint)
       extrude_fingers(thickness=finger_thickness,
                       cavity=true, complement=true, rot=true);
     }
@@ -611,7 +620,7 @@ module bottom() {
   
   translate([0, middle_length]) {
     // Positive fingers.
-    if (finger_joint)
+    if (opt_finger_joint)
     extrude_fingers(thickness=finger_thickness,
                     cavity=false, complement=false);
 
