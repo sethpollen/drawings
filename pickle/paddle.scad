@@ -50,9 +50,13 @@ wedge_angle = atan(
 // Default values.
 $grip_knurl = false;
 $grip_offs = 0;
+$grip_2d_extend_sideways = false;
 
 tab_height = 0.45;
 tab_x = 72; // TUNED
+
+// Optimization switches. Set to true for the real build.
+finger_joint = false;
 
 function bulge_radius(thickness, intercept_angle) =
   thickness / (2 * sin(intercept_angle));
@@ -217,19 +221,24 @@ module wedge_top_cut() {
 module grip_2d() {
   flats = 11;
   
-  offset(delta=$grip_offs)
-  intersection() {
-    // Main profile, rounded on both sides.
-    hull()
-    for (a = [-1, 1])
-    scale([1, a])
-    translate([0, flats/2])
-    scale([grip_width/2, (1.12*max_thickness - flats)/2])
-    circle($fn=18, r=1);
+  offset(delta=$grip_offs) {
+    intersection() {
+      // Main profile, rounded on both sides.
+      hull()
+      for (a = [-1, 1])
+      scale([1, a])
+      translate([0, flats/2])
+      scale([grip_width/2, (1.12*max_thickness - flats)/2])
+      circle($fn=18, r=1);
+      
+      // Cut off to meet the build plate.
+      translate([-30, max_thickness/2 - max_thickness])
+      square([60, max_thickness]);
+    }
     
-    // Cut off to meet the build plate.
-    translate([-30, max_thickness/2 - max_thickness])
-    square([60, max_thickness]);
+    // Add the extension, if requested.
+    if ($grip_2d_extend_sideways)
+    square([50, max_thickness], center=true);
   }
 }
 
@@ -272,6 +281,27 @@ module knurling_rays(angle_end=80, groove_width=knurl_groove_width_1) {
   cube([200, groove_width, max_thickness + 2]);
 }
 
+module knurling() {
+  // Deep, narrow grooves.
+  intersection() {
+    knurling_rays();
+    
+    difference() {
+      grip($grip_offs=0.1);
+      grip($grip_offs=-knurl_groove_depth);
+    }
+  }
+  // Shallow, wide grooves.
+  intersection() {
+    knurling_rays(groove_width=knurl_groove_width_2);
+    
+    difference() {
+      grip($grip_offs=0.1);
+      grip($grip_offs=-knurl_groove_depth/2);
+    }
+  }
+}
+
 module grip() {
   if ($grip_knurl) {
     $grip_knurl = false;
@@ -279,25 +309,7 @@ module grip() {
     // Apply knurling and then recurse.
     difference() {
       grip();
-      
-      // Deep, narrow grooves.
-      intersection() {
-        knurling_rays();
-        
-        difference() {
-          grip($grip_offs=0.1);
-          grip($grip_offs=-knurl_groove_depth);
-        }
-      }
-      // Shallow, wide grooves.
-      intersection() {
-        knurling_rays(groove_width=knurl_groove_width_2);
-        
-        difference() {
-          grip($grip_offs=0.1);
-          grip($grip_offs=-knurl_groove_depth/2);
-        }
-      }
+      knurling();
     }
   } else {
     $fn = 40;
@@ -523,12 +535,14 @@ module top() {
       joint_chamfer();
 
       // Negative fingers.
+      if (finger_joint)
       extrude_fingers(thickness=finger_thickness,
                       cavity=true);
     }
       
     // Positive fingers.
     difference() {
+      if (finger_joint)
       extrude_fingers(thickness=finger_thickness,
                       cavity=false, complement=true, rot=true);
       
@@ -566,6 +580,7 @@ module bottom() {
       joint_chamfer();
 
       // Negative fingers.
+      if (finger_joint)
       extrude_fingers(thickness=finger_thickness,
                       cavity=true, complement=true, rot=true);
     }
@@ -579,23 +594,7 @@ module bottom() {
     
     // Knurl the top and bottom surfaces, to align with the grip knurl
     // grooves.
-    //
-    // Shallow, wide grooves.
-    intersection() {
-      knurling_rays(angle_end=25, groove_width=knurl_groove_width_2);
-
-      for(z = [0, max_thickness])
-      translate([0, 0, z])
-      cube([500, 500, knurl_groove_depth], center=true);
-    }
-    // Deep, narrow grooves.
-    intersection() {
-      knurling_rays(angle_end=25);
-
-      for(z = [0, max_thickness])
-      translate([0, 0, z])
-      cube([500, 500, knurl_groove_depth*2], center=true);
-    }
+    knurling($grip_2d_extend_sideways=true);
   }
   
   // Make the knurl grooves 1 layer shallower on the top and
@@ -612,6 +611,7 @@ module bottom() {
   
   translate([0, middle_length]) {
     // Positive fingers.
+    if (finger_joint)
     extrude_fingers(thickness=finger_thickness,
                     cavity=false, complement=false);
 
@@ -624,4 +624,3 @@ module bottom() {
 }
 
 render() bottom();
-//grip($grip_knurl=true);
