@@ -1,5 +1,3 @@
-// TODO: shorten grip a bit more
-//
 // TODO: decide whether to add more floor or ceiling layers to
 // hitting surface.
 //
@@ -322,7 +320,7 @@ module grip() {
     
     straight1 = 12;
     elbow1 = [70, 39];
-    straight2 = 37.5;
+    straight2 = 32.6;
     
     difference() {
       translate([0, 0, max_thickness/2])
