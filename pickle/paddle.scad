@@ -1,12 +1,12 @@
 // TODO: shorten grip a bit more
 //
-// TODO: simplify strength perforations into a single sheet
-//
 // TODO: suppress supports inside the knurl grooves on the bottom
 // surface.
 //
 // TODO: decide whether to add more floor or ceiling layers to
 // hitting surface.
+//
+// TODO: use 50% honeycomb for the sandwich layers?
 
 use <finger.scad>
 
@@ -406,12 +406,7 @@ module simple_exterior() {
   grip();
 }
 
-// Causes generation of internal floors and ceilings, but
-// now alls.
-perforation_width_small = 0.2;
-
-// Generates walls.
-perforation_width_large = 0.5;
+perforation_width = 0.2;
 
 // Make sure the top sheet continues under the shelf.
 module shelf_perforations() {
@@ -429,22 +424,27 @@ module shelf_perforations() {
 
     for (y = [-15:1.5:5])
     translate([0, y, 20])
-    cube([40, perforation_width_small, 40], center=true);
+    cube([40, perforation_width, 40], center=true);
   }
 }
 
 // Add material at the corners of the neck.
-module strength_perforations_fence(inset) {
+module strength_perforations_fence(inset, y_min, y_max) {
   linear_extrude(max_thickness+1)
-  difference() {
-    // Don't use `delta` for these offsets; it leads to weird
-    // corners.
-    
-    offset(-inset)
-    projection() simple_exterior();
+  intersection() {
+    difference() {
+      // Don't use `delta` for these offsets; it leads to weird
+      // corners.
+      
+      offset(-inset)
+      projection() simple_exterior();
 
-    offset(-inset-perforation_width_large)
-    projection() simple_exterior();
+      offset(-inset-perforation_width)
+      projection() simple_exterior();
+    }
+
+    translate([-200, y_min])
+    square([400, y_max-y_min]);
   }
 }
 
@@ -454,57 +454,29 @@ module strength_perforations() {
   depth = 1.5;
   thickness = 0.15; // 1 layer.
   
-  // Top perforation.
+  for (a = [-1, 1])
   difference() {
     intersection() {
-      children();
-      translate([0, 0, -depth]) simple_exterior();
+      for (i = [0:4])
+      strength_perforations_fence(
+        inset = 5 + i*2.2,
+        y_min = -(80 - i*11),
+        y_max = 25 - i*5
+      );
+      
+      translate([0, 0, a*depth])
+      simple_exterior();
     }
-    translate([0, 0, -depth-thickness])
-    simple_exterior();
-  }
-  
-  // Bottom perforation.
-  difference() {
-    intersection() {
-      children();
-      translate([0, 0, depth]) simple_exterior();
-    }
-    translate([0, 0, depth+thickness])
+    
+    // Cut to thickness in the z dimension.
+    translate([0, 0, a*(depth+thickness)])
     simple_exterior();
   }
 }
 
 module bottom_perforations() {
   shelf_perforations();
-  
-  // Outermost.
-  intersection() {
-    strength_perforations()
-    strength_perforations_fence(9);
-    
-    linear_extrude(max_thickness)
-    scale([1, -1])
-    translate([-150, -28])
-    square([300, 99]);
-  }
-  
-  // Inner.
-  intersection() {
-    strength_perforations()
-    strength_perforations_fence(13);
-    
-    linear_extrude(max_thickness)
-    scale([1, -1])
-    translate([-150, -19])
-    square([300, 72]);
-  }
-  
-  strength_perforations()
-  linear_extrude(max_thickness+1)
-  rotate([0, 0, -2])
-  translate([-2, -13])
-  square([perforation_width_large, 42], center=true);
+  strength_perforations();
 }
 
 // Chamfer the bottom edge at the finger joint. This avoids elephant
@@ -632,4 +604,5 @@ module bottom() {
   }
 }
 
-render() bottom();
+render()
+strength_perforations();
