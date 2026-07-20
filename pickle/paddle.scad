@@ -1,8 +1,3 @@
-// TODO: decide whether to add more floor or ceiling layers to
-// hitting surface.
-//
-// TODO: use 50% honeycomb for the sandwich layers?
-
 use <finger.scad>
 
 mark_number = 8;

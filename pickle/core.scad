@@ -3,23 +3,34 @@ use <paddle.scad>
 layer = 0.15;
 
 intersection_for(z = layer * [
-  // Floor:
-  //   Exterior | solid x2 | half x3 | solid x1 | Interior
+  /* Floor: 6 total layers
+       <interior>
+         solid   <- bottom layer of core
+         solid
+         50%
+         50%
+         solid
+         solid
+       <exterior>
+  */
   5,
-  // Ceiling:
-  //   Exterior | solid x3 | half x2 | solid x2 | Interior
-  -5
+
+  /* Ceiling: 8 total layers
+       <exterior>
+         solid (partially to be sanded off)
+         solid
+         solid
+         50%
+         50%
+         solid
+         solid   <- top layer of core
+         solid
+       <interior>
+  */
+  -6
 ])
 translate([0, 0, z])
 simple_exterior();
-
-// Force the shelf to 10% infill.
-difference() {
-  shelf();
-  
-  translate([0, 0, -0.3])
-  simple_exterior();
-}
 
 // A reference for positioning the model vertically in Cura.
 translate([-50, 0])
