@@ -44,8 +44,8 @@ tab_height = 0.45;
 tab_x = 72; // TUNED
 
 // Optimization switches. Set to true for the real build.
-opt_finger_joint = false;
-opt_knurl = false;
+opt_finger_joint = true;
+opt_knurl = true;
 
 function bulge_radius(thickness, intercept_angle) =
   thickness / (2 * sin(intercept_angle));
