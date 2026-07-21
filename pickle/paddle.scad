@@ -315,7 +315,7 @@ module grip() {
     
     straight1 = 12;
     elbow1 = [70, 39];
-    straight2 = 32.6;
+    straight2 = 32.9;
     
     difference() {
       translate([0, 0, max_thickness/2])
@@ -441,7 +441,7 @@ module strength_perforations_fence(inset, y_min, y_max) {
 // Perforations along the four corners of the neck, to add material for
 // strength. Requires 1 child, which defines the vertical "fence."
 module strength_perforations() {
-  depth = 1.5;
+  depth = 1.4;
   thickness = 0.15; // 1 layer.
   
   for (a = [-1, 1])
