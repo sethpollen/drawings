@@ -5,15 +5,15 @@ layer = 0.15;
 intersection_for(z = layer * [
   /* Floor: 6 total layers
        <interior>
-         solid   <- bottom layer of core
          solid
+         solid   <- bottom layer of core
          50%
          50%
          solid
          solid
        <exterior>
   */
-  5,
+  4,
 
   /* Ceiling: 8 total layers
        <exterior>
@@ -22,12 +22,12 @@ intersection_for(z = layer * [
          solid
          50%
          50%
-         solid
          solid   <- top layer of core
+         solid
          solid
        <interior>
   */
-  -6
+  -5
 ])
 translate([0, 0, z])
 simple_exterior();
