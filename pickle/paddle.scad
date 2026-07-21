@@ -441,7 +441,7 @@ module strength_perforations_fence(inset, y_min, y_max) {
 // Perforations along the four corners of the neck, to add material for
 // strength. Requires 1 child, which defines the vertical "fence."
 module strength_perforations() {
-  depth = 1.4;
+  depth = 1.1;
   thickness = 0.15; // 1 layer.
   
   for (a = [-1, 1])
