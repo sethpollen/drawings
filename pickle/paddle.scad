@@ -452,8 +452,8 @@ module strength_perforations() {
       for (i = [0:steps])
       strength_perforations_fence(
         inset = 5 + 9*i/steps,
-        y_min = -(80 - 45*i/steps),
-        y_max = 24 - 20*i/steps
+        y_min = -(60 - 32*i/steps),
+        y_max = 24 - 19*i/steps
       );
       
       translate([0, 0, a*depth])
