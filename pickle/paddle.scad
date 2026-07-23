@@ -15,7 +15,7 @@ bridge_grip_overlap = 20;
 
 // Make a wedge shape.
 max_thickness = 24;
-min_thickness = 6.3;
+min_thickness = 7.9;
 
 grip_width = 34.6;
 
@@ -559,8 +559,8 @@ module bottom() {
     }
 
     // Mark number.
-    translate([-56, -105, 4.8]) // TUNED
-    rotate([90, 0])
+    translate([-60, -99.2, 4.8]) // TUNED
+    rotate([90, 0, -15])
     linear_extrude(10)
     offset(delta=0.7)
     text(str(mark_number), size=14.5);
@@ -596,6 +596,3 @@ module bottom() {
   }
 }
 
-color("red")
-strength_perforations();
-translate([0, 0, -40]) simple_exterior();
