@@ -3,7 +3,7 @@ use <finger.scad>
 mark_number = 8;
 
 // Parameters for the overall shape.
-width = 198;
+width = 199.5;
 fan_length = 232;
 fan_roundoff = 80;
 
