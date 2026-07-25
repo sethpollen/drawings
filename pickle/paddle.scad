@@ -596,3 +596,37 @@ module bottom() {
   }
 }
 
+module unibody() {
+  difference() {
+    // Combine the wedge and grip.
+    union() {
+      wedge();
+      grip($grip_knurl=true);
+    }
+
+    // Mark number.
+    translate([-60, -99.2, 4.8]) // TUNED
+    rotate([90, 0, -15])
+    linear_extrude(10)
+    offset(delta=0.7)
+    text(str(mark_number), size=14.5);
+    
+    // Knurl the top and bottom surfaces, to align with the grip knurl
+    // grooves.
+    knurling($grip_2d_extend_sideways=true);
+  }
+  
+  // Make the knurl grooves 1 layer shallower on the top and
+  // bottom surfaces, for a more continuous sheet.
+  intersection() {
+    grip($grip_offs=-0.3);
+
+    for(z = [0, max_thickness])
+    translate([0, 0, z])
+    cube([500, 500, knurl_groove_depth*2], center=true);
+  }
+
+  shelf();
+}
+
+unibody();

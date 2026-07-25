@@ -36,7 +36,7 @@ module finger_profile_2d(complement, additional_end_chop=0) {
       
       // Shorten the outer tooth, so it fits within the taper of the
       // bottom piece.
-      chop_length = additional_end_chop + 4.8; // TUNED
+      chop_length = additional_end_chop + 5.4; // TUNED
       
       translate([(teeth_pairs-1)*finger_width, -finger_length()/2])
       difference() {
