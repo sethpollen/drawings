@@ -9,15 +9,21 @@ control of floor and ceiling layers. Base settings:
 * Print speed: 35 mm/s
 * Z seam alignment: random
 * Infill skin support: disabled
-* Infill: 50% lines (this only affects the sandwich layer)
+
+Overall model settings for making the sandwich:
+
 * Floor: 2 layers
 * Ceiling: 3 layers
+* Infill: 50% lines
 
 The `core` piece modifies the infill with the following settings:
 
-* Floor: 1 layer
-* Ceiling: 2 layers
+* Floor: 2 layer
+* Ceiling: 3 layers
 * Infill: 10% honeycomb
+
+The `core` piece will automatically orient itself along the Z axis to create
+the sandwich layers. It has to be positioned manually on the XY plane.
 
 # Mk. 7
 

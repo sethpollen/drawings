@@ -1,9 +1,9 @@
 use <finger.scad>
 
-mark_number = 7;
+mark_number = 8;
 
 // Parameters for the overall shape.
-width = 200;
+width = 199.5;
 fan_length = 232;
 fan_roundoff = 80;
 
@@ -15,7 +15,7 @@ bridge_grip_overlap = 20;
 
 // Make a wedge shape.
 max_thickness = 24;
-min_thickness = 6;
+min_thickness = 7.9;
 
 grip_width = 34.6;
 
@@ -38,9 +38,14 @@ wedge_angle = atan(
 // Default values.
 $grip_knurl = false;
 $grip_offs = 0;
+$grip_2d_extend_sideways = false;
 
 tab_height = 0.45;
-tab_x = 74; // TUNED
+tab_x = 72; // TUNED
+
+// Optimization switches. Set to true for the real build.
+$opt_fingers = true;
+$opt_knurl = true;
 
 function bulge_radius(thickness, intercept_angle) =
   thickness / (2 * sin(intercept_angle));
@@ -205,19 +210,24 @@ module wedge_top_cut() {
 module grip_2d() {
   flats = 11;
   
-  offset(delta=$grip_offs)
-  intersection() {
-    // Main profile, rounded on both sides.
-    hull()
-    for (a = [-1, 1])
-    scale([1, a])
-    translate([0, flats/2])
-    scale([grip_width/2, (1.12*max_thickness - flats)/2])
-    circle($fn=18, r=1);
+  offset(delta=$grip_offs) {
+    intersection() {
+      // Main profile, rounded on both sides.
+      hull()
+      for (a = [-1, 1])
+      scale([1, a])
+      translate([0, flats/2])
+      scale([grip_width/2, (1.12*max_thickness - flats)/2])
+      circle($fn=18, r=1);
+      
+      // Cut off to meet the build plate.
+      translate([-30, max_thickness/2 - max_thickness])
+      square([60, max_thickness]);
+    }
     
-    // Cut off to meet the build plate.
-    translate([-30, max_thickness/2 - max_thickness])
-    square([60, max_thickness]);
+    // Add the extension, if requested.
+    if ($grip_2d_extend_sideways)
+    square([50, max_thickness], center=true);
   }
 }
 
@@ -248,16 +258,47 @@ module linear_extrude_eps(h) {
 }
 
 knurl_groove_depth = 0.45;
-knurl_groove_width_1 = 1.4;
-knurl_groove_width_2 = 2.2;
 
-module knurling_rays(angle_end=95, groove_width=knurl_groove_width_1) {
-  translate([-90, -13, -1])
-  for (a = [0:3.5:angle_end])
-  if (a <= angle_end)
+module knurling_rays(groove_width) {
+  translate([-100, 0, -1])
+  for (a = [8.5:3.3:80])
   rotate([0, 0, -a])
   translate([0, -groove_width/2, 0])
   cube([200, groove_width, max_thickness + 2]);
+}
+
+module knurling() {
+  if ($opt_knurl) {
+    // Deep, narrow grooves.
+    intersection() {
+      knurling_rays(1.2);
+      
+      difference() {
+        grip($grip_offs=0.1);
+        grip($grip_offs=-knurl_groove_depth);
+      }
+    }
+    
+    // Middle step.
+    intersection() {
+      knurling_rays(1.7);
+      
+      difference() {
+        grip($grip_offs=0.1);
+        grip($grip_offs=-knurl_groove_depth*2/3);
+      }
+    }
+
+    // Shallow, wide grooves.
+    intersection() {
+      knurling_rays(2.2);
+      
+      difference() {
+        grip($grip_offs=0.1);
+        grip($grip_offs=-knurl_groove_depth*1/3);
+      }
+    }
+  }
 }
 
 module grip() {
@@ -267,32 +308,14 @@ module grip() {
     // Apply knurling and then recurse.
     difference() {
       grip();
-      
-      // Deep, narrow grooves.
-      intersection() {
-        knurling_rays();
-        
-        difference() {
-          grip($grip_offs=0.1);
-          grip($grip_offs=-knurl_groove_depth);
-        }
-      }
-      // Shallow, wide grooves.
-      intersection() {
-        knurling_rays(groove_width=knurl_groove_width_2);
-        
-        difference() {
-          grip($grip_offs=0.1);
-          grip($grip_offs=-knurl_groove_depth/2);
-        }
-      }
+      knurling();
     }
   } else {
     $fn = 40;
     
     straight1 = 12;
     elbow1 = [70, 39];
-    straight2 = 37.5;
+    straight2 = 32.9;
     
     difference() {
       translate([0, 0, max_thickness/2])
@@ -373,12 +396,7 @@ module simple_exterior() {
   grip();
 }
 
-// Causes generation of internal floors and ceilings, but
-// now alls.
-perforation_width_small = 0.2;
-
-// Generates walls.
-perforation_width_large = 0.5;
+perforation_width = 0.2;
 
 // Make sure the top sheet continues under the shelf.
 module shelf_perforations() {
@@ -396,82 +414,61 @@ module shelf_perforations() {
 
     for (y = [-15:1.5:5])
     translate([0, y, 20])
-    cube([40, perforation_width_small, 40], center=true);
+    cube([40, perforation_width, 40], center=true);
   }
 }
 
 // Add material at the corners of the neck.
-module strength_perforations_fence(inset) {
+module strength_perforations_fence(inset, y_min, y_max) {
   linear_extrude(max_thickness+1)
-  difference() {
-    // Don't use `delta` for these offsets; it leads to weird
-    // corners.
-    
-    offset(-inset)
-    projection() simple_exterior();
+  intersection() {
+    difference() {
+      // Don't use `delta` for these offsets; it leads to weird
+      // corners.
+      
+      offset(-inset)
+      projection() simple_exterior();
 
-    offset(-inset-perforation_width_large)
-    projection() simple_exterior();
+      offset(-inset-perforation_width)
+      projection() simple_exterior();
+    }
+
+    translate([-200, y_min])
+    square([400, y_max-y_min]);
   }
 }
 
 // Perforations along the four corners of the neck, to add material for
 // strength. Requires 1 child, which defines the vertical "fence."
 module strength_perforations() {
-  depth = 1.5;
+  depth = 1.1;
   thickness = 0.15; // 1 layer.
   
-  // Top perforation.
+  for (a = [-1, 1])
   difference() {
     intersection() {
-      children();
-      translate([0, 0, -depth]) simple_exterior();
+      steps = 6;
+      
+      for (i = [0:steps])
+      strength_perforations_fence(
+        inset = 5 + 9*i/steps,
+        y_min = -(75 - 39*i/steps),
+        y_max = 27 - 28*i/steps
+      );
+      
+      translate([0, 0, a*depth])
+      simple_exterior();
     }
-    translate([0, 0, -depth-thickness])
-    simple_exterior();
-  }
-  
-  // Bottom perforation.
-  difference() {
-    intersection() {
-      children();
-      translate([0, 0, depth]) simple_exterior();
-    }
-    translate([0, 0, depth+thickness])
+    
+    // Cut to thickness in the z dimension.
+    translate([0, 0, a*(depth+thickness)])
     simple_exterior();
   }
 }
 
 module bottom_perforations() {
   shelf_perforations();
-  
-  // Outermost.
-  intersection() {
-    strength_perforations()
-    strength_perforations_fence(9);
-    
-    linear_extrude(max_thickness)
-    scale([1, -1])
-    translate([-150, -28])
-    square([300, 99]);
-  }
-  
-  // Inner.
-  intersection() {
-    strength_perforations()
-    strength_perforations_fence(13);
-    
-    linear_extrude(max_thickness)
-    scale([1, -1])
-    translate([-150, -19])
-    square([300, 72]);
-  }
-  
-  strength_perforations()
-  linear_extrude(max_thickness+1)
-  rotate([0, 0, -2])
-  translate([-2, -13])
-  square([perforation_width_large, 42], center=true);
+  strength_perforations();
 }
 
 // Chamfer the bottom edge at the finger joint. This avoids elephant
@@ -511,12 +508,14 @@ module top() {
       joint_chamfer();
 
       // Negative fingers.
+      if ($opt_fingers)
       extrude_fingers(thickness=finger_thickness,
                       cavity=true);
     }
       
     // Positive fingers.
     difference() {
+      if ($opt_fingers)
       extrude_fingers(thickness=finger_thickness,
                       cavity=false, complement=true, rot=true);
       
@@ -554,36 +553,21 @@ module bottom() {
       joint_chamfer();
 
       // Negative fingers.
+      if ($opt_fingers)
       extrude_fingers(thickness=finger_thickness,
                       cavity=true, complement=true, rot=true);
     }
 
     // Mark number.
-    translate([-71, -124.8, 4.8]) // TUNED
-    rotate([90, 0])
+    translate([-60, -99.2, 4.8]) // TUNED
+    rotate([90, 0, -15])
     linear_extrude(10)
     offset(delta=0.7)
     text(str(mark_number), size=14.5);
     
     // Knurl the top and bottom surfaces, to align with the grip knurl
     // grooves.
-    //
-    // Shallow, wide grooves.
-    intersection() {
-      knurling_rays(angle_end=25, groove_width=knurl_groove_width_2);
-
-      for(z = [0, max_thickness])
-      translate([0, 0, z])
-      cube([500, 500, knurl_groove_depth], center=true);
-    }
-    // Deep, narrow grooves.
-    intersection() {
-      knurling_rays(angle_end=25);
-
-      for(z = [0, max_thickness])
-      translate([0, 0, z])
-      cube([500, 500, knurl_groove_depth*2], center=true);
-    }
+    knurling($grip_2d_extend_sideways=true);
   }
   
   // Make the knurl grooves 1 layer shallower on the top and
@@ -600,6 +584,7 @@ module bottom() {
   
   translate([0, middle_length]) {
     // Positive fingers.
+    if ($opt_fingers)
     extrude_fingers(thickness=finger_thickness,
                     cavity=false, complement=false);
 
@@ -611,5 +596,37 @@ module bottom() {
   }
 }
 
-render()
-bottom_perforations();
+module unibody() {
+  difference() {
+    // Combine the wedge and grip.
+    union() {
+      wedge();
+      grip($grip_knurl=true);
+    }
+
+    // Mark number.
+    translate([-60, -99.2, 4.8]) // TUNED
+    rotate([90, 0, -15])
+    linear_extrude(10)
+    offset(delta=0.7)
+    text(str(mark_number), size=14.5);
+    
+    // Knurl the top and bottom surfaces, to align with the grip knurl
+    // grooves.
+    knurling($grip_2d_extend_sideways=true);
+  }
+  
+  // Make the knurl grooves 1 layer shallower on the top and
+  // bottom surfaces, for a more continuous sheet.
+  intersection() {
+    grip($grip_offs=-0.3);
+
+    for(z = [0, max_thickness])
+    translate([0, 0, z])
+    cube([500, 500, knurl_groove_depth*2], center=true);
+  }
+
+  shelf();
+}
+
+unibody();
