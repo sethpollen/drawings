@@ -8,8 +8,6 @@ penny_thickness = 1.5;
 penny_diam = 19.05;
 
 penny_stack_thickness = penny_thickness * pennies;
-cap_thickness = length/2 - penny_stack_thickness/2;
-cap_diam = diam - roundoff*2 - 1.4;
 
 module profile_2d() {
   for (a = [-1, 1])
@@ -17,7 +15,16 @@ module profile_2d() {
   translate([0, length/2 - roundoff])
   hull() {
     translate([diam/2 - roundoff, 0])
-    circle(r=roundoff, $fn=25);
+    intersection() {
+      // Flatten the top and bottom, to avoid shallow overhangs.
+      flatten = 0.24;
+      
+      translate([0, flatten])
+      circle(r=roundoff+flatten+0.1, $fn=25);
+      
+      translate([-10, roundoff-20])
+      square(20);
+    }
     
     translate([0, -roundoff])
     square(roundoff*2);
@@ -29,35 +36,54 @@ module profile_2d() {
     translate([0, -middle_length/2])
     square([diam/2, middle_length + 0.1]);
     
-    depression_radius = length + 5;
-    
-    translate([depression_radius+diam/2-5.5, 0])
-    circle(r=depression_radius, $fn=100);
+    translate([length + diam/2 - 5, 0])
+    circle(r=length+1, $fn=100);
   }
 }
 
-module tama() {
+module whole() {
   translate([0, 0, length/2])
   difference() {
     rotate_extrude($fn=50)
     profile_2d();
     
     translate([0, 0, -penny_stack_thickness/2])
-    cylinder(d=penny_diam+0.4, h=100, $fn=30);
-    
-    translate([0, 0, penny_stack_thickness/2])
-    cylinder(d=cap_diam+0.4, h=cap_thickness, $fn=40);
+    cylinder(d=penny_diam+0.4, h=penny_stack_thickness, $fn=30);
   }
 }
 
-module cap() {
-  cylinder(d=cap_diam, h=cap_thickness, $fn=40);
+module cut(extra_ring_diam=0) {
+  linear_extrude(length-roundoff*2-0.1)
+  square(diam+1, center=true);
+  
+  // Ring that intrudes into the cap.
+  linear_extrude(length/2 + penny_stack_thickness/2)
+  circle(d=penny_diam+4+extra_ring_diam, $fn=30);
 }
 
-module together() {
-  tama();
-  translate([diam, 0]) cap();
+module bottom() {
+  intersection() {
+    whole();
+    cut();
+  }
 }
 
-together();
+module top() {
+  scale([1, 1, -1])
+  translate([0, 0, -length])
+  difference() {
+    whole();
+    cut(extra_ring_diam=0.4);
+  }
+}
 
+module print() {
+  render() {
+    bottom();
+
+    translate([diam+2, 0])
+    top();
+  }
+}
+
+print();
