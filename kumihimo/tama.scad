@@ -1,7 +1,7 @@
 length = 41;
 diam = 35;
 roundoff = 3.8;
-pennies = 22;
+pennies = 23;
 
 // Nominal values.
 penny_thickness = 1.5;
@@ -58,7 +58,7 @@ module cut(extra_ring_diam=0) {
   
   // Ring that intrudes into the cap.
   linear_extrude(length/2 + penny_stack_thickness/2)
-  circle(d=penny_diam+3.9+extra_ring_diam, $fn=30);
+  circle(d=penny_diam+5+extra_ring_diam, $fn=30);
 }
 
 module bottom() {
