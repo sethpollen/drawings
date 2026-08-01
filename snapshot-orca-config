@@ -1,0 +1,6 @@
+#!/usr/bin/env fish
+
+rm -rf ~/drawings/OrcaSlicer
+
+cp -r ~/.var/app/com.orcaslicer.OrcaSlicer/config/OrcaSlicer \
+      ~/drawings/OrcaSlicer
