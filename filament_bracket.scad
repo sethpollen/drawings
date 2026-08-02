@@ -31,7 +31,9 @@ module tube_2d() {
   translate([0, -15])
   intersection() {
     square(30, center=true);
-    circle(d=35, $fn=40);
+    
+    scale([1, 0.9])
+    circle(d=36, $fn=40);
   }
 }
 
@@ -109,4 +111,9 @@ module piece() {
   }
 }
 
-piece();
+module print() {
+  rotate([0, 90, 0])
+  piece();
+}
+
+print();
