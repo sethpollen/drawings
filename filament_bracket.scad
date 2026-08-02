@@ -109,6 +109,11 @@ module piece() {
     translate([0, 0, 100])
     cube(150, center=true);
   }
+  
+  // Fillet in the corner by the 2x4.
+  translate([0, lip + clearance + 10, base_length/2])
+  rotate([0, 0, 45])
+  cube([1.5, 1.5, base_length], center=true);
 }
 
 module print() {
