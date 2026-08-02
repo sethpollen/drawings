@@ -1,69 +1,99 @@
-base = [80, 50];
-leg = [26, 110];
-foot = [83, 26];
-toe = [6, 7];
+eps = 0.001;
 
-main_thickness = 22;
+base = [65, 45];
+base_length = 90;
+clearance = 95;
+lip = 7;
+front_wall = 15;
+arm_thickness = 26;
+tube_length = 90;
 
-module octahedron(bevel) {
-  for (a = [-1, 1])
-  scale([1, 1, a])
-  linear_extrude(bevel, scale=0)
-  rotate([0, 0, 45])
-  square(bevel*sqrt(2), center=true);
-}
-
-module block(xy, thickness=main_thickness, bevel=4) {
-  hull()
-  for (
-    x = [bevel, xy.x-bevel],
-    y = [bevel, xy.y-bevel],
-    z = [bevel, thickness-bevel]
-  )
-  translate([x, y, z])
-  octahedron(bevel);
-}
-
-module exterior() {
-  translate([leg.x - base.x, 0, 0])
-  block(base);
-  
-  translate([0, -leg.y - foot.y])
-  block(leg + [0, base.y + foot.y]);
-  
-  translate([-foot.x - toe.x, -leg.y - foot.y])
-  block(foot + [leg.x + toe.x, 0]);
-  
-  translate([-foot.x - toe.x, -leg.y - foot.y + 4, 3])
-  block(toe + [0, foot.y], thickness=14, bevel=1);
-}
-
+// #8 wood screw.
 module screw_hole() {
   $fn = 16;
 
-  translate([0, 0, main_thickness + 0.01])
   scale([1, 1, -1]) {
-    linear_extrude(1.1)
-    circle(d=7.5);
+    translate([0, 0, -100])
+    linear_extrude(101.1)
+    circle(d=8.2);
     
     translate([0, 0, 1.1 - 0.01])
-    linear_extrude(4, scale=0)
-    circle(d=7.5);
+    linear_extrude(3.9, scale=0)
+    circle(d=8.2);
     
-    cylinder(h=30, d=4.2);
+    cylinder(h=100, d=4.3);
   }
+}
+
+module tube_2d() {
+  translate([0, -15])
+  intersection() {
+    square(30, center=true);
+    circle(d=35, $fn=40);
+  }
+}
+
+module lip_2d() {
+  hull() {
+    tube_2d();
+
+    translate([0, lip])
+    tube_2d();
+  }
+}
+
+module base_2d() {
+  translate([front_wall-base.x, lip + clearance])
+  square(base);
+}
+
+module cutout_2d() {
+  translate([-front_wall, 10])
+  base_2d();
 }
 
 module piece() {
   difference() {
-    exterior();
+    union() {
+      linear_extrude(arm_thickness + eps)
+      hull() {
+        tube_2d();
+        base_2d();
+      }
+      
+      translate([0, 0, arm_thickness]) {
+        linear_extrude(tube_length + eps)
+        tube_2d();
+        
+        // Fillet at stress point.
+        hull() {
+          translate([0, 2, 0])
+          linear_extrude(eps) tube_2d();
+          
+          translate([0, 0, 2])
+          linear_extrude(eps) tube_2d();
+        }
+        
+        linear_extrude(base_length - arm_thickness)
+        base_2d();
+
+        translate([0, 0, tube_length])
+        linear_extrude(5)
+        lip_2d();
+      }
+    }
     
-    translate([leg.x - base.x/2, base.y-10])
+    translate([0, 0, -1])
+    linear_extrude(150)
+    cutout_2d();
+  
+    // Front screw holes.
+    for (z = [15, base_length-15])
+    translate([front_wall, lip + clearance + base.y*0.7, z])
+    rotate([0, 90, 0])
     screw_hole();
     
-    for (x = [leg.x/2, leg.x*1.5-base.x])
-    translate([x, 16])
-    screw_hole();
+    // TODO: bottom screwn hole
   }
 }
 
