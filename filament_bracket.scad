@@ -9,19 +9,21 @@ arm_thickness = 26;
 tube_length = 90;
 
 // #8 wood screw.
-module screw_hole() {
+module screw_hole(small=false) {
   $fn = 16;
+  
+  head_diam = small ? 8 : 8.2;
 
   scale([1, 1, -1]) {
     translate([0, 0, -100])
     linear_extrude(101.1)
-    circle(d=8.2);
+    circle(d=head_diam);
     
     translate([0, 0, 1.1 - 0.01])
     linear_extrude(3.9, scale=0)
-    circle(d=8.2);
+    circle(d=head_diam);
     
-    cylinder(h=100, d=4.3);
+    cylinder(h=100, d=small ? 3.8 : 4.3);
   }
 }
 
@@ -92,8 +94,18 @@ module piece() {
     translate([front_wall, lip + clearance + base.y*0.7, z])
     rotate([0, 90, 0])
     screw_hole();
-    
-    // TODO: bottom screwn hole
+
+    // Bottom screw hole.
+    translate([front_wall - base.x + 15, lip + clearance, base_length*0.5])
+    rotate([90, 0, 0])
+    screw_hole(small=true);
+  
+    // Cut excess material from the furthest corner.
+    // TUNED
+    translate([0, 100, 60])
+    rotate([0, -40, 0])
+    translate([0, 0, 100])
+    cube(150, center=true);
   }
 }
 
