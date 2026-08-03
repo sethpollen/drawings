@@ -1,8 +1,8 @@
 eps = 0.001;
 
-base = [65, 45];
+base = [65, 46];
 base_length = 90;
-clearance = 95;
+clearance = 97;
 lip = 7;
 front_wall = 15;
 arm_thickness = 26;
@@ -38,11 +38,16 @@ module tube_2d() {
 }
 
 module lip_2d() {
-  hull() {
+  minkowski() {
     tube_2d();
-
-    translate([0, lip])
-    tube_2d();
+    
+    intersection() {
+      circle(r=lip);
+      
+      intersection_for (a = [30, 90])
+      rotate([0, 0, a])
+      square(30);
+    }
   }
 }
 
@@ -69,7 +74,7 @@ module piece() {
         linear_extrude(tube_length + eps)
         tube_2d();
         
-        // Fillet at stress point.
+        // Fillet at lower stress point.
         hull() {
           translate([0, 2, 0])
           linear_extrude(eps) tube_2d();
@@ -93,7 +98,7 @@ module piece() {
   
     // Front screw holes.
     for (z = [15, base_length-15])
-    translate([front_wall, lip + clearance + base.y*0.7, z])
+    translate([front_wall, lip + clearance + base.y*0.72, z])
     rotate([0, 90, 0])
     screw_hole();
 
@@ -108,12 +113,22 @@ module piece() {
     rotate([0, -40, 0])
     translate([0, 0, 100])
     cube(150, center=true);
+    
+    // Bevel the front.
+    translate([front_wall, lip + clearance + base.y + 2])
+    rotate([0, 0, 55])
+    cube([10, 10, 300], center=true);
   }
   
   // Fillet in the corner by the 2x4.
   translate([0, lip + clearance + 10, base_length/2])
   rotate([0, 0, 45])
   cube([1.5, 1.5, base_length], center=true);
+  
+  // Fillet at the upper stress point.
+  translate([front_wall - base.x/2, lip + clearance, arm_thickness])
+  rotate([45, 0, 0])
+  cube([base.x - 1.5, 3, 3], center=true);
 }
 
 module print() {
@@ -121,4 +136,13 @@ module print() {
   piece();
 }
 
-print();
+module preview() {
+  print();
+  
+  // The 2x4.
+  color("red")
+  translate([-50, lip + clearance + 10])
+  cube([200, 1.5*25.4, 3.5*25.4]);
+}
+  
+piece();
