@@ -305,4 +305,4 @@ module room4() {
       square(3.5*room_separation, center=true);
 }
 
-room4();
+piece(knurl=true);

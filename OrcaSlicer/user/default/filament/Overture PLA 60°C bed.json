@@ -1,0 +1,21 @@
+{
+	"compatible_printers": [
+		"Elegoo Neptune 4 Plus 0.4 nozzle"
+	],
+	"filament_extruder_variant": [
+		"Direct Drive Standard"
+	],
+	"filament_settings_id": [
+		"Overture PLA 60°C bed"
+	],
+	"from": "User",
+	"hot_plate_temp": [
+		"57"
+	],
+	"hot_plate_temp_initial_layer": [
+		"60"
+	],
+	"inherits": "Overture PLA @System",
+	"name": "Overture PLA 60°C bed",
+	"version": "2.4.0.3"
+}
