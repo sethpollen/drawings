@@ -1,5 +1,5 @@
-top_diam = 305;
-hole_diam = 49;
+top_diam = 295;
+hole_diam = 40;
 outer_thickness = 46;
 total_height = 420;
 
@@ -42,7 +42,7 @@ module legs(extra_diam=0) {
   difference() {
     for (a = [0, 90, 180, 270])
     rotate([0, 0, a])
-    translate([85, 0])
+    translate([80, 0])
     rotate([0, -tilt_angle, 0])
     translate([0, 0, -total_height - 100 - down])
     cylinder(d=diam, h=total_height+100, $fn=30);
