@@ -1,6 +1,6 @@
 top_diam = 305;
 hole_diam = 49;
-outer_thickness = 50;
+outer_thickness = 46;
 total_height = 420;
 
 module top_profile_2d() {
