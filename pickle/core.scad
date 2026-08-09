@@ -1,37 +1,12 @@
 use <paddle.scad>
 
-layer = 0.15;
+layer = 0.16;
 
-intersection_for(z = layer * [
-  /* Floor: 6 total layers
-       <interior>
-         solid
-         solid   <- bottom layer of core
-         50%
-         50%
-         solid
-         solid
-       <exterior>
-  */
-  4,
-
-  /* Ceiling: 8 total layers
-       <exterior>
-         solid (partially to be sanded off)
-         solid
-         solid
-         50%
-         50%
-         solid   <- top layer of core
-         solid
-         solid
-       <interior>
-  */
-  -5
-])
+print_position()
+intersection_for(z = layer * [4, -4])
 translate([0, 0, z])
 simple_exterior();
 
-// A reference for positioning the model vertically in Cura.
-translate([-50, 0])
+// A reference for positioning the model vertically in the slicer.
+translate([-90, 0])
 cube(1);

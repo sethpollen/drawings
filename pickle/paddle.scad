@@ -596,6 +596,7 @@ module bottom() {
   }
 }
 
+
 module unibody() {
   difference() {
     // Combine the wedge and grip.
@@ -629,4 +630,19 @@ module unibody() {
   shelf();
 }
 
-unibody();
+module print_position() {
+  translate([-39, -84])
+  rotate([0, 0, -33])
+  children();
+}
+
+module print_position_test() {
+  color("red")
+  linear_extrude(1)
+  square(320, center=true);
+
+  print_position()
+  simple_exterior();
+}
+
+print_position_test();

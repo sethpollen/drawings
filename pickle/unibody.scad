@@ -1,5 +1,6 @@
 use <paddle.scad>
 
+print_position()
 difference() {
   unibody();
 
