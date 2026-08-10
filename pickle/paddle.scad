@@ -342,7 +342,6 @@ module simple_exterior() {
 }
 
 // Make sure the top sheet continues under the shelf.
-// TODO: include these in the print
 module shelf_perforations() {
   intersection() {
     shelf();
@@ -394,7 +393,10 @@ module unibody() {
     cube([500, 500, knurl_groove_layers*layer*2], center=true);
   }
 
-  shelf();
+  difference() {
+    shelf();
+    shelf_perforations();
+  }
 }
 
 // Position on the Neptune 4 Plus build plate.
@@ -404,13 +406,5 @@ module print_position() {
   children();
 }
 
-module print_position_test() {
-  color("red")
-  linear_extrude(1)
-  square(320, center=true);
-
-  print_position()
-  simple_exterior();
-}
-
+print_position()
 unibody();
