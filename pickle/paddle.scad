@@ -344,14 +344,11 @@ module simple_exterior() {
 // Make sure the top sheet continues under the shelf.
 // TODO: include these in the print
 module shelf_perforations() {
-  // TODO: adapt to new layer height
-  thickness = 0.15; // 1 layer.
-  
   intersection() {
     shelf();
     
     difference() {
-      translate([0, 0, thickness])
+      translate([0, 0, layer])
       simple_exterior();
       
       simple_exterior();
