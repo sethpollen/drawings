@@ -231,8 +231,7 @@ module linear_extrude_eps(h) {
   children();
 }
 
-// TODO: adapt to new layer height
-knurl_groove_depth = 0.45;
+knurl_groove_layers = 3;
 
 // Width of the three steps, from deepest to shallowest.
 knurl_groove_widths = [1.2, 1.7, 2.2];
@@ -297,12 +296,12 @@ module grip() {
 
 module knurled_grip() {
   // Bottom of the grooves.
-  grip($grip_offs=-knurl_groove_depth);
+  grip($grip_offs=-knurl_groove_layers*layer);
 
   // Stair steps.
-  for (i = [0, 1, 2])
+  for (i = [0:knurl_groove_layers-1])
   difference() {
-    grip($grip_offs=-knurl_groove_depth*(2-i)/3);
+    grip($grip_offs=-layer*(knurl_groove_layers-1-i));
     knurling_rays(knurl_groove_widths[i]);
   }
 }
@@ -371,9 +370,9 @@ module unibody() {
     
     // Cut the same knurling grooves into the fillet, to match the grip knurling
     // grooves.
-    for (i = [0, 1, 2])
+    for (i = [0:knurl_groove_layers-1])
     for (a = [-1, 1])
-    translate([0, 0, a * (max_thickness - knurl_groove_depth*(3-i)/3)])
+    translate([0, 0, a * (max_thickness - layer*(knurl_groove_layers-i))])
     knurling_rays(knurl_groove_widths[i], max_a=35);
   }
 
@@ -391,11 +390,11 @@ module unibody() {
   // Make the knurl grooves slightly shallower on the top and
   // bottom surfaces, for a more continuous sheet.
   intersection() {
-    grip($grip_offs=-knurl_groove_depth*2/3);
+    grip($grip_offs=layer*(1-knurl_groove_layers));
 
     for(z = [0, max_thickness])
     translate([0, 0, z])
-    cube([500, 500, knurl_groove_depth*2], center=true);
+    cube([500, 500, knurl_groove_layers*layer*2], center=true);
   }
 
   shelf();
