@@ -1,3 +1,0 @@
-use <paddle.scad>
-
-top();

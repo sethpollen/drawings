@@ -1,5 +1,3 @@
-use <finger.scad>
-
 mark_number = 8;
 
 // Parameters for the overall shape.
@@ -19,19 +17,8 @@ min_thickness = 7.9;
 
 grip_width = 34.6;
 
-// Parameter for slicing into printable sections.
-top_length = 216 - finger_length()/2;
-
-// The distance between the two critical points: The shelf and the finger joint.
-middle_length = wedge_length - top_length;
-
 bridge_length = wedge_length + bridge_grip_overlap - fan_length;
 
-// Linear interpolation.
-finger_thickness =
-  min_thickness*middle_length/wedge_length +
-  max_thickness*top_length/wedge_length;
-  
 wedge_angle = atan(
   (max_thickness - min_thickness) / (2 * wedge_length));
   
@@ -44,7 +31,6 @@ tab_height = 0.45;
 tab_x = 72; // TUNED
 
 // Optimization switches. Set to true for the real build.
-$opt_fingers = true;
 $opt_knurl = true;
 
 function bulge_radius(thickness, intercept_angle) =
@@ -396,10 +382,9 @@ module simple_exterior() {
   grip();
 }
 
-perforation_width = 0.2;
-
 // Make sure the top sheet continues under the shelf.
 module shelf_perforations() {
+  // TODO:
   thickness = 0.15; // 1 layer.
   
   intersection() {
@@ -414,188 +399,9 @@ module shelf_perforations() {
 
     for (y = [-15:1.5:5])
     translate([0, y, 20])
-    cube([40, perforation_width, 40], center=true);
+    cube([40, 0.2, 40], center=true);
   }
 }
-
-// Add material at the corners of the neck.
-module strength_perforations_fence(inset, y_min, y_max) {
-  linear_extrude(max_thickness+1)
-  intersection() {
-    difference() {
-      // Don't use `delta` for these offsets; it leads to weird
-      // corners.
-      
-      offset(-inset)
-      projection() simple_exterior();
-
-      offset(-inset-perforation_width)
-      projection() simple_exterior();
-    }
-
-    translate([-200, y_min])
-    square([400, y_max-y_min]);
-  }
-}
-
-// Perforations along the four corners of the neck, to add material for
-// strength. Requires 1 child, which defines the vertical "fence."
-module strength_perforations() {
-  depth = 1.1;
-  thickness = 0.15; // 1 layer.
-  
-  for (a = [-1, 1])
-  difference() {
-    intersection() {
-      steps = 6;
-      
-      for (i = [0:steps])
-      strength_perforations_fence(
-        inset = 5 + 9*i/steps,
-        y_min = -(75 - 39*i/steps),
-        y_max = 27 - 28*i/steps
-      );
-      
-      translate([0, 0, a*depth])
-      simple_exterior();
-    }
-    
-    // Cut to thickness in the z dimension.
-    translate([0, 0, a*(depth+thickness)])
-    simple_exterior();
-  }
-}
-
-module bottom_perforations() {
-  shelf_perforations();
-  strength_perforations();
-}
-
-// Chamfer the bottom edge at the finger joint. This avoids elephant
-// foot in a critical area.
-module joint_chamfer() {
-  w = 0.49;
-  rotate([45, 0, 0])
-  cube([250, w, w], center=true);
-}
-
-lock_hole_play = 0.05;
-
-// A hole through which I can insert a piece of filament, to lock the two
-// parts together while the epoxy sets.
-module lock_hole() {
-  translate([-width/2, middle_length-2.5, finger_thickness/2])
-  rotate([0, 90, 0])
-  linear_extrude(width)
-  // A strand of filament is nominally 1.75mm. Allow some play, but not much.
-  // A bit more play vertically, where the tightness doesn't matter.
-  scale([1.75, 1.75] + [0.6, 0.2])
-  // Octagonal cross-section.
-  intersection_for(a = [0, 45])
-  rotate([0, 0, a])
-  square(1, center=true);
-}
-
-module top() {
-  translate([0, middle_length]) {
-    difference() {
-      translate([0, -middle_length])
-      wedge();
-        
-      translate([0, -200])
-      cube([400, 400, 100], center=true);
-
-      joint_chamfer();
-
-      // Negative fingers.
-      if ($opt_fingers)
-      extrude_fingers(thickness=finger_thickness,
-                      cavity=true);
-    }
-      
-    // Positive fingers.
-    difference() {
-      if ($opt_fingers)
-      extrude_fingers(thickness=finger_thickness,
-                      cavity=false, complement=true, rot=true);
-      
-      translate([0, -middle_length-lock_hole_play])
-      lock_hole();
-    }
-
-    // Tabs.
-    linear_extrude(tab_height)
-    for (a = [-1, 1])
-    translate([a*tab_x, 0])
-    circle(d=10);
-  }
-}
-
-module bottom() {
-  difference() {
-    // Combine the wedge and grip.
-    union() {
-      difference() {
-        wedge();
-      
-        // Cut off the `top`.
-        translate([0, 200 + middle_length])
-        cube([400, 400, 70], center=true);
-      }
-      
-      grip($grip_knurl=true);
-    }
-    
-    translate([0, lock_hole_play])
-    lock_hole();
-    
-    translate([0, middle_length]) {
-      joint_chamfer();
-
-      // Negative fingers.
-      if ($opt_fingers)
-      extrude_fingers(thickness=finger_thickness,
-                      cavity=true, complement=true, rot=true);
-    }
-
-    // Mark number.
-    translate([-60, -99.2, 4.8]) // TUNED
-    rotate([90, 0, -15])
-    linear_extrude(10)
-    offset(delta=0.7)
-    text(str(mark_number), size=14.5);
-    
-    // Knurl the top and bottom surfaces, to align with the grip knurl
-    // grooves.
-    knurling($grip_2d_extend_sideways=true);
-  }
-  
-  // Make the knurl grooves 1 layer shallower on the top and
-  // bottom surfaces, for a more continuous sheet.
-  intersection() {
-    grip($grip_offs=-0.3);
-
-    for(z = [0, max_thickness])
-    translate([0, 0, z])
-    cube([500, 500, knurl_groove_depth*2], center=true);
-  }
-
-  shelf();
-  
-  translate([0, middle_length]) {
-    // Positive fingers.
-    if ($opt_fingers)
-    extrude_fingers(thickness=finger_thickness,
-                    cavity=false, complement=false);
-
-    // Tabs.
-    linear_extrude(tab_height)
-    for (a = [-1, 1])
-    translate([a*tab_x, 0])
-    circle(d=10);
-  }
-}
-
 
 module unibody() {
   difference() {
@@ -617,7 +423,7 @@ module unibody() {
     knurling($grip_2d_extend_sideways=true);
   }
   
-  // Make the knurl grooves 1 layer shallower on the top and
+  // Make the knurl grooves slightly shallower on the top and
   // bottom surfaces, for a more continuous sheet.
   intersection() {
     grip($grip_offs=-0.3);
@@ -630,6 +436,7 @@ module unibody() {
   shelf();
 }
 
+// Position on the Neptune 4 Plus build plate.
 module print_position() {
   translate([-39, -84])
   rotate([0, 0, -33])
@@ -645,4 +452,6 @@ module print_position_test() {
   simple_exterior();
 }
 
-print_position_test();
+render()
+print_position()
+unibody();
