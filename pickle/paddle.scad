@@ -335,22 +335,20 @@ module shelf() {
   cube([grip_width*0.55, 3.3, 3.3], center=true);
 }
 
-// No knurling, no shelf.
-module simple_exterior() {
-  wedge();
-  grip();
-}
-
 // Make sure the top sheet continues under the shelf.
 module shelf_perforations() {
   intersection() {
     shelf();
     
     difference() {
-      translate([0, 0, layer])
-      simple_exterior();
-      
-      simple_exterior();
+      translate([0, 0, layer]) {
+        wedge();
+        grip();
+      }
+      {
+        wedge();
+        grip();
+      }
     }
 
     for (y = [-15:1.5:5])
@@ -401,10 +399,15 @@ module unibody() {
 
 // Position on the Neptune 4 Plus build plate.
 module print_position() {
-  translate([-39, -84])
+  translate([-40, -85])
   rotate([0, 0, -33])
   children();
 }
 
-print_position()
-unibody();
+// A large square that defines the model's bounding box. This helps Orca
+// to place all of the modifiers in the proper alignment.
+module positioning_square() {
+  translate([0, 0, -1])
+  linear_extrude(0.2)
+  square(310, center=true);
+}
