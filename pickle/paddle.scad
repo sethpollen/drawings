@@ -1,4 +1,5 @@
 mark_number = 8;
+layer = 0.16;
 
 // Parameters for the overall shape.
 width = 199.5;
@@ -23,15 +24,10 @@ wedge_angle = atan(
   (max_thickness - min_thickness) / (2 * wedge_length));
   
 // Default values.
-$grip_knurl = false;
 $grip_offs = 0;
-$grip_2d_extend_sideways = false;
-
-tab_height = 0.45;
-tab_x = 72; // TUNED
 
 // Optimization switches. Set to true for the real build.
-$opt_knurl = true;
+$opt_knurl = true; // TODO: remove
 
 function bulge_radius(thickness, intercept_angle) =
   thickness / (2 * sin(intercept_angle));
@@ -196,24 +192,19 @@ module wedge_top_cut() {
 module grip_2d() {
   flats = 11;
   
-  offset(delta=$grip_offs) {
-    intersection() {
-      // Main profile, rounded on both sides.
-      hull()
-      for (a = [-1, 1])
-      scale([1, a])
-      translate([0, flats/2])
-      scale([grip_width/2, (1.12*max_thickness - flats)/2])
-      circle($fn=18, r=1);
-      
-      // Cut off to meet the build plate.
-      translate([-30, max_thickness/2 - max_thickness])
-      square([60, max_thickness]);
-    }
+  offset(delta=$grip_offs)
+  intersection() {
+    // Main profile, rounded on both sides.
+    hull()
+    for (a = [-1, 1])
+    scale([1, a])
+    translate([0, flats/2])
+    scale([grip_width/2, (1.12*max_thickness - flats)/2])
+    circle($fn=18, r=1);
     
-    // Add the extension, if requested.
-    if ($grip_2d_extend_sideways)
-    square([50, max_thickness], center=true);
+    // Cut off to meet the build plate.
+    translate([-30, max_thickness/2 - max_thickness])
+    square([60, max_thickness]);
   }
 }
 
@@ -243,7 +234,11 @@ module linear_extrude_eps(h) {
   children();
 }
 
+// TODO: adapt to new layer height
 knurl_groove_depth = 0.45;
+
+// Width of the three steps, from deepest to shallowest.
+knurl_groove_widths = [1.2, 1.7, 2.2];
 
 module knurling_rays(groove_width) {
   translate([-100, 0, -1])
@@ -253,97 +248,65 @@ module knurling_rays(groove_width) {
   cube([200, groove_width, max_thickness + 2]);
 }
 
-module knurling() {
-  if ($opt_knurl) {
-    // Deep, narrow grooves.
-    intersection() {
-      knurling_rays(1.2);
-      
-      difference() {
-        grip($grip_offs=0.1);
-        grip($grip_offs=-knurl_groove_depth);
-      }
-    }
-    
-    // Middle step.
-    intersection() {
-      knurling_rays(1.7);
-      
-      difference() {
-        grip($grip_offs=0.1);
-        grip($grip_offs=-knurl_groove_depth*2/3);
-      }
-    }
-
-    // Shallow, wide grooves.
-    intersection() {
-      knurling_rays(2.2);
-      
-      difference() {
-        grip($grip_offs=0.1);
-        grip($grip_offs=-knurl_groove_depth*1/3);
-      }
-    }
-  }
-}
-
 module grip() {
-  if ($grip_knurl) {
-    $grip_knurl = false;
-
-    // Apply knurling and then recurse.
-    difference() {
-      grip();
-      knurling();
-    }
-  } else {
-    $fn = 40;
-    
-    straight1 = 12;
-    elbow1 = [70, 39];
-    straight2 = 32.9;
-    
-    difference() {
-      translate([0, 0, max_thickness/2])
-      rotate([90, 0, 0]) {
-        // Add some length to make sure the grip smoothly meets the wedge. This
-        // also makes the bottom axial groove extend into the wedge a bit,
-        // avoiding correlated weak areas.
-        straight_extension = 18;
-        translate([0, 0, -straight_extension])
-        linear_extrude_eps(straight1 + straight_extension) grip_2d();
-              
-        translate([0, 0, straight1])
-        scale([-1, 1]) {
-          rotate_up_extrude(elbow1) grip_2d();
-
-          rotate_up(elbow1) {
-            linear_extrude_eps(straight2) grip_2d();
+  $fn = 40;
+  
+  straight1 = 12;
+  elbow1 = [70, 39];
+  straight2 = 32.9;
+  
+  difference() {
+    translate([0, 0, max_thickness/2])
+    rotate([90, 0, 0]) {
+      // Add some length to make sure the grip smoothly meets the wedge. This
+      // also makes the bottom axial groove extend into the wedge a bit,
+      // avoiding correlated weak areas.
+      straight_extension = 18;
+      translate([0, 0, -straight_extension])
+      linear_extrude_eps(straight1 + straight_extension) grip_2d();
             
-            translate([0, 0, straight2])
+      translate([0, 0, straight1])
+      scale([-1, 1]) {
+        rotate_up_extrude(elbow1) grip_2d();
+
+        rotate_up(elbow1) {
+          linear_extrude_eps(straight2) grip_2d();
+          
+          translate([0, 0, straight2])
+          intersection() {
+            // The final elbow is the intersection of two different
+            // extrusions, which lets us taper the end.
+            rotate_up_extrude([32, 115], $fn=19) grip_2d();
+            
+            tight_r = 14;
+            rotate_up_extrude([tight_r, 180], $fn=22)
             intersection() {
-              // The final elbow is the intersection of two different
-              // extrusions, which lets us taper the end.
-              rotate_up_extrude([32, 115], $fn=19) grip_2d();
-              
-              tight_r = 14;
-              rotate_up_extrude([tight_r, 180], $fn=22)
-              intersection() {
-                grip_2d();
-                // Avoid a negative x-coordinate for the tight
-                // rotate_extrude.
-                translate([tight_r-grip_width/2, 0])
-                square(grip_width, center=true);
-              }
+              grip_2d();
+              // Avoid a negative x-coordinate for the tight
+              // rotate_extrude.
+              translate([tight_r-grip_width/2, 0])
+              square(grip_width, center=true);
             }
           }
         }
       }
-      
-      // Cut the part of the grip that would protrude above the hitting
-      // surface.
-      wedge_top_cut();
     }
+    
+    // Cut the part of the grip that would protrude above the hitting
+    // surface.
+    wedge_top_cut();
+  }
+}
+
+module knurled_grip() {
+  // Bottom of the grooves.
+  grip($grip_offs=-knurl_groove_depth);
+
+  // Stair steps.
+  for (i = [0, 1, 2])
+  difference() {
+    grip($grip_offs=-knurl_groove_depth*(2-i)/3);
+    knurling_rays(knurl_groove_widths[i]);
   }
 }
 
@@ -383,8 +346,9 @@ module simple_exterior() {
 }
 
 // Make sure the top sheet continues under the shelf.
+// TODO: include these in the print
 module shelf_perforations() {
-  // TODO:
+  // TODO: adapt to new layer height
   thickness = 0.15; // 1 layer.
   
   intersection() {
@@ -404,12 +368,10 @@ module shelf_perforations() {
 }
 
 module unibody() {
+  wedge();
+
   difference() {
-    // Combine the wedge and grip.
-    union() {
-      wedge();
-      grip($grip_knurl=true);
-    }
+    knurled_grip();
 
     // Mark number.
     translate([-60, -99.2, 4.8]) // TUNED
@@ -417,20 +379,6 @@ module unibody() {
     linear_extrude(10)
     offset(delta=0.7)
     text(str(mark_number), size=14.5);
-    
-    // Knurl the top and bottom surfaces, to align with the grip knurl
-    // grooves.
-    knurling($grip_2d_extend_sideways=true);
-  }
-  
-  // Make the knurl grooves slightly shallower on the top and
-  // bottom surfaces, for a more continuous sheet.
-  intersection() {
-    grip($grip_offs=-0.3);
-
-    for(z = [0, max_thickness])
-    translate([0, 0, z])
-    cube([500, 500, knurl_groove_depth*2], center=true);
   }
 
   shelf();
@@ -453,5 +401,4 @@ module print_position_test() {
 }
 
 render()
-print_position()
 unibody();
