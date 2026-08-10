@@ -26,9 +26,6 @@ wedge_angle = atan(
 // Default values.
 $grip_offs = 0;
 
-// Optimization switches. Set to true for the real build.
-$opt_knurl = true; // TODO: remove
-
 function bulge_radius(thickness, intercept_angle) =
   thickness / (2 * sin(intercept_angle));
 
@@ -240,12 +237,12 @@ knurl_groove_depth = 0.45;
 // Width of the three steps, from deepest to shallowest.
 knurl_groove_widths = [1.2, 1.7, 2.2];
 
-module knurling_rays(groove_width) {
-  translate([-100, 0, -1])
-  for (a = [8.5:3.3:80])
+module knurling_rays(groove_width, max_a=80) {
+  translate([-100, 0, -0.001])
+  for (a = [8.5:3.3:max_a])
   rotate([0, 0, -a])
   translate([0, -groove_width/2, 0])
-  cube([200, groove_width, max_thickness + 2]);
+  cube([200, groove_width, max_thickness + 0.002]);
 }
 
 module grip() {
@@ -368,7 +365,17 @@ module shelf_perforations() {
 }
 
 module unibody() {
-  wedge();
+  difference() {
+    color("cyan")
+    wedge();
+    
+    // Cut the same knurling grooves into the fillet, to match the grip knurling
+    // grooves.
+    for (i = [0, 1, 2])
+    for (a = [-1, 1])
+    translate([0, 0, a * (max_thickness - knurl_groove_depth*(3-i)/3)])
+    knurling_rays(knurl_groove_widths[i], max_a=35);
+  }
 
   difference() {
     knurled_grip();
@@ -379,6 +386,16 @@ module unibody() {
     linear_extrude(10)
     offset(delta=0.7)
     text(str(mark_number), size=14.5);
+  }
+  
+  // Make the knurl grooves slightly shallower on the top and
+  // bottom surfaces, for a more continuous sheet.
+  intersection() {
+    grip($grip_offs=-knurl_groove_depth*2/3);
+
+    for(z = [0, max_thickness])
+    translate([0, 0, z])
+    cube([500, 500, knurl_groove_depth*2], center=true);
   }
 
   shelf();
@@ -400,5 +417,4 @@ module print_position_test() {
   simple_exterior();
 }
 
-render()
 unibody();
