@@ -1,0 +1,15 @@
+{
+	"filament_extruder_variant": [
+		"Direct Drive Standard"
+	],
+	"filament_max_volumetric_speed": [
+		"6"
+	],
+	"filament_settings_id": [
+		"Slow-print PETG"
+	],
+	"from": "User",
+	"inherits": "Generic PETG @Elegoo",
+	"name": "Slow-print PETG",
+	"version": "2.4.0.6"
+}

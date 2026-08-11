@@ -2,7 +2,7 @@ use <paddle.scad>
 
 positioning_square();
 
-print_position() {
+module core() {
   // The main part of the core.
   intersection_for(z = [
     // The very first layer is 0.2mm instead of 0.16mm. The floor consists of two
@@ -25,4 +25,10 @@ print_position() {
       grip();
     }
   }
+}
+
+print_position()
+intersection() {
+  core();
+  sample_cut();
 }

@@ -3,4 +3,7 @@ use <paddle.scad>
 positioning_square();
 
 print_position()
-unibody();
+intersection() {
+  unibody();
+  sample_cut();
+}
