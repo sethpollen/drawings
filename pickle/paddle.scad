@@ -13,15 +13,15 @@ wedge_length = 257;
 bridge_grip_overlap = 20;
 
 // Make a wedge shape.
-max_thickness = 24;
-min_thickness = 7.9;
+function max_thickness() = 24;
+function min_thickness() = 7.9;
 
 grip_width = 34.6;
 
 bridge_length = wedge_length + bridge_grip_overlap - fan_length;
 
 wedge_angle = atan(
-  (max_thickness - min_thickness) / (2 * wedge_length));
+  (max_thickness() - min_thickness()) / (2 * wedge_length));
   
 // Default values.
 $grip_offs = 0;
@@ -59,7 +59,7 @@ module fan_piece(flip, x, y,
     left_xy=[0, 0]
 ) {
   y_frac = y/wedge_length;
-  thickness = (1 - y_frac)*max_thickness + y_frac*min_thickness;
+  thickness = (1 - y_frac)*max_thickness() + y_frac*min_thickness();
 
   intersection() {
     for (a = [-1, 1])   
@@ -81,7 +81,7 @@ module fan_piece(flip, x, y,
     
     // Chop off anything that goes above the max_thickness. This avoids
     // flattening the gentle_top_curve when hull'ing with a taller piece.
-    translate([-400, -400, max_thickness/2-100])
+    translate([-400, -400, max_thickness()/2-100])
     cube([800, 800, 101]);
   }
 }
@@ -137,7 +137,7 @@ module fillet() {
     }
     
     // Cut to the right thickness.
-    cube([200, 200, max_thickness], center=true);
+    cube([200, 200, max_thickness()], center=true);
   }
 }
 
@@ -145,7 +145,7 @@ module wedge() {
   difference() {
     // "Unwedge" the piece, so that one surface coincides with the xy-plane.
     rotate([-wedge_angle, 0, 0])
-    translate([0, 0, max_thickness/2])
+    translate([0, 0, max_thickness()/2])
     difference() {
       union() {
         fan();
@@ -162,25 +162,25 @@ module wedge() {
       // Cut in the wedge surface.
       for (a = [-1, 1])
       scale([1, 1, a])
-      translate([0, 0, max_thickness/2])
+      translate([0, 0, max_thickness()/2])
       rotate([-wedge_angle, 0, 0])
       translate([0, 0, 20])
       cube([width, 600, 40], center=true);
     }
 
     // Flatten the stem that intersects with the grip.
-    translate([-100, -100, max_thickness])
+    translate([-100, -100, max_thickness()])
     cube([200, 200, 10]);
   }
   
   // Don't tilt the fillet by the wedge_angle.
-  translate([0, 0, max_thickness/2])
+  translate([0, 0, max_thickness()/2])
   fillet();
 }
 
 module wedge_top_cut() {
   rotate([-wedge_angle, 0, 0])
-  translate([0, 0, max_thickness])
+  translate([0, 0, max_thickness()])
   rotate([-wedge_angle, 0, 0])
   translate([0, 0, 20])
   cube([width, 600, 40], center=true);
@@ -196,12 +196,12 @@ module grip_2d() {
     for (a = [-1, 1])
     scale([1, a])
     translate([0, flats/2])
-    scale([grip_width/2, (1.12*max_thickness - flats)/2])
+    scale([grip_width/2, (1.12*max_thickness() - flats)/2])
     circle($fn=18, r=1);
     
     // Cut off to meet the build plate.
-    translate([-30, max_thickness/2 - max_thickness])
-    square([60, max_thickness]);
+    translate([-30, max_thickness()/2 - max_thickness()])
+    square([60, max_thickness()]);
   }
 }
 
@@ -241,7 +241,7 @@ module knurling_rays(groove_width, max_a=80) {
   for (a = [8.5:3.3:max_a])
   rotate([0, 0, -a])
   translate([0, -groove_width/2, 0])
-  cube([200, groove_width, max_thickness + 0.002]);
+  cube([200, groove_width, max_thickness() + 0.002]);
 }
 
 module grip() {
@@ -252,7 +252,7 @@ module grip() {
   straight2 = 32.9;
   
   difference() {
-    translate([0, 0, max_thickness/2])
+    translate([0, 0, max_thickness()/2])
     rotate([90, 0, 0]) {
       // Add some length to make sure the grip smoothly meets the wedge. This
       // also makes the bottom axial groove extend into the wedge a bit,
@@ -313,7 +313,7 @@ module shelf() {
   
   // Narrow it slightly.
   scale([0.95, 1, 1])
-  translate([0, 0, max_thickness/2])
+  translate([0, 0, max_thickness()/2])
   rotate([90, 0, 0])
   hull() {
     translate([0, shelf_width, 0]) {
@@ -330,7 +330,7 @@ module shelf() {
   }
   
   // Fill the angle between the shelf and surface, just a little bit.
-  translate([-grip_width*0.05, 0, max_thickness-1])
+  translate([-grip_width*0.05, 0, max_thickness()-1])
   rotate([45, 0, 0])
   cube([grip_width*0.55, 3.3, 3.3], center=true);
 }
@@ -351,9 +351,9 @@ module shelf_perforations() {
       }
     }
 
-    for (y = [-15:1.5:5])
+    for (y = [-15:1.6:5])
     translate([0, y, 20])
-    cube([40, 0.2, 40], center=true);
+    cube([40, 0.35, 40], center=true);
   }
 }
 
@@ -366,7 +366,7 @@ module unibody() {
     // grooves.
     for (i = [0:knurl_groove_layers-1])
     for (a = [-1, 1])
-    translate([0, 0, a * (max_thickness - layer*(knurl_groove_layers-i))])
+    translate([0, 0, a * (max_thickness() - layer*(knurl_groove_layers-i))])
     knurling_rays(knurl_groove_widths[i], max_a=35);
   }
 
@@ -386,7 +386,7 @@ module unibody() {
   intersection() {
     grip($grip_offs=layer*(1-knurl_groove_layers));
 
-    for(z = [0, max_thickness])
+    for(z = [0, max_thickness()])
     translate([0, 0, z])
     cube([500, 500, knurl_groove_layers*layer*2], center=true);
   }
@@ -415,8 +415,9 @@ module positioning_square() {
 // Grabs a sample of the paddle surface, for a test print.
 // TODO: remove when done
 module sample_cut() {
-  linear_extrude(max_thickness)
+  linear_extrude(max_thickness())
   translate([-30, wedge_length-59])
   square([60, 60]);
 }
 
+shelf_perforations();

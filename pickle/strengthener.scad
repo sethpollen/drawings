@@ -15,13 +15,17 @@ module strake(width, top, bottom) {
     
     translate([-200, top]) square(400);
     translate([-200, -bottom-400]) square(400);
+    
+    // Don't add any material to the hooked part; it is not under
+    // high stress.
+    translate([-260, -200]) square(200);
   }
 }
 
 module strakes_2d() {
   steps = 30;
   for (i = [0:steps-1])
-  strake(13*i/steps, 48-47*i/steps, 62-38*i/steps);
+  strake(14*i/steps, 54-53*i/steps, 99-70*i/steps);
 }
 
 module preview() {
@@ -34,15 +38,12 @@ module preview() {
 }
 
 module strakes() {
-  linear_extrude(40)
+  linear_extrude(max_thickness())
   strakes_2d();
 }
 
-module print() {
-  positioning_square();
+color("cyan")
+positioning_square();
 
-  print_position()
-  strakes();
-}
-
-print();
+print_position()
+strakes();
