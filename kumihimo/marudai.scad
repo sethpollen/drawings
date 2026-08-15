@@ -3,14 +3,16 @@ hole_diam = 40;
 outer_thickness = 46;
 total_height = 420;
 
+outer_r = outer_thickness * 0.4;
+inner_r = outer_thickness * 0.2;
+
+notch_diam = 9;
+
 module top_profile_2d() {
   $fn = 40;
 
   plateau_width = top_diam * 0.16;
   inner_thickness = outer_thickness - 15;
-
-  outer_r = outer_thickness * 0.4;
-  inner_r = outer_thickness * 0.2;
 
   hull() {
     translate([top_diam/2, 0]) {
@@ -55,6 +57,32 @@ module legs(extra_diam=0) {
   }
 }
 
+module notch_2d() {
+  translate([outer_r, 0])
+  circle(d=notch_diam, $fn=12);
+}
+
+module notch() {
+  angle = 80;
+  extra_distance = 1.2;
+  
+  translate([
+    top_diam/2 - outer_r + extra_distance,
+    0,
+    -outer_r + extra_distance
+  ])
+  rotate([90, 0]) {
+    rotate_extrude(angle=angle, $fn=40)
+    notch_2d();
+
+    for (r = [[90, 0, 0], [-90, 0, angle]])
+    rotate(r)
+    translate([0, 0, -0.001])
+    linear_extrude(top_diam*0.5)
+    notch_2d();
+  }
+}
+
 module top() {
   difference() {
     translate([0, 0, -outer_thickness])
@@ -62,6 +90,10 @@ module top() {
     top_profile_2d();
     
     legs(extra_diam=0.3);
+    
+    for (a = [0:6:360])
+    rotate([0, 0, a])
+    notch();
   }
 }
 
