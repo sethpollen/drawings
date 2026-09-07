@@ -1,3 +1,7 @@
+// Print settings:
+//   0.2mm SBP classic
+//   15% gyroid infill
+
 upscale = 1.13;
 thicken = upscale + 0.03;
 
