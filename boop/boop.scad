@@ -2,7 +2,7 @@ upscale = 1.13;
 thicken = upscale + 0.03;
 
 module face() {
-  protrusion = 0.75;
+  protrusion = 0.65;
   
   color("black")
   translate([0, 0, -protrusion])
@@ -18,10 +18,29 @@ module cat() {
   scale([upscale, thicken, upscale])
   rotate([90, 0, 0]) {
     color("orange")
+    linear_extrude(8)
+    projection()
     import("cat.stl");
   
     translate([12.6, 17.5])
     face();
+  }
+}
+
+module kitten_2d() {
+  projection()
+  import("kitty.stl");
+}
+
+module kitten_2d_shorttail() {
+  intersection() {
+    kitten_2d();
+    square([100, 18]);
+  }
+  translate([0, -3])
+  difference() {
+    kitten_2d();
+    square([100, 18]);
   }
 }
 
@@ -30,13 +49,18 @@ module kitten() {
   rotate([90, 0, 0])
   translate([-8, 0]) {
     color("orange")
-    import("kitty.stl");
+    linear_extrude(8)
+    kitten_2d_shorttail();
   
-    translate([51, 11])
+    translate([51, 10.6])    
     scale([1, 1] * 0.68)
     face();
   }
 }
 
-cat();
-kitten();
+module print() {
+  cat();
+  kitten();
+}
+
+print();
