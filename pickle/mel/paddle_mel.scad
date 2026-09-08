@@ -13,7 +13,7 @@ wedge_length = 257;
 bridge_grip_overlap = 20;
 
 // Make a wedge shape.
-function max_thickness() = 20.4;
+function max_thickness() = 20.7;
 function min_thickness() = 7.9;
 
 grip_width = 30;
@@ -182,8 +182,9 @@ module knurling_rays(groove_width) {
   cube([200, groove_width, max_thickness() + 0.002]);
 }
 
-grip_straight1 = 90;
-grip_bevel = 1.1;
+grip_straight1 = 102;
+grip_straight2 = 5;
+knob = 1.06;
 
 module grip() {
   $fn = 40;
@@ -195,9 +196,19 @@ module grip() {
       translate([0, 0, -straight_extension])
       linear_extrude_eps(grip_straight1 + straight_extension) grip_2d();
       
-      translate([0, 0, grip_straight1])
-      linear_extrude(grip_bevel, scale=0.93)
-      grip_2d();
+      translate([0, 0, grip_straight1]) {
+        linear_extrude(1, scale=knob) grip_2d();
+        
+        translate([0, 0, 1])
+        linear_extrude_eps(grip_straight2 - 2)
+        scale([1, 1] * knob)
+        grip_2d();
+          
+        translate([0, 0, grip_straight2 - 1])
+        linear_extrude(1, scale=1/knob)
+        scale([1, 1]* knob)
+        grip_2d();
+      }
     }
     
     // Cut the part of the grip that would protrude above the hitting
@@ -235,7 +246,7 @@ module unibody() {
     knurled_grip();
 
     // Mark number.
-    translate([-5.5, 2-grip_straight1-grip_bevel, 3.2]) // TUNED
+    translate([-5.5, 2-grip_straight1-grip_straight2, 3.2]) // TUNED
     rotate([90, 0, 0])
     linear_extrude(10)
     offset(delta=0.4)
@@ -255,7 +266,7 @@ module unibody() {
 
 // Position on the Neptune 4 Plus build plate.
 module print_position() {
-  translate([-70, -70])
+  translate([-65, -65])
   rotate([0, 0, -45])
   children();
 }
@@ -268,9 +279,5 @@ module positioning_square() {
   square(310, center=true);
 }
 
-intersection() {
-  unibody();
-  
-  translate([-100, -190])
-  cube(200);
-}
+positioning_square();
+print_position() unibody();
