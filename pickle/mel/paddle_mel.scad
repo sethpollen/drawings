@@ -255,8 +255,8 @@ module unibody() {
 
 // Position on the Neptune 4 Plus build plate.
 module print_position() {
-  translate([-40, -85])
-  rotate([0, 0, -33])
+  translate([-70, -70])
+  rotate([0, 0, -45])
   children();
 }
 
@@ -268,4 +268,5 @@ module positioning_square() {
   square(310, center=true);
 }
 
-unibody();
+print_position() unibody();
+positioning_square();
