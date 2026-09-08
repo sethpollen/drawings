@@ -1,4 +1,4 @@
-use <paddle.scad>
+use <paddle_mel.scad>
 
 positioning_square();
 

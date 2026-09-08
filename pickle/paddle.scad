@@ -412,12 +412,4 @@ module positioning_square() {
   square(310, center=true);
 }
 
-// Grabs a sample of the paddle surface, for a test print.
-// TODO: remove when done
-module sample_cut() {
-  linear_extrude(max_thickness())
-  translate([-30, wedge_length-59])
-  square([60, 60]);
-}
-
 shelf_perforations();

@@ -1,4 +1,4 @@
-use <paddle.scad>
+use <paddle_mel.scad>
 
 module paddle_profile(inset) {
   offset(-inset)

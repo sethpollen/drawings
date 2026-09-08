@@ -50,28 +50,15 @@ module bulge_piece(r) {
   }
 }
 
-module fan_piece(flip, x, y,
-    // Set this to true for a shallower curve on the top, for the right
-    // hand thumb to rest in. This only shows up on one side.
-    gentle_right_curve=false,
-    gentle_left_curve=false,
-    // Extra translation to add on the left side, to strengthen the neck.
-    left_xy=[0, 0]
-) {
+module fan_piece(flip, x, y, gentle_curve=false) {
   y_frac = y/wedge_length;
   thickness = (1 - y_frac)*max_thickness() + y_frac*min_thickness();
 
   intersection() {
     for (a = [-1, 1])   
     for (b = [-1, 1]) {
-      gentle_factor =
-          (gentle_right_curve && a == 1 && b == 1) ? 0.72 // top right
-        : (gentle_right_curve && a == 1)           ? 0.86 // bottom right
-        : (gentle_left_curve && a == -1 && b == 1) ? 0.86 // top left
-        : (gentle_left_curve && a == -1)           ? 0.86 // bottom left
-        : 1;
+      gentle_factor = gentle_curve ? 0.86 : 1;
       
-      translate((a == -1) ? left_xy : [0, 0])
       scale([a, 1, b])
       translate([x, y])
       scale([1, flip ? -1 : 1])
@@ -112,33 +99,8 @@ module bridge(i) {
     true,
     grip_width/2 + x_frac*0.5*(width-grip_width),
     bridge_length*(1-y_frac) - bridge_grip_overlap,
-    gentle_right_curve=true,
-    gentle_left_curve=(i>=3),
-    left_xy=[
-      [0, -1.5, -1.8, -1.8][i],
-      [0, 0, -5, -10][i]
-    ]
+    gentle_curve=(i>=3)
   );
-}
-
-// Fillet on the concave side of the grip, for strength at
-// the weakest part of the whole paddle.
-module fillet() {
-  intersection() {
-    hull()
-    for (xy = [[0, 0], [2, -25]]) // TUNED
-    translate(xy)
-    intersection() {      
-      // Take the left-hand piece of bridge(3).
-      translate([-50, 0])
-      cube(100, center=true);
-      
-      bridge(3);
-    }
-    
-    // Cut to the right thickness.
-    cube([200, 200, max_thickness()], center=true);
-  }
 }
 
 module wedge() {
@@ -172,10 +134,6 @@ module wedge() {
     translate([-100, -100, max_thickness()])
     cube([200, 200, 10]);
   }
-  
-  // Don't tilt the fillet by the wedge_angle.
-  translate([0, 0, max_thickness()/2])
-  fillet();
 }
 
 module wedge_top_cut() {
@@ -306,57 +264,6 @@ module knurled_grip() {
   }
 }
 
-module shelf() {
-  shelf_width = 9;
-  shelf_thickness = 4.6;
-  shelf_chamfer = 0.9;
-  
-  // Narrow it slightly.
-  scale([0.95, 1, 1])
-  translate([0, 0, max_thickness()/2])
-  rotate([90, 0, 0])
-  hull() {
-    translate([0, shelf_width, 0]) {
-      linear_extrude(shelf_thickness)
-      grip_2d($grip_offs=-shelf_chamfer);
-      
-      translate([0, 0, shelf_chamfer])
-      linear_extrude(shelf_thickness-2*shelf_chamfer)
-      grip_2d();
-    }
-    
-    linear_extrude(shelf_thickness + 7)
-    grip_2d($grip_offs=-shelf_chamfer);
-  }
-  
-  // Fill the angle between the shelf and surface, just a little bit.
-  translate([-grip_width*0.05, 0, max_thickness()-1])
-  rotate([45, 0, 0])
-  cube([grip_width*0.55, 3.3, 3.3], center=true);
-}
-
-// Make sure the top sheet continues under the shelf.
-module shelf_perforations() {
-  intersection() {
-    shelf();
-    
-    difference() {
-      translate([0, 0, layer]) {
-        wedge();
-        grip();
-      }
-      {
-        wedge();
-        grip();
-      }
-    }
-
-    for (y = [-15:1.6:5])
-    translate([0, y, 20])
-    cube([40, 0.35, 40], center=true);
-  }
-}
-
 module unibody() {
   difference() {
     color("cyan")
@@ -390,11 +297,6 @@ module unibody() {
     translate([0, 0, z])
     cube([500, 500, knurl_groove_layers*layer*2], center=true);
   }
-
-  difference() {
-    shelf();
-    shelf_perforations();
-  }
 }
 
 // Position on the Neptune 4 Plus build plate.
@@ -412,12 +314,4 @@ module positioning_square() {
   square(310, center=true);
 }
 
-// Grabs a sample of the paddle surface, for a test print.
-// TODO: remove when done
-module sample_cut() {
-  linear_extrude(max_thickness())
-  translate([-30, wedge_length-59])
-  square([60, 60]);
-}
-
-shelf_perforations();
+unibody();
