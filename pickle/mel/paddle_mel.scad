@@ -268,5 +268,9 @@ module positioning_square() {
   square(310, center=true);
 }
 
-print_position() unibody();
-positioning_square();
+intersection() {
+  unibody();
+  
+  translate([-100, -190])
+  cube(200);
+}
