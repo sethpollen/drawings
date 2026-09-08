@@ -1,29 +1,9 @@
 # Mk. 8
 
-The only real change is the introduction of the `core` piece, to get finer
-control of floor and ceiling layers. Base settings:
-
-* Layer height: 0.15mm
-* Bottom layer inset: 0.2mm
-* Head temp: 240 C
-* Print speed: 35 mm/s
-* Z seam alignment: random
-* Infill skin support: disabled
-
-Overall model settings for making the sandwich:
-
-* Floor: 2 layers
-* Ceiling: 3 layers
-* Infill: 50% lines
-
-The `core` piece modifies the infill with the following settings:
-
-* Floor: 2 layer
-* Ceiling: 3 layers
-* Infill: 10% honeycomb
-
-The `core` piece will automatically orient itself along the Z axis to create
-the sandwich layers. It has to be positioned manually on the XY plane.
+I introduced the `core` piece, to get finer control of floor and ceiling layers.
+I switched from the Neptune 3 Pro to the Neptune 4 Plus. The larger print
+volume lets us make the paddle as a single piece. I switched slicers from Cura
+to Orca. See `unibody.3mf` for detailed settings.
 
 # Mk. 7
 
