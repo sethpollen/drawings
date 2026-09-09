@@ -13,16 +13,6 @@ module core() {
     wedge();
     grip();
   }
-  
-  // Also reduce shelf infill to 10%.
-  difference() {
-    shelf();
-    
-    translate([0, 0, 0.16]) {
-      wedge();
-      grip();
-    }
-  }
 }
 
 positioning_square();

@@ -1,4 +1,3 @@
-mark_number = 9;
 layer = 0.16;
 
 // Parameters for the overall shape.
@@ -14,7 +13,7 @@ bridge_grip_overlap = 20;
 
 // Make a wedge shape.
 function max_thickness() = 20.7;
-function min_thickness() = 7.9;
+function min_thickness() = 7.6;
 
 grip_width = 30;
 
@@ -182,8 +181,8 @@ module knurling_rays(groove_width) {
   cube([200, groove_width, max_thickness() + 0.002]);
 }
 
-grip_straight1 = 102;
-grip_straight2 = 5;
+grip_straight1 = 103;
+grip_straight2 = 7;
 knob = 1.06;
 
 module grip() {
@@ -246,11 +245,11 @@ module unibody() {
     knurled_grip();
 
     // Mark number.
-    translate([-5.5, 2-grip_straight1-grip_straight2, 3.2]) // TUNED
+    translate([-6.9, 2-grip_straight1-grip_straight2, 4.5]) // TUNED
     rotate([90, 0, 0])
     linear_extrude(10)
-    offset(delta=0.4)
-    text(str(mark_number), size=14.2);
+    offset(delta=0.7)
+    text("M", size=12);
   }
   
   // Make the knurl grooves slightly shallower on the top and
@@ -266,7 +265,7 @@ module unibody() {
 
 // Position on the Neptune 4 Plus build plate.
 module print_position() {
-  translate([-65, -65])
+  translate([-64, -64])
   rotate([0, 0, -45])
   children();
 }
