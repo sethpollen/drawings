@@ -86,7 +86,7 @@ module piece() {
 module cookie_cutter(complement=false) {
   tooth_depth = 5;
   tooth_width = 10;
-  roundoff = 0.8;
+  roundoff = 0.3;
   slack = 0.1;
   
   linear_extrude(30)
