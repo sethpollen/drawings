@@ -16,13 +16,11 @@ module hexagon(d) {
   circle(d=d*2/sqrt(3), $fn=6);
 }
 
-rail_cavity_height = 7.2;
-
 module rail_cavity() {
   reps = 10;
   length = reps * 10 + 5;
   plateau_thickness = 3;
-  base_height = 4.2;
+  base_height = 3.2;
   
   difference() {
     union() {
@@ -43,7 +41,7 @@ module rail_cavity() {
     
     // Valleys.
     for (a = [0:reps-1])
-    translate([-15, 5 + 10*a, 4])
+    translate([-15, 5 + 10*a, 3])
     linear_extrude(10)
     square([30, 5]);
   }
@@ -65,30 +63,30 @@ module screw_hole(length) {
   translate([0, 0, length-0.001])
   rotate([0, 0, 30])
   linear_extrude(10)
-  hexagon(9);
+  hexagon(8.9);
 }
 
 module piece() {
-  width = 25;
+  width = 27;
   
   difference() {
-    linear_extrude(15.2)
-    translate([-width/2, -2.5])
-    square([width, 30]);
+    linear_extrude(15)
+    translate([-width/2, 5])
+    square([width, 35]);
 
     rail_cavity();
 
-    for (y = [4.5, 15.5])
-    translate([1-width/2, y, 10.8])
+    for (y = [15, 34])
+    translate([2-width/2, y, 9.8])
     rotate([0, 90, 0])
-    screw_hole(width - 2.4);
+    screw_hole(width - 4);
   }
 }
 
 module cookie_cutter(complement=false) {
   tooth_depth = 5;
   tooth_width = 10;
-  roundoff = 0.3;
+  roundoff = 0.8;
   slack = 0.1;
   
   linear_extrude(30)
@@ -112,10 +110,14 @@ module test(complement=false) {
   }
 }
 
-render() {
-  translate([4, 0])
-  test();
-  
-  translate([-3, 0])
-  test(true);
+module print() {
+  render() {
+    translate([4, 0])
+    test();
+    
+    translate([-3, 0])
+    test(true);
+  }
 }
+
+print();
