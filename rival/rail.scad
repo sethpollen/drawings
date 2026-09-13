@@ -1,11 +1,3 @@
-// The cavity (to accommodate the rail) should consist of
-// the following:
-//   * Alternating valleys and plateaus, each 5mm in length.
-//   * The base is 12mm wide and 4mm high.
-//   * Plateau protrusions are 3mm tall.
-//   * Plateau prorusions have a roughly octagonal profile.
-//   * Valleys are 3.2mm deep.
-
 module octagon(d) {
   intersection_for(a = [0, 45])
   rotate([0, 0, a])
@@ -19,15 +11,16 @@ module hexagon(d) {
 module rail_cavity() {
   reps = 10;
   length = reps * 10 + 5;
-  plateau_thickness = 3.2;
-  base_height = 3.001;
+  plateau_thickness = 3.4;
+  base_height = 3; 
+  base_width = 12.7;
   
   difference() {
     union() {
       // Base.
-      translate([-6, 0, -0.001])
+      translate([-base_width/2, 0, -0.001])
       linear_extrude(base_height + 0.002)
-      square([12, length]);
+      square([base_width, length]);
       
       // Plateaus.
       translate([0, 0, base_height + plateau_thickness/2])
@@ -35,13 +28,13 @@ module rail_cavity() {
       linear_extrude(length)
       hull()
       for (a = [-1, 1])
-      translate([a * (20 - plateau_thickness) / 2, 0])
+      translate([a * (18.9 - plateau_thickness) / 2, 0])
       octagon(plateau_thickness);
     }
     
     // Valleys.
     for (a = [0:reps-1])
-    translate([-15, 5 + 10*a, 3])
+    translate([-15, 5 + 10*a, base_height - 0.001])
     linear_extrude(10)
     square([30, 5]);
   }
