@@ -11,31 +11,29 @@ module hexagon(d) {
 module rail_cavity() {
   reps = 10;
   length = reps * 10 + 5;
-  plateau_thickness = 3.4;
+  plateau_thickness = 3.6;
   base_height = 3; 
-  base_width = 12.7;
+  base_width = 12.8;
   
+  // Base.
+  translate([-base_width/2, 0, -0.001])
+  linear_extrude(base_height + 0.002)
+  square([base_width, length]);
+
   difference() {
-    union() {
-      // Base.
-      translate([-base_width/2, 0, -0.001])
-      linear_extrude(base_height + 0.002)
-      square([base_width, length]);
-      
-      // Plateaus.
-      translate([0, 0, base_height + plateau_thickness/2])
-      rotate([-90, 0, 0])
-      linear_extrude(length)
-      hull()
-      for (a = [-1, 1])
-      translate([a * (18.9 - plateau_thickness) / 2, 0])
-      octagon(plateau_thickness);
-    }
+    // Plateaus.
+    translate([0, 0, base_height + plateau_thickness/2 - 0.2])
+    rotate([-90, 0, 0])
+    linear_extrude(length)
+    hull()
+    for (a = [-1, 1])
+    translate([a * (18.9 - plateau_thickness) / 2, 0])
+    octagon(plateau_thickness);
     
     // Valleys.
     for (a = [0:reps-1])
-    translate([-15, 5 + 10*a, base_height - 0.001])
-    linear_extrude(10)
+    translate([-15, 5 + 10*a])
+    linear_extrude(15)
     square([30, 5]);
   }
 }
