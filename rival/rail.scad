@@ -19,8 +19,8 @@ module hexagon(d) {
 module rail_cavity() {
   reps = 10;
   length = reps * 10 + 5;
-  plateau_thickness = 3;
-  base_height = 3.2;
+  plateau_thickness = 3.2;
+  base_height = 3.001;
   
   difference() {
     union() {
@@ -111,7 +111,8 @@ module test(complement=false) {
 }
 
 module print() {
-  render() {
+  render()
+  rotate([180, 0, 0]) {
     translate([4, 0])
     test();
     
