@@ -59,15 +59,18 @@ module screw_hole(length) {
 
 module piece() {
   width = 27;
+  roundoff = 1.4;
   
   difference() {
     linear_extrude(15)
     translate([-width/2, 5])
-    square([width, 35]);
+    offset(r=roundoff, $fn=16)
+    offset(delta=-roundoff)
+    square([width, 75]);
 
     rail_cavity();
 
-    for (y = [15, 34])
+    for (y = [15, 65])
     translate([2-width/2, y, 9.8])
     rotate([0, 90, 0])
     screw_hole(width - 4);
@@ -84,6 +87,7 @@ module cookie_cutter(complement=false) {
   offset(r=roundoff, $fn=16)
   offset(delta=-roundoff-slack)
   rotate([0, 0, complement ? 180 : 0])
+  translate([2 * (complement ? 1 : -1), 0])
   difference() {
     translate([0.001-tooth_depth/2, -80])
     square([30, 160]);
@@ -102,14 +106,16 @@ module test(complement=false) {
 }
 
 module print() {
-  render()
-  rotate([180, 0, 0]) {
-    translate([4, 0])
-    test();
-    
-    translate([-3, 0])
+  test();
+
+  difference() {
     test(true);
+    
+    translate([-25, 23, 10])
+    linear_extrude(20)
+    square([50, 14]);
   }
 }
 
+render()
 print();
