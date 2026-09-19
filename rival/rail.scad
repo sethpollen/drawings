@@ -140,5 +140,11 @@ module print_pieces() {
   piece(true);
 }
 
-render() print_pieces();
+module dovetail_test() {
+  dovetail();
+  translate([0, 0, dovetail_depth + 0.2])
+  linear_extrude(3)
+  square([30, 35], center=true);
+}
 
+dovetail_test();
