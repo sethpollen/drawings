@@ -36,6 +36,13 @@ module rail_cavity() {
     linear_extrude(15)
     square([30, 5]);
   }
+  
+  // Fillets at bottom of each valley.
+  for (a = [0:reps*2-1])
+  translate([0, 5+5*a, base_height])
+  rotate([0, 90])
+  rotate([0, 0, 45])
+  cube([0.7, 0.7, base_width], center=true);
 }
 
 module screw_hole(length) {
@@ -61,22 +68,32 @@ block_width = 27;
 block_height = 15.3;
 
 module block() {
-  width = 27;
+  $fn = 16;
+  width = 32;
   roundoff = 1.4;
   
   difference() {
-    linear_extrude(block_height)
-    translate([-width/2, 5])
-    offset(r=roundoff, $fn=16)
-    offset(delta=-roundoff)
-    square([width, 65]);
+    hull()
+    for (a = [-1, 1], b = [0, 1], c = [0, 1])
+    translate([
+      a*(width/2-roundoff),
+      5+roundoff+b*(55-2*roundoff),
+      roundoff+c*30
+    ])
+    sphere(r=roundoff, $fn=20);
+    
+    translate([0, 0, block_height])
+    linear_extrude(30)
+    square(200, center=true);
 
     rail_cavity();
 
-    for (y = [15, 63.7])
-    translate([2-width/2, y, 9.8])
+    for (y = [13.5, 54])
+    translate([0, y])
+    rotate([0, 0, 180])
+    translate([2-width/2, 0, 9.8])
     rotate([0, 90, 0])
-    screw_hole(width - 4.6);
+    screw_hole(width - 6.6);
   }
 }
 
@@ -85,8 +102,9 @@ module cookie_cutter(complement=false) {
   tooth_width = 10;
   roundoff = 0.3;
   slack = 0.1;
-  x_offset = 4.3;
+  x_offset = 3;
   
+  translate([0, -10])
   linear_extrude(30)
   offset(r=roundoff, $fn=16)
   offset(delta=-roundoff-slack)
@@ -103,7 +121,7 @@ module cookie_cutter(complement=false) {
   }
 }
 
-dovetail_length = 25;
+dovetail_length = 24;
 dovetail_depth = 4;
 
 module dovetail() {
@@ -126,7 +144,7 @@ module piece(complement=false) {
       // Dovetail slot for the accessory to be glued in.
       scale([2, 1, 1])
       for (y = 0.2 * [-1, 1])
-      translate([0, 45+y, block_height-dovetail_depth])
+      translate([0, 35+y, block_height-dovetail_depth])
       dovetail();
     }
     cookie_cutter(complement);
