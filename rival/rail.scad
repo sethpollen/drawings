@@ -76,7 +76,7 @@ module block() {
     for (y = [15, 63.7])
     translate([2-width/2, y, 9.8])
     rotate([0, 90, 0])
-    screw_hole(width - 4);
+    screw_hole(width - 4.6);
   }
 }
 
@@ -147,4 +147,4 @@ module dovetail_test() {
   square([30, 35], center=true);
 }
 
-dovetail_test();
+render() print_pieces();
