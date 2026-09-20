@@ -121,48 +121,130 @@ module cookie_cutter(complement=false) {
   }
 }
 
+dovetail_width = 23;
 dovetail_length = 24;
 dovetail_depth = 4;
+dovetail_height = dovetail_depth + 0.2;
 
-module dovetail() {
-  intersection() {
-    linear_extrude(dovetail_depth, scale=0.85)
-    square([200, dovetail_length], center=true);
-    
-    cube([block_width, 100, 100], center=true);
-  }
-
-  linear_extrude(dovetail_depth+0.2)
-  square([block_width, dovetail_length*0.85], center=true);
+module dovetail_2d(retract) {
+  $fn = 16;
+  
+  offset(r=retract?1:0)
+  offset(delta=retract?-1:0)
+  square([dovetail_width, dovetail_length], center=true);
 }
 
-module piece(complement=false) {
+module dovetail(retract=true) {
+  scal = 0.82;
+  
+  difference() {
+    union() {
+      intersection() {
+        // Scale 0.85
+        hull() {
+          linear_extrude(0.6)
+          dovetail_2d(retract);
+          
+          translate([0, 0, dovetail_depth])
+          linear_extrude(1e-6)
+          scale([1, scal])
+          dovetail_2d(retract);
+        }
+      }
+
+      linear_extrude(dovetail_height)
+      scale([1, scal])
+      dovetail_2d(retract);
+    }
+    
+    if (retract)
+    for (a = [-3:3])
+    translate([0, a*3])
+    cube([40, 0.8, 0.4], center=true);
+  }
+}
+
+module block_piece(complement=false) {
   intersection() {
     difference() {
       block();
       
       // Dovetail slot for the accessory to be glued in.
-      scale([2, 1, 1])
-      for (y = 0.2 * [-1, 1])
-      translate([0, 35+y, block_height-dovetail_depth])
-      dovetail();
+      for (x = 0.18*[-1, 1], y = 0.2*[-1, 1])
+      translate([x, 35+y, block_height-dovetail_depth])
+      dovetail(false);
     }
     cookie_cutter(complement);
   }
 }
 
-module print_pieces() {
-  piece();
+module print_block_pieces() {
+  block_piece();
   
   translate([-4, 0])
-  piece(true);
+  block_piece(true);
 }
 
-module dovetail_test() {
+module tombstone_2d(width, height) {
+  translate([0, height-width/2])
+  difference() {
+    circle(d=width);
+
+    translate([0, -50])
+    square(100, center=true);
+  }
+  
+  translate([-width/2, 0])
+  square([width, height-width/2 + 0.001]);
+}
+
+hood_height = 24;
+hood_length = 11;
+crosshair_elevation = 12;
+crosshair_width = 0.7;
+
+module hood_2d() {
+  $fn = 40;
+  
+  wall = 1.5;
+  
+  difference() {
+    tombstone_2d(dovetail_width, hood_height);
+    
+    translate([0, -wall])
+    tombstone_2d(dovetail_width-2*wall, hood_height);
+  }
+}
+
+module sight() {
   dovetail();
-  translate([0, 0, dovetail_depth + 0.2])
-  linear_extrude(3)
-  square([30, 35], center=true);
+
+  translate([0, dovetail_length/2, dovetail_height])
+  rotate([90, 0]) {
+    linear_extrude(hood_length)
+    hood_2d();
+    
+    // Slopes.
+    intersection() {
+      translate([0, 0, hood_length])
+      linear_extrude(30)
+      hood_2d();
+
+      translate([0, -49, 0])
+      rotate([40, 0])
+      cube(100, center=true);
+    }
+    
+    // Crosshairs.
+    linear_extrude(5) {
+      translate([0, crosshair_elevation])
+      square([dovetail_width, crosshair_width], center=true);
+        
+      translate([-crosshair_width/2, 0])
+      square([crosshair_width, crosshair_elevation]);
+    }
+  }
 }
 
-render() print_pieces();
+render()
+sight();
