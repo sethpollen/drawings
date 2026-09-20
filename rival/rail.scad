@@ -247,4 +247,4 @@ module sight() {
 }
 
 render()
-sight();
+print_block_pieces();
