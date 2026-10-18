@@ -247,4 +247,4 @@ module sight() {
 }
 
 render()
-print_block_pieces();
+dovetail();
