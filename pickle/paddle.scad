@@ -62,7 +62,7 @@ module fan_piece(
   intersection() {
     for (a = [-1, 1], b = [-1, 1]) {
       gentle_factor =
-          (gentle && a == 1 && b == 1) ? 0.72 // top right
+          (gentle && a == -1 && b == -1) ? 0.74 // top right
         : gentle ? 0.86
         : 1;
       
@@ -343,4 +343,15 @@ module positioning_square() {
   square(310, center=true);
 }
 
-unibody();
+intersection() {
+  unibody();
+
+  union()
+  linear_extrude(100) {
+    scale([1, 0.7])
+    circle(d=100);
+
+    translate([0, -200])
+    square(400, center=true);
+  }
+}
