@@ -211,15 +211,15 @@ module knurling_rays(groove_width, max_a=80) {
   translate([-100, 0, -0.001])
   for (a = [8.5:3.3:max_a])
   rotate([0, 0, -a])
-  translate([0, -groove_width/2, -50])
-  cube([200, groove_width, 100]);
+  translate([0, -groove_width/2, -100])
+  cube([200, groove_width, 200]);
 }
 
 module grip() {
   $fn = 40;
   
   // Twist the grip into the z-dimension.
-  twist = 27;
+  twist = -35;
   
   straight1 = 12;
   elbow1 = [70, 43];
@@ -264,19 +264,26 @@ module grip() {
     
     // Cut the part of the grip that would protrude above the hitting
     // surface.
-    wedge_top_cut();
+    intersection() {
+      wedge_top_cut();
+      
+      translate([0, 300])
+      cube(600, center=true);
+    }
   }
 }
 
 module knurled_grip() {
-  // Bottom of the grooves.
-  grip($grip_offs=-knurl_groove_layers*layer);
+  scale([-1, 1]) {
+    // Bottom of the grooves.
+    grip($grip_offs=-knurl_groove_layers*layer);
 
-  // Stair steps.
-  for (i = [0:knurl_groove_layers-1])
-  difference() {
-    grip($grip_offs=-layer*(knurl_groove_layers-1-i));
-    knurling_rays(knurl_groove_widths[i]);
+    // Stair steps.
+    for (i = [0:knurl_groove_layers-1])
+    difference() {
+      grip($grip_offs=-layer*(knurl_groove_layers-1-i));
+      knurling_rays(knurl_groove_widths[i]);
+    }
   }
 }
 
@@ -327,21 +334,14 @@ module unibody() {
     knurled_grip();
 
     // Mark number.
+    // TODO: fix this
+    /*
     translate([-60, -99.2, 4.8]) // TUNED
     rotate([90, 0, -15])
     linear_extrude(10)
     offset(delta=0.7)
     text(str(mark_number), size=14.5);
-  }
-  
-  // Make the knurl grooves slightly shallower on the top and
-  // bottom surfaces, for a more continuous sheet.
-  intersection() {
-    grip($grip_offs=layer*(1-knurl_groove_layers));
-
-    for(z = [0, max_thickness()])
-    translate([0, 0, z])
-    cube([500, 500, knurl_groove_layers*layer*2], center=true);
+    */
   }
 }
 
@@ -360,9 +360,4 @@ module positioning_square() {
   square(310, center=true);
 }
 
-
-intersection() {
-  unibody();
-//  translate([0, 0, 300])
-//  cube(600, center=true);
-}
+unibody();
