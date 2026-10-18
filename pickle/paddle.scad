@@ -1,4 +1,3 @@
-mark_number = 8;
 layer = 0.16;
 
 // Parameters for the overall shape.
@@ -61,8 +60,7 @@ module fan_piece(
   thickness = (1 - y_frac)*max_thickness() + y_frac*min_thickness();
 
   intersection() {
-    for (a = [-1, 1])   
-    for (b = [-1, 1]) {
+    for (a = [-1, 1], b = [-1, 1]) {
       gentle_factor =
           (gentle && a == 1 && b == 1) ? 0.72 // top right
         : gentle ? 0.86
@@ -222,7 +220,7 @@ module grip() {
   twist = -35;
   
   straight1 = 12;
-  elbow1 = [70, 43];
+  elbow1 = [65, 50];
   straight2 = 32.9;
   
   difference() {
@@ -242,20 +240,28 @@ module grip() {
         rotate_up(elbow1, twist) {
           linear_extrude_eps(straight2) grip_2d();
           
-          translate([0, 0, straight2])
-          intersection() {
-            // The final elbow is the intersection of two different
-            // extrusions, which lets us taper the end.
-            rotate_up_extrude([32, 115], $fn=19) grip_2d();
-            
-            tight_r = 14;
-            rotate_up_extrude([tight_r, 180], $fn=22)
-            intersection() {
-              grip_2d();
-              // Avoid a negative x-coordinate for the tight
-              // rotate_extrude.
-              translate([tight_r-grip_width/2, 0])
-              square(grip_width, center=true);
+          translate([0, 0, straight2]) {
+            difference() {            
+              intersection() {
+                // The final elbow is the intersection of two different
+                // extrusions, which lets us taper the end.
+                rotate_up_extrude([32, 115], $fn=19) grip_2d();
+                
+                tight_r = 14;
+                rotate_up_extrude([tight_r, 180], $fn=22)
+                intersection() {
+                  grip_2d();
+                  // Avoid a negative x-coordinate for the tight
+                  // rotate_extrude.
+                  translate([tight_r-grip_width/2, 0])
+                  square(grip_width, center=true);
+                }
+              }
+
+              translate([10, -5.5, 27.7])
+              linear_extrude(10)
+              offset(delta=0.7)
+              text("X", font="Courier", size=14);
             }
           }
         }
@@ -318,31 +324,8 @@ module shelf() {
 }
 
 module unibody() {
-  difference() {
-    color("cyan")
-    wedge();
-    
-    // Cut the same knurling grooves into the fillet, to match the grip knurling
-    // grooves.
-    for (i = [0:knurl_groove_layers-1])
-    for (a = [-1, 1])
-    translate([0, 0, a * (max_thickness() - layer*(knurl_groove_layers-i))])
-    knurling_rays(knurl_groove_widths[i], max_a=35);
-  }
-
-  difference() {
-    knurled_grip();
-
-    // Mark number.
-    // TODO: fix this
-    /*
-    translate([-60, -99.2, 4.8]) // TUNED
-    rotate([90, 0, -15])
-    linear_extrude(10)
-    offset(delta=0.7)
-    text(str(mark_number), size=14.5);
-    */
-  }
+  wedge();
+  knurled_grip();
 }
 
 // Position on the Neptune 4 Plus build plate.
