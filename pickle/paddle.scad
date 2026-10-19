@@ -301,8 +301,8 @@ module shelf() {
   shelf_chamfer = 0.9;
   
   // Narrow it slightly.
-  scale([0.95, 1, 1])
-  translate([0, 0, max_thickness()/2])
+  scale([0.95, 1, -1])
+  translate([0, 0, -max_thickness()/2])
   rotate([90, 0, 0])
   hull() {
     translate([0, shelf_width, 0]) {
@@ -317,16 +317,24 @@ module shelf() {
     linear_extrude(shelf_thickness + 7)
     grip_2d($grip_offs=-shelf_chamfer);
   }
-  
-  // Fill the angle between the shelf and surface, just a little bit.
-  translate([-grip_width*0.05, 0, max_thickness()-1])
-  rotate([45, 0, 0])
-  cube([grip_width*0.55, 3.3, 3.3], center=true);
 }
 
 module unibody() {
-  wedge();
-  knurled_grip();
+  difference() {
+    union() {
+      wedge();
+      knurled_grip();
+    }
+    
+    // Small hole to align the shelf piece when gluing.
+    translate([0, -1, -0.01])
+    linear_extrude(1.4)
+    square(2, center=true);
+    
+    translate([0, -1, -0.01])
+    linear_extrude(0.4)
+    square(2.6, center=true);
+  }
 }
 
 // Position on the Neptune 4 Plus build plate.
@@ -344,6 +352,4 @@ module positioning_square() {
   square(310, center=true);
 }
 
-positioning_square();
-print_position()
 unibody();
