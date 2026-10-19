@@ -13,7 +13,7 @@ bridge_grip_overlap = 20;
 
 // Make a wedge shape.
 function max_thickness() = 24;
-function min_thickness() = 7.9;
+function min_thickness() = 7.4;
 
 grip_width = 34.6;
 
@@ -206,90 +206,91 @@ knurl_groove_layers = 3;
 knurl_groove_widths = [1.2, 1.7, 2.2];
 
 module knurling_rays(groove_width, max_a=80) {
+  scale([-1, 1])
   translate([-100, 0, -0.001])
-  for (a = [8.5:3.3:max_a])
+  for (a = [8:3.3:max_a])
   rotate([0, 0, -a])
   translate([0, -groove_width/2, -100])
   cube([200, groove_width, 200]);
 }
 
-module grip() {
-  $fn = 40;
-  
-  // Twist the grip into the z-dimension.
-  twist = -35;
-  
-  straight1 = 12;
-  elbow1 = [65, 50];
-  straight2 = 32.9;
-  
-  difference() {
-    translate([0, 0, max_thickness()/2])
-    rotate([90, 0, 0]) {
-      // Add some length to make sure the grip smoothly meets the wedge. This
-      // also makes the bottom axial groove extend into the wedge a bit,
-      // avoiding correlated weak areas.
-      straight_extension = 18;
-      translate([0, 0, -straight_extension])
-      linear_extrude_eps(straight1 + straight_extension) grip_2d();
+module grip(mirr=false) {
+  scale([-1, 1]) {
+    $fn = 40;
+    
+    // Twist the grip into the z-dimension.
+    twist = -35;
+    
+    straight1 = 12;
+    elbow1 = [65, 50];
+    straight2 = 31.2;
+    
+    difference() {
+      translate([0, 0, max_thickness()/2])
+      rotate([90, 0, 0]) {
+        // Add some length to make sure the grip smoothly meets the wedge. This
+        // also makes the bottom axial groove extend into the wedge a bit,
+        // avoiding correlated weak areas.
+        straight_extension = 18;
+        translate([0, 0, -straight_extension])
+        linear_extrude_eps(straight1 + straight_extension) grip_2d();
+              
+        translate([0, 0, straight1])
+        scale([-1, 1]) {
+          rotate_up_extrude(elbow1, twist) grip_2d();
+
+          rotate_up(elbow1, twist) {
+            linear_extrude_eps(straight2) grip_2d();
             
-      translate([0, 0, straight1])
-      scale([-1, 1]) {
-        rotate_up_extrude(elbow1, twist) grip_2d();
-
-        rotate_up(elbow1, twist) {
-          linear_extrude_eps(straight2) grip_2d();
-          
-          translate([0, 0, straight2]) {
-            difference() {            
-              intersection() {
-                // The final elbow is the intersection of two different
-                // extrusions, which lets us taper the end.
-                rotate_up_extrude([32, 115], $fn=19) grip_2d();
-                
-                tight_r = 14;
-                rotate_up_extrude([tight_r, 180], $fn=22)
+            translate([0, 0, straight2]) {
+              difference() {            
                 intersection() {
-                  grip_2d();
-                  // Avoid a negative x-coordinate for the tight
-                  // rotate_extrude.
-                  translate([tight_r-grip_width/2, 0])
-                  square(grip_width, center=true);
+                  // The final elbow is the intersection of two different
+                  // extrusions, which lets us taper the end.
+                  rotate_up_extrude([32, 115], $fn=19) grip_2d();
+                  
+                  tight_r = 14;
+                  rotate_up_extrude([tight_r, 180], $fn=22)
+                  intersection() {
+                    grip_2d();
+                    // Avoid a negative x-coordinate for the tight
+                    // rotate_extrude.
+                    translate([tight_r-grip_width/2, 0])
+                    square(grip_width, center=true);
+                  }
                 }
-              }
 
-              translate([10, -5.5, 27.7])
-              linear_extrude(10)
-              offset(delta=0.7)
-              text("X", font="Courier", size=14);
+                translate([10, -5.5, 27.7])
+                linear_extrude(10)
+                offset(delta=0.7)
+                text("X", font="Courier", size=14);
+              }
             }
           }
         }
       }
-    }
-    
-    // Cut the part of the grip that would protrude above the hitting
-    // surface.
-    intersection() {
-      wedge_top_cut();
       
-      translate([0, 300])
-      cube(600, center=true);
+      // Cut the part of the grip that would protrude above the hitting
+      // surface.
+      intersection() {
+        wedge_top_cut();
+        
+        translate([0, 300])
+        cube(600, center=true);
+      }
     }
   }
 }
 
 module knurled_grip() {
-  scale([-1, 1]) {
-    // Bottom of the grooves.
-    grip($grip_offs=-knurl_groove_layers*layer);
+  // Bottom of the grooves.
+  grip($grip_offs=-knurl_groove_layers*layer);
 
-    // Stair steps.
-    for (i = [0:knurl_groove_layers-1])
-    difference() {
-      grip($grip_offs=-layer*(knurl_groove_layers-1-i));
-      knurling_rays(knurl_groove_widths[i]);
-    }
+  // Stair steps.
+  for (i = [0:knurl_groove_layers-1])
+  difference() {
+    grip($grip_offs=-layer*(knurl_groove_layers-1-i));
+    knurling_rays(knurl_groove_widths[i]);
   }
 }
 
@@ -330,8 +331,8 @@ module unibody() {
 
 // Position on the Neptune 4 Plus build plate.
 module print_position() {
-  translate([-40, -85])
-  rotate([0, 0, -33])
+  translate([-84, -37])
+  rotate([0, 0, -57])
   children();
 }
 
@@ -343,15 +344,6 @@ module positioning_square() {
   square(310, center=true);
 }
 
-intersection() {
-  unibody();
-
-  union()
-  linear_extrude(100) {
-    scale([1, 0.7])
-    circle(d=100);
-
-    translate([0, -200])
-    square(400, center=true);
-  }
-}
+positioning_square();
+print_position()
+unibody();

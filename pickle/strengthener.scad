@@ -13,19 +13,18 @@ module strake(width, top, bottom) {
     paddle_profile(0);
     paddle_profile(width);
     
-    translate([-200, top]) square(400);
-    translate([-200, -bottom-400]) square(400);
+    translate([-200, top])
+    square(400);
     
-    // Don't add any material to the hooked part; it is not under
-    // high stress.
-    translate([-260, -200]) square(200);
+    translate([0, -bottom-200])
+    square(400, center=true);
   }
 }
 
 module strakes_2d() {
   steps = 30;
   for (i = [0:steps-1])
-  strake(14*i/steps, 54-53*i/steps, 99-70*i/steps);
+  strake(15*i/steps, 76-53*i/steps, 87-60*i/steps);
 }
 
 module preview() {
@@ -38,12 +37,24 @@ module preview() {
 }
 
 module strakes() {
-  linear_extrude(max_thickness())
+  linear_extrude(100)
   strakes_2d();
 }
 
-color("cyan")
-positioning_square();
+module print() {
+  color("cyan")
+  positioning_square();
 
-print_position()
-strakes();
+  difference() {
+    print_position()
+    strakes();
+    
+    // Don't add any material to the hooked part; it is not under
+    // high stress.
+    translate([0, -325, -1])
+    linear_extrude(110)
+    square(400, center=true);
+  }
+}
+
+print();
