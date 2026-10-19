@@ -300,23 +300,43 @@ module shelf() {
   shelf_thickness = 4.6;
   shelf_chamfer = 0.9;
   
-  // Narrow it slightly.
-  scale([0.95, 1, -1])
-  translate([0, 0, -max_thickness()/2])
-  rotate([90, 0, 0])
-  hull() {
-    translate([0, shelf_width, 0]) {
-      linear_extrude(shelf_thickness)
-      grip_2d($grip_offs=-shelf_chamfer);
+  difference() {
+    // Narrow it slightly.
+    scale([0.95, 1, -1])
+    translate([0, 0, -max_thickness()/2])
+    rotate([90, 0, 0])
+    hull() {
+      translate([0, shelf_width, 0]) {
+        linear_extrude(shelf_thickness)
+        grip_2d($grip_offs=-shelf_chamfer);
+        
+        translate([0, 0, shelf_chamfer])
+        linear_extrude(shelf_thickness-2*shelf_chamfer)
+        grip_2d();
+      }
       
-      translate([0, 0, shelf_chamfer])
-      linear_extrude(shelf_thickness-2*shelf_chamfer)
-      grip_2d();
+      linear_extrude(shelf_thickness + 7)
+      grip_2d($grip_offs=-shelf_chamfer);
     }
     
-    linear_extrude(shelf_thickness + 7)
-    grip_2d($grip_offs=-shelf_chamfer);
+    // Remove the intersection with the body, so we get a piece
+    // that can be glued into the body.
+    wedge();
+    grip();
   }
+  
+  shelf_pin();
+}
+
+module shelf_pin(hole=false) {
+  translate([0, hole ? -1 : -0.9, -0.01])
+  linear_extrude(hole ? 1.4 : 1.05)
+  square([hole ? 2 : 1.6, hole ? 2 : 1.8], center=true);
+  
+  if (hole)
+  translate([0, -1, -0.01])
+  linear_extrude(0.4)
+  square(2.6, center=true);
 }
 
 module unibody() {
@@ -326,14 +346,7 @@ module unibody() {
       knurled_grip();
     }
     
-    // Small hole to align the shelf piece when gluing.
-    translate([0, -1, -0.01])
-    linear_extrude(1.4)
-    square(2, center=true);
-    
-    translate([0, -1, -0.01])
-    linear_extrude(0.4)
-    square(2.6, center=true);
+    shelf_pin(hole=true);
   }
 }
 
@@ -352,4 +365,4 @@ module positioning_square() {
   square(310, center=true);
 }
 
-unibody();
+shelf();
