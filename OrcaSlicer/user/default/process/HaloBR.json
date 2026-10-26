@@ -1,8 +1,10 @@
 {
+	"brim_type": "no_brim",
 	"elefant_foot_compensation": "0.2",
 	"first_layer_flow_ratio": "1.08",
 	"from": "User",
 	"inherits": "0.20mm Standard @Elegoo N4Plus 0.4 nozzle",
+	"ironing_type": "top",
 	"layer_height": "0.16",
 	"name": "HaloBR",
 	"print_extruder_id": [
@@ -14,5 +16,6 @@
 	"print_settings_id": "HaloBR",
 	"set_other_flow_ratios": "1",
 	"sparse_infill_density": "20%",
-	"version": "2.4.0.6"
+	"version": "2.4.0.6",
+	"wall_loops": "3"
 }
