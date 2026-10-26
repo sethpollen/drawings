@@ -1,6 +1,7 @@
 {
 	"brim_type": "no_brim",
 	"elefant_foot_compensation": "0.2",
+	"enable_support": "1",
 	"first_layer_flow_ratio": "1.08",
 	"from": "User",
 	"inherits": "0.20mm Standard @Elegoo N4Plus 0.4 nozzle",
@@ -16,6 +17,8 @@
 	"print_settings_id": "HaloBR",
 	"set_other_flow_ratios": "1",
 	"sparse_infill_density": "20%",
+	"sparse_infill_pattern": "adaptivecubic",
+	"support_on_build_plate_only": "1",
 	"version": "2.4.0.6",
 	"wall_loops": "3"
 }
