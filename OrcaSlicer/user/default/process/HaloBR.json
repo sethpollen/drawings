@@ -16,7 +16,7 @@
 	],
 	"print_settings_id": "HaloBR",
 	"set_other_flow_ratios": "1",
-	"sparse_infill_density": "20%",
+	"sparse_infill_density": "17%",
 	"sparse_infill_pattern": "adaptivecubic",
 	"support_on_build_plate_only": "1",
 	"version": "2.4.0.6",
