@@ -5,7 +5,6 @@
 	"first_layer_flow_ratio": "1.08",
 	"from": "User",
 	"inherits": "0.20mm Standard @Elegoo N4Plus 0.4 nozzle",
-	"ironing_type": "top",
 	"layer_height": "0.16",
 	"name": "HaloBR",
 	"print_extruder_id": [
@@ -20,6 +19,7 @@
 	"sparse_infill_pattern": "adaptivecubic",
 	"support_on_build_plate_only": "1",
 	"support_type": "normal(manual)",
+	"top_surface_pattern": "monotonic",
 	"version": "2.4.0.6",
 	"wall_loops": "3"
 }
