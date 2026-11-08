@@ -5,7 +5,7 @@ module base_2d() {
 
 module exterior_2d() {
   roundoff = 5;
-  $fn = 12;
+  $fn = 10;
   offset(r=-roundoff)
   offset(r=roundoff)
   base_2d();
@@ -33,7 +33,7 @@ module enlarged_holes_2d() {
   }
 }
 
-thickness = 4.6;
+thickness = 4;
 
 module round_extrude() {
   layer_height = 0.2;
@@ -42,27 +42,22 @@ module round_extrude() {
   for (i = [0:layers-1])
   translate([0, 0, i*layer_height])
   linear_extrude(layer_height + 0.001)
-  offset(layer_height*sqrt(layers*layers-i*i))
+  offset(layer_height*sqrt(layers*layers-i*i)-layer_height*layers)
   children();
 }
 
 module piece() {
   shrink = 0.425;
 
+  translate([0, 0, thickness/2])
+  for (a = [-1, 1])
+  scale([1, 1, a])
+  round_extrude()
+  scale(shrink * [1, 1])
   difference() {
-    translate([0, 0, thickness/2])
-    for (a = [-1, 1])
-    scale([1, 1, a])
-    round_extrude()
-    scale(shrink * [1, 1])
     exterior_2d();
-    
-    translate([0, 0, -1])
-    linear_extrude(10)
-    scale(shrink * [1, 1]) {
-      holes_2d();
-      enlarged_holes_2d();
-    }
+    holes_2d();
+    enlarged_holes_2d();
   }
 }
 
