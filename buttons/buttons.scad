@@ -47,7 +47,7 @@ module round_extrude() {
 }
 
 module piece() {
-  shrink = 0.425;
+  shrink = 0.425*1.1;
 
   translate([0, 0, thickness/2])
   for (a = [-1, 1])
@@ -56,8 +56,11 @@ module piece() {
   scale(shrink * [1, 1])
   difference() {
     exterior_2d();
-    holes_2d();
-    enlarged_holes_2d();
+    
+    offset(r=0.7) {
+      holes_2d();
+      enlarged_holes_2d();
+    }
   }
 }
 
