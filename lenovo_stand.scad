@@ -25,29 +25,15 @@ module profile_2d() {
   square([lip + extra_back + laptop_depth * sin(angle), lift]);
 }
 
-module hollow_2d() {
-  difference() {
-    children();
-    
-    wall = 15;
-    roundoff = 10;
-    
-    offset(r=roundoff)
-    offset(-wall-roundoff)
-    children();
-  }
-}
-
 module piece() {
   front_cutout_width = width * 0.69;
   front_cutout_slope = 25;
 
-  back_cutout_width = width * 0.7;
+  back_cutout_width = width * 0.79;
   back_cutout_slope = 70;
   
   difference() {
     linear_extrude(width)
-    hollow_2d()
     profile_2d();
     
     // Front cutout, for the front protrusion on the lid.
@@ -59,7 +45,7 @@ module piece() {
       
       translate([0, 0, front_cutout_slope])
       linear_extrude(front_cutout_width - 2*front_cutout_slope)
-      translate([-100, 0])
+      translate([-95, 0])
       square(200, center=true);
     }
     
@@ -75,9 +61,25 @@ module piece() {
       translate([0, 200 + laptop_depth * cos(angle) - 80])
       square(400, center=true);
     }
+    
+    // Inner hollow space.
+    wall = 15;
+    roundoff = 15;
+    translate([0, 0, -1])
+    linear_extrude(width+2)
+    offset(r=roundoff)
+    offset(-wall-roundoff)
+    profile_2d();
+    
+    // Weight saving cutout on the back.
+    hull()
+    for (z = [90, width-90])
+    translate([290, 64, z])
+    rotate([45, 0, 0])
+    cube([400, 65, 65], center=true);
   }
 }
 
 render()
-rotate([90, 0])
+//rotate([90, 0])
 piece();
