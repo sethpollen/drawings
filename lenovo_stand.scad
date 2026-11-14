@@ -1,10 +1,10 @@
-width = 330;
+width = 320;
 laptop_depth = 242;
 angle = 25;
 
-extra_back = 14;
+extra_back = 15;
 lip = 22;
-lift = 11;
+lift = 10;
 
 module profile_2d() {
   roundoff = 2.5;
@@ -14,7 +14,7 @@ module profile_2d() {
   offset(r=-roundoff)
   difference() {
     translate([-lip, -lift])
-    square([lip + extra_back + laptop_depth * sin(angle), lift + laptop_depth * cos(angle) - 12]);
+    square([lip + extra_back + laptop_depth * sin(angle), lift + laptop_depth * cos(angle) - 10]);
     
     rotate([0, 0, 90-angle])
     square(500);
@@ -22,11 +22,24 @@ module profile_2d() {
 
   // Don't round off the bottom corners.
   translate([-lip, -lift])
-  square([lip + laptop_depth * sin(angle), lift]);
+  square([lip + extra_back + laptop_depth * sin(angle), lift]);
+}
+
+module hollow_2d() {
+  difference() {
+    children();
+    
+    wall = 15;
+    roundoff = 10;
+    
+    offset(r=roundoff)
+    offset(-wall-roundoff)
+    children();
+  }
 }
 
 module piece() {
-  front_cutout_width = width * 0.63;
+  front_cutout_width = width * 0.69;
   front_cutout_slope = 25;
 
   back_cutout_width = width * 0.7;
@@ -34,8 +47,10 @@ module piece() {
   
   difference() {
     linear_extrude(width)
+    hollow_2d()
     profile_2d();
     
+    // Front cutout, for the front protrusion on the lid.
     translate([0, 0, (width-front_cutout_width)/2])
     hull() {
       linear_extrude(front_cutout_width)
@@ -47,7 +62,8 @@ module piece() {
       translate([-100, 0])
       square(200, center=true);
     }
-      
+    
+    // Back cutout, for fingers.
     translate([0, 0, (width-back_cutout_width)/2])
     hull() {
       linear_extrude(back_cutout_width)
@@ -62,4 +78,6 @@ module piece() {
   }
 }
 
+render()
+rotate([90, 0])
 piece();
