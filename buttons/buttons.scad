@@ -1,35 +1,9 @@
-module base_2d() {
-  projection()
-  import("preprocessed.stl", 4);
-}
-
-module exterior_2d() {
-  roundoff = 5;
-  $fn = 10;
-  offset(r=-roundoff)
-  offset(r=roundoff)
-  base_2d();
-}
-
-module holes_2d() {
-  difference() {
-    union() {
-      translate([40, 45]) circle(22);
-      translate([155, 42]) circle(22);
-    }
-    base_2d();
-  }
-}
-
-// A couple of holes need to be made bigger.
-module enlarged_holes_2d() {
-  offset(delta=0.8)
-  intersection() {
-    union() {
-      translate([165, 55]) circle(8);
-      translate([145, 30]) circle(8);
-    }
-    holes_2d();
+module button_2d() {
+  difference() {  
+    circle(d=30, $fn=45);
+    for (a = [-1, 1], b = [-1, 1])
+    translate(4 * [a, b])
+    circle(d=3.9, $fn=16);
   }
 }
 
@@ -47,21 +21,10 @@ module round_extrude() {
 }
 
 module piece() {
-  shrink = 0.425*1.1;
-
-  translate([0, 0, thickness/2])
   for (a = [-1, 1])
   scale([1, 1, a])
   round_extrude()
-  scale(shrink * [1, 1])
-  difference() {
-    exterior_2d();
-    
-    offset(r=0.7) {
-      holes_2d();
-      enlarged_holes_2d();
-    }
-  }
+  button_2d();
 }
 
 piece();
