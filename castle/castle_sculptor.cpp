@@ -316,10 +316,12 @@ inline float timberDoorDisplacement(float u, float z, float zBase) {
 // ============================================================================
 // Reusable Crenellated Cylindrical Corner Tower
 // - Smooth, untextured flat circular deck
-// - Clean open stair-access gaps cut straight through parapet crenellations!
+// - Explicit angular stair-access opening [gapAng0, gapAng1] in local mirrored coords
+//   with exact integer merlon spacing across the remaining parapet arc -> ZERO sliver merlons!
 // ============================================================================
 inline float sdCylTower(const Vec3& p, float cx, float cy, float R, float z_plinth_top,
-                        float z_deck, float parapet_h, int num_merlons, float angle_offset,
+                        float z_deck, float parapet_h, bool mirrorX,
+                        float gapAng0Deg, float gapAng1Deg, int num_merlons,
                         bool has_slits, int seed, float curBest) {
     float dx = p.x - cx;
     float dy = p.y - cy;
@@ -331,9 +333,11 @@ inline float sdCylTower(const Vec3& p, float cx, float cy, float R, float z_plin
     float dBound = std::hypot(std::max(drB, 0.0f), std::max(dzB, 0.0f)) + std::min(std::max(drB, dzB), 0.0f);
     if (dBound > curBest + 3.5f) return dBound;
 
-    float ang = std::atan2(dy, dx);
+    // Local X-mirrored coordinates so left & right towers have exact symmetric gaps & merlons
+    float ldx = mirrorX ? -dx : dx;
+    float ang = std::atan2(dy, ldx); // in [-PI, +PI]
 
-    // Shaft extends +1.5mm into crown base so there is solid overlap with zero exterior lip!
+    // Shaft extends +0.5mm into crown base for solid overlap with zero exterior lip
     float d_shaft  = sdCylinderZ(p, cx, cy, R, -4.0f, z_deck + 0.5f, 0.7f);
     float d_plinth = sdConeFrustumZ(p, cx, cy, -4.0f, z_plinth_top, R + 5.0f, R);
     float d_body   = smin(d_shaft, d_plinth, 1.4f);
@@ -345,8 +349,8 @@ inline float sdCylTower(const Vec3& p, float cx, float cy, float R, float z_plin
     float corbEnv = smoothstep(z_deck - 8.2f, z_deck - 5.2f, p.z) * smoothstep(z_deck - 1.2f, z_deck - 2.6f, p.z)
                   * smoothstep(R - 2.0f, R, r) * smoothstep(R_crown + 2.0f, R_crown - 0.5f, r);
     if (corbEnv > 0.001f) {
-        float cAng = std::fmod(ang + TAU * 2.0f + angle_offset, TAU / (num_merlons * 2.0f));
-        float cDist = std::fabs(cAng - 0.5f * TAU / (num_merlons * 2.0f)) * R;
+        float cAng = std::fmod(ang + TAU * 2.0f, TAU / 20.0f);
+        float cDist = std::fabs(cAng - 0.5f * TAU / 20.0f) * R;
         d_corbel -= 0.90f * smoothstep(2.3f, 1.3f, cDist) * corbEnv;
     }
 
@@ -365,26 +369,60 @@ inline float sdCylTower(const Vec3& p, float cx, float cy, float R, float z_plin
     float d_deck_cut = sdCylinderZ(p, cx, cy, R_inner, z_deck, z_deck + parapet_h + 10.0f, 0.55f);
     d_body = smax(d_body, -d_deck_cut, 0.5f);
 
-    // Circular embrasure notches
-    float z_emb = z_deck + parapet_h * 0.48f;
-    if (p.z > z_emb - 3.5f) {
-        float sector = TAU / float(num_merlons);
-        float a = std::fmod(ang + TAU * 2.0f + angle_offset, sector) - 0.5f * sector;
-        float arcU = a * std::max(r, 1.0f);
-        float embHW = 0.21f * sector * R_crown;
-        float d_emb = std::max(std::fabs(arcU) - embHW, z_emb - p.z);
-        d_emb = std::max(d_emb, std::max(R_inner - 2.0f - r, r - (R_crown + 3.0f)));
-        d_body = smax(d_body, -(d_emb - 0.6f), 0.6f);
+    // Explicit radial stair-access opening + exact sliver-free merlon subdivision of the remaining parapet arc!
+    // Parapet arc starts at gapAng1Deg and wraps CCW to (gapAng0Deg + 360), ending cleanly on full chunky merlons!
+    if (p.z > z_deck - 2.0f) {
+        float angDeg = ang * (180.0f / PI);
+        float gapSpan = gapAng1Deg - gapAng0Deg; // e.g. 110 deg (front) or 46 deg (rear)
+        float parapetSpan = 360.0f - gapSpan;
+
+        // Relative angle from start of stair gap, in [0, 360)
+        float relFromGap = std::fmod(angDeg - gapAng0Deg + 720.0f, 360.0f);
+        float radScale = std::max(r, R_inner) * (PI / 180.0f); // mm per degree
+
+        // 1. Cut clean full-height radial stairway opening down to exact z_deck!
+        float distIntoGapDeg = std::min(relFromGap, gapSpan - relFromGap); // >0 inside gap, <0 outside gap
+        // Signed distance to gap (negative inside gap)
+        float d_gap_ang = (relFromGap <= gapSpan) ? -distIntoGapDeg * radScale
+                                                  : std::min(relFromGap - gapSpan, 360.0f - relFromGap) * radScale;
+        float d_gap_z = z_deck - p.z;
+        float d_gap_r = std::max((R_inner - 2.5f) - r, r - (R_crown + 3.5f));
+        float d_gap = std::max(std::max(d_gap_ang, d_gap_z), d_gap_r);
+        d_body = smax(d_body, -(d_gap - 0.50f), 0.55f);
+
+        // 2. Cut (num_merlons - 1) evenly spaced embrasures strictly INSIDE the parapet arc
+        //    so EVERY merlon (including both end merlons bordering the stair gap!) has full chunky width (~10-12mm)!
+        float z_emb = z_deck + parapet_h * 0.48f;
+        if (p.z > z_emb - 3.5f && relFromGap > gapSpan - 4.0f) {
+            float relPara = relFromGap - gapSpan; // in [0, parapetSpan]
+            // Divide parapetSpan = num_merlons * merlonDeg + (num_merlons - 1) * embDeg
+            // with merlonDeg : embDeg = 1.38 : 1.0 (chunky merlons ~21-22 deg, crisp embrasures ~15-16 deg)
+            float embDeg = parapetSpan / (1.38f * float(num_merlons) + float(num_merlons - 1));
+            float merlonDeg = 1.38f * embDeg;
+            float pitchDeg = merlonDeg + embDeg;
+
+            // Embrasure k (k = 0 .. num_merlons - 2) is centered at merlonDeg + 0.5*embDeg + k*pitchDeg
+            float minEmbDistDeg = 1e6f;
+            for (int k = 0; k < num_merlons - 1; ++k) {
+                float cDeg = merlonDeg + 0.5f * embDeg + float(k) * pitchDeg;
+                float dDeg = std::fabs(relPara - cDeg) - 0.5f * embDeg;
+                minEmbDistDeg = std::min(minEmbDistDeg, dDeg);
+            }
+            float d_emb = std::max(minEmbDistDeg * radScale, z_emb - p.z);
+            d_emb = std::max(d_emb, std::max((R_inner - 2.0f) - r, r - (R_crown + 3.0f)));
+            d_body = smax(d_body, -(d_emb - 0.55f), 0.55f);
+        }
     }
 
-    // Crisp recessed cruciform arrow slits
+    // Crisp recessed cruciform arrow slits (only on exterior-facing faces)
     float slitProtect = 1.0f;
     if (has_slits) {
         float z_sm = 0.54f * (z_plinth_top + z_deck);
         if (std::fabs(p.z - z_sm) < 14.0f && r > R - 6.5f) {
+            float rawAng = std::atan2(dy, dx);
             for (int k = 0; k < 4; ++k) {
-                float sa = angle_offset + k * (PI * 0.5f);
-                float da = ang - sa;
+                float sa = 0.22f + k * (PI * 0.5f);
+                float da = rawAng - sa;
                 while (da > PI) da -= TAU;
                 while (da < -PI) da += TAU;
                 float arcU = da * R;
@@ -408,7 +446,8 @@ inline float sdCylTower(const Vec3& p, float cx, float cy, float R, float z_plin
                        * smoothstep(0.0f, 1.2f, (z_deck + parapet_h) - p.z)
                        * smoothstep(0.5f, 3.5f, p.z);
         if (r > R - 5.5f && wallMask > 0.001f) {
-            float u = (ang + PI) * R;
+            float rawAng = std::atan2(dy, dx);
+            float u = (rawAng + PI) * R;
             float disp = ashlarDisplacement(u, p.z, 4.6f, 8.8f, 0.50f, 0.32f, seed);
             d_body -= disp * wallMask * slitProtect;
         }
@@ -546,15 +585,31 @@ inline float castleSDF(const Vec3& p) {
                 d_walls -= 0.72f * smoothstep(2.4f, 1.3f, uf) * corbM;
             }
 
-            // Crenellation embrasures along outer walls
+            // Explicit sliver-free crenellation embrasures along all outer curtain walls!
+            // Guarantees every merlon is >= 11mm wide (7.5mm thick) with zero narrow slivers at junctions.
             if (p.z > Z_WALL_DECK + 5.0f && maxXY > 113.0f) {
-                float u = (ax > ay) ? p.y : p.x;
-                bool skipGate = (p.y < -95.0f && std::fabs(p.x) < 38.0f);
-                if (!skipGate && std::fabs(u) < 84.0f) {
-                    float uf = std::fabs(std::fmod(u + 300.0f, 24.0f) - 12.0f);
-                    float d_emb = std::max(uf - 5.0f, (Z_WALL_DECK + 7.2f) - p.z);
-                    d_walls = smax(d_walls, -(d_emb - 0.55f), 0.55f);
+                float d_emb_u = 1e6f;
+                if (ax > ay) {
+                    // Left & Right side walls (clear span y in [-79.5, +79.0]):
+                    // 6 evenly spaced embrasures at y = ±12.5, ±37.5, ±62.5 (width 10.5mm -> merlons 14.5mm, end merlons ~11.5mm!)
+                    float yAbs = std::fabs(p.y);
+                    float d1 = std::fabs(yAbs - 12.5f) - 5.25f;
+                    float d2 = std::fabs(yAbs - 37.5f) - 5.25f;
+                    float d3 = std::fabs(yAbs - 62.5f) - 5.25f;
+                    d_emb_u = std::min(d1, std::min(d2, d3));
+                } else if (p.y < 0.0f) {
+                    // Front wall flanking the gatehouse (clear span |x| in [40.5, 79.5]):
+                    // Embrasure at |x| = 46.0 ([40.5, 51.5]) and |x| = 74.0 ([68.5, 79.5]) -> chunky 17mm merlon in between!
+                    float d1 = std::fabs(ax - 46.0f) - 5.5f;
+                    float d2 = std::fabs(ax - 74.0f) - 5.5f;
+                    d_emb_u = std::min(d1, d2);
+                } else {
+                    // Rear wall flanking the Keep (clear span |x| in [55.5, 79.0]):
+                    // Single crisp centered embrasure at |x| = 67.25 (width 9.0mm -> sturdy 7.2mm shoulders fused into Keep & Tower!)
+                    d_emb_u = std::fabs(ax - 67.25f) - 4.5f;
                 }
+                float d_emb = std::max(d_emb_u, (Z_WALL_DECK + 7.2f) - p.z);
+                d_walls = smax(d_walls, -(d_emb - 0.55f), 0.55f);
             }
 
             // Exterior arrow slits along curtain walls (z = 40..58)
@@ -595,19 +650,18 @@ inline float castleSDF(const Vec3& p) {
     }
 
     // ------------------------------------------------------------------------
-    // 4. FOUR CORNER BASTION TOWERS + CONTINUOUS STAIR PATHS & PARAPET GAPS!
-    //    Front Towers: smooth deck z=94mm (para 108mm)
-    //    Rear Towers:  smooth deck z=102mm (para 116mm)
-    //    Clean walkway gaps cut straight through turret crenellations at every stair!
+    // 4. FOUR CORNER BASTION TOWERS + CONTINUOUS STAIR PATHS & SLIVER-FREE PARAPETS!
+    //    Front Towers: open stair arc [-10 deg, +100 deg] (110 deg), 7 full chunky merlons (~11mm wide!)
+    //    Rear Towers:  open stair arc [-102 deg, -56 deg] (46 deg),  9 full chunky merlons (~10.5mm wide!)
     // ------------------------------------------------------------------------
     {
-        float tFL = sdCylTower(p, -110.0f, -110.0f, 27.5f, Z_COURT + 14.0f, Z_TWR_F_DECK, 14.0f, 10, 0.15f, true, 101, d);
+        float tFL = sdCylTower(p, -110.0f, -110.0f, 27.5f, Z_COURT + 14.0f, Z_TWR_F_DECK, 14.0f, false, -10.0f, 100.0f, 7, true, 101, d);
         d = smin(d, tFL, 0.85f);
-        float tFR = sdCylTower(p, +110.0f, -110.0f, 27.5f, Z_COURT + 14.0f, Z_TWR_F_DECK, 14.0f, 10, 0.15f, true, 102, d);
+        float tFR = sdCylTower(p, +110.0f, -110.0f, 27.5f, Z_COURT + 14.0f, Z_TWR_F_DECK, 14.0f, true,  -10.0f, 100.0f, 7, true, 102, d);
         d = smin(d, tFR, 0.85f);
-        float tRL = sdCylTower(p, -110.0f, +110.0f, 28.0f, Z_COURT + 16.0f, Z_TWR_R_DECK, 14.5f, 10, 0.30f, true, 103, d);
+        float tRL = sdCylTower(p, -110.0f, +110.0f, 28.0f, Z_COURT + 16.0f, Z_TWR_R_DECK, 14.5f, false, -102.0f, -56.0f, 9, true, 103, d);
         d = smin(d, tRL, 0.85f);
-        float tRR = sdCylTower(p, +110.0f, +110.0f, 28.0f, Z_COURT + 16.0f, Z_TWR_R_DECK, 14.5f, 10, 0.30f, true, 104, d);
+        float tRR = sdCylTower(p, +110.0f, +110.0f, 28.0f, Z_COURT + 16.0f, Z_TWR_R_DECK, 14.5f, true,  -102.0f, -56.0f, 9, true, 104, d);
         d = smin(d, tRR, 0.85f);
 
         float ax = std::fabs(p.x);
@@ -625,7 +679,6 @@ inline float castleSDF(const Vec3& p) {
         }
 
         // 4b. Front-wall stairs climbing from front wall walk (z=80) -> Front Corner Towers (z=94): 3 steps
-        //     Gives a complete continuous 360-deg walking circuit across front gatehouse, front towers & side walls!
         float d_sbFront = sdBoxMinMax(Vec3(ax, p.y, p.z), 68.0f, 96.0f, -116.0f, -93.0f, 76.0f, 98.0f);
         if (d_sbFront < d + 2.5f) {
             float d_st = 1e9f;
@@ -647,18 +700,6 @@ inline float castleSDF(const Vec3& p) {
                 d_st = std::min(d_st, sdBoxMinMax(Vec3(ax, p.y, p.z), 95.0f, 114.0f, y_lo, 94.0f, 77.0f, z_hi, 0.4f));
             }
             d = smin(d, d_st, 0.4f);
-        }
-
-        // 4d. CUT CLEAN WALKWAY GAPS THROUGH ALL TURRET CRENELLATIONS WHERE STAIRS ARRIVE!
-        //     Flush with each turret's smooth flat deck so figures walk effortlessly from wall -> stairs -> turret top!
-        {
-            // Front Corner Tower open inner quadrant (connects front-wall stairs & side-wall stairs cleanly with zero orphaned inner merlon!)
-            float d_gapF_inner = sdBoxMinMax(Vec3(ax, p.y, p.z), 76.0f, 113.5f, -113.5f, -76.0f, Z_TWR_F_DECK, 120.0f, 0.6f);
-            // Rear Corner Tower gap (z >= 102.0mm): side-wall arrival (-Y side)
-            float d_gapR_side  = sdBoxMinMax(Vec3(ax, p.y, p.z), 96.5f, 113.5f,  76.0f, 104.0f, Z_TWR_R_DECK, 128.0f, 0.6f);
-
-            float d_gaps = std::min(d_gapF_inner, d_gapR_side);
-            d = smax(d, -d_gaps, 0.55f);
         }
     }
 
@@ -692,12 +733,13 @@ inline float castleSDF(const Vec3& p) {
             float d_gh_deck = sdBoxMinMax(p, -44.0f, 44.0f, -122.9f, -82.0f, Z_WALL_DECK, 115.0f, 0.55f);
             d_gh = smax(d_gh, -d_gh_deck, 0.55f);
 
-            // Crenellation embrasures along front gatehouse parapet
-            if (p.z > Z_WALL_DECK + 5.0f && p.y < -121.0f && std::fabs(p.x) < 39.0f) {
+            // Sliver-free crenellation embrasures along front gatehouse parapet:
+            // Only ONE symmetric pair at |x| in [12.5, 22.5] -> leaves a chunky 25mm center merlon (with shield!)
+            // and two chunky 18mm corner merlons wrapping solidly around the gatehouse edges (ZERO slivers!).
+            if (p.z > Z_WALL_DECK + 5.0f && p.y < -121.0f && std::fabs(p.x) < 34.0f) {
                 float ax = std::fabs(p.x);
-                float d_e1 = std::max(std::fabs(ax - 15.0f) - 5.0f, (Z_WALL_DECK + 7.2f) - p.z);
-                float d_e2 = std::max(std::fabs(ax - 35.0f) - 4.8f, (Z_WALL_DECK + 7.2f) - p.z);
-                d_gh = smax(d_gh, -(std::min(d_e1, d_e2) - 0.55f), 0.55f);
+                float d_e1 = std::max(std::fabs(ax - 17.5f) - 4.75f, (Z_WALL_DECK + 7.2f) - p.z);
+                d_gh = smax(d_gh, -(d_e1 - 0.55f), 0.55f);
             }
 
             // Flanking cruciform arrow slits on gate piers (z = 41..58)
@@ -912,15 +954,22 @@ inline float castleSDF(const Vec3& p) {
             float d_kp_deck = sdBoxMinMax(p, kx0 + 4.8f, kx1 - 4.8f, ky0 + 4.8f, ky1 - 4.8f, Z_KEEP_DECK, 240.0f, 0.65f);
             d_keep = smax(d_keep, -d_kp_deck, 0.55f);
 
-            // 8f. Crenellations (Embrasures) along Keep Crown (z = 212..220mm)
+            // 8f. Explicit sliver-free crenellations along Keep Crown (z = 212..220mm)
+            // Front/Rear (111mm): 4 embrasures at x = ±11, ±33 (width 9.6mm -> 12.4mm interior & 17.7mm corner merlons!)
+            // Left/Right (92mm):  3 embrasures at dy = 0, ±22  (width 9.6mm -> 12.4mm interior & 19.2mm corner merlons!)
             if (p.z > Z_KEEP_DECK + 6.0f && p.z < Z_KEEP_PARA + 3.0f) {
                 float axk = std::fabs(p.x - kcx) - khx;
                 float ayk = std::fabs(p.y - kcy) - khy;
-                float u = (axk > ayk) ? (p.y - kcy) : (p.x - kcx);
-                float limitU = (axk > ayk) ? (khy - 9.0f) : (khx - 9.0f);
-                if (std::fabs(u) < limitU && std::max(axk, ayk) > -6.0f) {
-                    float uf = std::fabs(std::fmod(u + 200.0f, 22.0f) - 11.0f);
-                    float d_emb = std::max(uf - 4.8f, (Z_KEEP_DECK + 8.0f) - p.z);
+                if (std::max(axk, ayk) > -6.0f) {
+                    float d_emb_u = 1e6f;
+                    if (axk > ayk) {
+                        float dyAbs = std::fabs(p.y - kcy);
+                        d_emb_u = std::min(dyAbs - 4.8f, std::fabs(dyAbs - 22.0f) - 4.8f);
+                    } else {
+                        float dxAbs = std::fabs(p.x - kcx);
+                        d_emb_u = std::min(std::fabs(dxAbs - 11.0f) - 4.8f, std::fabs(dxAbs - 33.0f) - 4.8f);
+                    }
+                    float d_emb = std::max(d_emb_u, (Z_KEEP_DECK + 8.0f) - p.z);
                     d_keep = smax(d_keep, -(d_emb - 0.55f), 0.60f);
                 }
             }
