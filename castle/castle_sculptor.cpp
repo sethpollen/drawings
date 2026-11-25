@@ -37,82 +37,85 @@ static constexpr float TAU = 2.0f * PI;
 // heights, wall bounds, turret centers, and stud grids can never drift apart.
 // ============================================================================
 namespace CastleSpec {
-    // Overall envelope (mm)
-    static constexpr float HALF_X = 145.0f;
-    static constexpr float HALF_Y = 145.0f;
+    // Overall envelope (mm) — expanded slightly to accommodate +10 mm wider turrets at fixed centers (±110)
+    static constexpr float HALF_X = 149.0f;
+    static constexpr float HALF_Y = 149.0f;
 
     // Walkable floor & parapet elevations (mm above z = 0 flat build-plate base)
     static constexpr float Z_COURT      = 15.0f;  // Open courtyard & gate tunnel floor
     static constexpr float Z_L1_FLOOR   = 23.0f;  // Keep Level 1 floor (ceiling z = 102.0 -> 79 mm clear)
     static constexpr float Z_WALL_DECK  = 75.0f;  // Curtain wall walks & gatehouse top deck
-    static constexpr float Z_WALL_PARA  = 95.0f;  // Curtain wall & gatehouse merlon tops (+20.0 mm)
-    static constexpr float Z_TWR_F_DECK = 94.0f;  // Front corner turret decks (merlons 114.0 mm)
-    static constexpr float Z_TWR_R_DECK = 102.0f; // Rear corner turret decks  (merlons 122.0 mm)
+    static constexpr float PARA_H       = 22.0f;  // +2 mm taller parapet (22 mm above walkable floor)
+    static constexpr float Z_WALL_PARA  = Z_WALL_DECK + PARA_H;  // 97.0 mm
+    static constexpr float Z_TWR_F_DECK = 94.0f;  // Front corner turret decks (merlons 116.0 mm)
+    static constexpr float Z_TWR_R_DECK = 102.0f; // Rear corner turret decks  (merlons 124.0 mm)
     static constexpr float Z_L2_FLOOR   = 109.0f; // Keep Level 2 floor (ceiling z = 187.0 -> 78 mm clear)
     static constexpr float Z_KEEP_DECK  = 195.0f; // Keep flat roof deck
-    static constexpr float Z_KEEP_PARA  = 215.0f; // Keep merlon tops (+20.0 mm, total castle height)
-    static constexpr float PARA_H       = 20.0f;
+    static constexpr float Z_KEEP_PARA  = Z_KEEP_DECK + PARA_H;  // 217.0 mm (total castle height)
 
     // Outer curtain walls (20.0 mm main thickness below z = 63; 45-deg inner corbel z = 63..73.5; 25.9 mm walk)
+    // Shortened 8.0 mm front-to-back by moving front curtain wall, front turrets & gatehouse +8.0 mm in +Y.
     static constexpr float WALL_OUT_X        = 123.5f;
-    static constexpr float WALL_OUT_Y_MIN    = -108.5f;
+    static constexpr float WALL_OUT_Y_MIN    = -100.5f;
     static constexpr float WALL_OUT_Y_MAX    =  123.5f;
-    static constexpr float WALL_Y_C          = 0.5f * (WALL_OUT_Y_MIN + WALL_OUT_Y_MAX); // +7.5f
-    static constexpr float WALL_Y_H          = 0.5f * (WALL_OUT_Y_MAX - WALL_OUT_Y_MIN); // 116.0f
+    static constexpr float WALL_Y_C          = 0.5f * (WALL_OUT_Y_MIN + WALL_OUT_Y_MAX); // +11.5f
+    static constexpr float WALL_Y_H          = 0.5f * (WALL_OUT_Y_MAX - WALL_OUT_Y_MIN); // 112.0f
     static constexpr float WALL_CORB_OUT     = 3.0f;
+    static constexpr float WALL_BASE_BAT_H   = 25.0f; // bottom 25 mm wall base batter height
+    static constexpr float WALL_BASE_BAT_OUT = 12.0f; // pronounced +12.0 mm horizontal flare (~64.4-deg slope)
     static constexpr float WALL_PARA_OUT_X   = WALL_OUT_X + WALL_CORB_OUT;     // 126.5f
-    static constexpr float WALL_PARA_OUT_Y0  = WALL_OUT_Y_MIN - WALL_CORB_OUT; // -111.5f
+    static constexpr float WALL_PARA_OUT_Y0  = WALL_OUT_Y_MIN - WALL_CORB_OUT; // -103.5f
     static constexpr float WALL_PARA_OUT_Y1  = WALL_OUT_Y_MAX + WALL_CORB_OUT; // +126.5f
     static constexpr float WALL_WALK_OUT_X   = 118.9f;  // inner parapet face (7.6 mm thick parapet)
-    static constexpr float WALL_WALK_OUT_Y0  = -103.9f;
+    static constexpr float WALL_WALK_OUT_Y0  = -95.9f;
     static constexpr float WALL_WALK_OUT_Y1  =  118.9f;
     static constexpr float WALL_WALK_IN_X    =  93.0f;  // upper walkway inner edge (25.9 mm wide walk)
-    static constexpr float WALL_WALK_IN_Y0   = -78.0f;
+    static constexpr float WALL_WALK_IN_Y0   = -70.0f;
     static constexpr float WALL_WALK_IN_Y1   =  93.0f;
     static constexpr float WALL_COURT_IN_X   = 103.5f;  // lower courtyard wall inner face (20.0 mm thick wall)
-    static constexpr float WALL_COURT_IN_Y0  = -88.5f;
+    static constexpr float WALL_COURT_IN_Y0  = -80.5f;
     static constexpr float WALL_COURT_IN_Y1  =  103.5f;
-    static constexpr float WALL_COURT_HY_LOW = 0.5f * (WALL_COURT_IN_Y1 - WALL_COURT_IN_Y0); // 96.0f
-    static constexpr float WALL_COURT_HY_TOP = 0.5f * (WALL_WALK_IN_Y1  - WALL_WALK_IN_Y0);  // 85.5f
+    static constexpr float WALL_COURT_HY_LOW = 0.5f * (WALL_COURT_IN_Y1 - WALL_COURT_IN_Y0); // 92.0f
+    static constexpr float WALL_COURT_HY_TOP = 0.5f * (WALL_WALK_IN_Y1  - WALL_WALK_IN_Y0);  // 81.5f
 
-    // Corner bastion turrets (world centers & radii)
+    // Corner bastion turrets (identical size/details; front turrets shifted +8.0 mm in +Y to (±110, -87))
     static constexpr float TWR_X      = 110.0f;
-    static constexpr float TWR_F_Y    = -95.0f;
+    static constexpr float TWR_F_Y    = -87.0f;
     static constexpr float TWR_R_Y    =  110.0f;
-    static constexpr float TWR_F_R    = 27.5f;
-    static constexpr float TWR_R_R    = 28.0f;
-    static constexpr float TWR_F_R_IN = 23.1f;
-    static constexpr float TWR_R_R_IN = 23.6f;
+    static constexpr float TWR_F_R    = 32.5f; // Ø65 mm shaft, Ø71 mm crown, Ø56.2 mm inner deck
+    static constexpr float TWR_R_R    = 33.0f; // Ø66 mm shaft, Ø72 mm crown, Ø57.2 mm inner deck
+    static constexpr float TWR_F_R_IN = 28.1f;
+    static constexpr float TWR_R_R_IN = 28.6f;
 
-    // Rear turret stair step elevations (steps 0..2 stay below 95 mm side parapet; step 3 enters turret crown)
+    // Rear turret stair step elevations (steps 0..2 stay below 97 mm side parapet; step 3 enters turret crown)
     static constexpr float TWR_R_STAIR_Z[4] = {81.60f, 88.20f, 94.80f, Z_TWR_R_DECK};
 
-    // Outward-bulging gatehouse (world coordinates; inner face flush with front curtain wall!)
+    // Outward-bulging gatehouse (identical size/details; shifted +8.0 mm in +Y flush with front curtain wall)
     static constexpr float GH_HALF_X      = 38.0f;
     static constexpr float GH_PARA_HALF_X = 40.5f;
     static constexpr float GH_WALK_HALF_X = 32.9f;
-    static constexpr float GH_Y_MIN       = -122.5f; // outer main wall (+14.0 mm ahead of front wall)
-    static constexpr float GH_Y_MAX       = WALL_WALK_IN_Y0; // -78.0f (flush with front walk inner edge)
-    static constexpr float GH_Y_C         = 0.5f * (GH_Y_MIN + GH_Y_MAX); // -100.25f
+    static constexpr float GH_Y_MIN       = -114.5f; // outer main wall (+14.0 mm ahead of front wall)
+    static constexpr float GH_Y_MAX       = WALL_WALK_IN_Y0; // -70.0f (flush with front walk inner edge)
+    static constexpr float GH_Y_C         = 0.5f * (GH_Y_MIN + GH_Y_MAX); // -92.25f
     static constexpr float GH_Y_H         = 0.5f * (GH_Y_MAX - GH_Y_MIN); // 22.25f
-    static constexpr float GH_PARA_Y_MIN  = -125.5f; // outer parapet face
-    static constexpr float GH_WALK_Y_MIN  = -117.9f; // inner parapet face (7.6 mm thick parapet)
-    static constexpr float GH_COURT_LOW_Y = WALL_COURT_IN_Y0; // -88.5f (flush with thinned front wall)
+    static constexpr float GH_PARA_Y_MIN  = -117.5f; // outer parapet face
+    static constexpr float GH_WALK_Y_MIN  = -109.9f; // inner parapet face (7.6 mm thick parapet)
+    static constexpr float GH_COURT_LOW_Y = WALL_COURT_IN_Y0; // -80.5f (flush with thinned front wall)
     static constexpr float GATE_HALF_W    = 19.0f;   // 38.0 mm wide smooth Gothic gate tunnel
 
-    // Central open-back Keep (world coordinates; rear face flush with rear curtain wall)
+    // Central open-back Keep (shortened 13.0 mm front-to-back: y in [+49, +123.5] = 74.5 mm deep, flush with rear wall)
     static constexpr float KEEP_X0 = -52.0f;
     static constexpr float KEEP_X1 =  52.0f;
-    static constexpr float KEEP_Y0 =  36.0f;
+    static constexpr float KEEP_Y0 =  49.0f;
     static constexpr float KEEP_Y1 = WALL_OUT_Y_MAX; // 123.5f
     static constexpr float KEEP_CX = 0.0f;
-    static constexpr float KEEP_CY = 0.5f * (KEEP_Y0 + KEEP_Y1); // 79.75f
+    static constexpr float KEEP_CY = 0.5f * (KEEP_Y0 + KEEP_Y1); // 86.25f
     static constexpr float KEEP_HX = 0.5f * (KEEP_X1 - KEEP_X0); // 52.0f
-    static constexpr float KEEP_HY = 0.5f * (KEEP_Y1 - KEEP_Y0); // 43.75f
+    static constexpr float KEEP_HY = 0.5f * (KEEP_Y1 - KEEP_Y0); // 37.25f
 
-    // Precision FDM-tolerant LEGO-compatible stud parameters
+    // Precision FDM-tolerant LEGO-compatible stud parameters (calibrated from test print: 4.70 -> 4.60 mm printed)
     static constexpr float LEGO_PITCH   = 8.00f; // exact standard LEGO stud pitch
-    static constexpr float LEGO_STUD_R  = 2.35f; // 4.70 mm dia (FDM-tuned non-tight clutch for minifigs)
+    static constexpr float LEGO_STUD_R  = 2.45f; // 4.90 mm modeled -> ~4.80 mm printed for crisp minifig click!
     static constexpr float LEGO_STUD_H  = 1.70f; // standard LEGO stud height
     static constexpr float LEGO_CHAMFER = 0.20f; // 0.20 mm 45-deg lead-in top chamfer
 
@@ -471,9 +474,9 @@ inline float sdCylTower(const Vec3& p, float cx, float cy, float R, float z_plin
     float ldx = mirrorX ? -dx : dx;
     float ang = std::atan2(dy, ldx); // in [-PI, +PI]
 
-    // Shaft extends +0.5mm into crown base for solid overlap with zero exterior lip
+    // Shaft extends +0.5mm into crown base for solid overlap; sleek plinth flare (R + 3.0) matches crown footprint
     float d_shaft  = sdCylinderZ(p, cx, cy, R, -4.0f, z_deck + 0.5f, 0.7f);
-    float d_plinth = sdConeFrustumZ(p, cx, cy, -4.0f, z_plinth_top, R + 5.0f, R);
+    float d_plinth = sdConeFrustumZ(p, cx, cy, -4.0f, z_plinth_top, R + 3.0f, R);
     float d_body   = smin(d_shaft, d_plinth, 1.4f);
 
     float R_crown  = R + 3.0f;
@@ -623,26 +626,32 @@ inline float sdStudGrid(const Vec3& p, float x0, int nx, float y0, int ny, float
     return std::min(curD, sdLegoStud(p, x0 + float(ix) * LEGO_PITCH, y0 + float(iy) * LEGO_PITCH, z_floor));
 }
 
-// O(1) circular rosette of 21 LEGO studs centered on turret (tcx, tcy): dx, dy in {0, ±8, ±16} omitting (±16, ±16)
+// O(1) circular rosette of 29 LEGO studs centered on wider turret (tcx, tcy):
+// full 5x5 core (dx, dy in {0, ±8, ±16}) + 4 outer compass-point studs (±24, 0) & (0, ±24), r_max = 24.0 mm
 inline float sdTurretStuds(const Vec3& p, float tcx, float tcy, float z_floor, float curD) {
     using namespace CastleSpec;
     float dzB = std::max((z_floor - 0.85f) - p.z, p.z - (z_floor + LEGO_STUD_H));
-    float rB  = std::hypot(p.x - tcx, p.y - tcy) - 21.0f;
+    float rB  = std::hypot(p.x - tcx, p.y - tcy) - 27.5f;
     if (std::max(dzB, rB) >= curD) return curD;
 
     int ix = (int)std::lround((p.x - tcx) / LEGO_PITCH);
     int iy = (int)std::lround((p.y - tcy) / LEGO_PITCH);
-    if (ix < -2) ix = -2; else if (ix > 2) ix = 2;
-    if (iy < -2) iy = -2; else if (iy > 2) iy = 2;
-    if (std::abs(ix) == 2 && std::abs(iy) == 2) {
-        // Check the two adjacent valid rosette neighbors for smooth SDF continuity
-        int ixIn = (ix > 0) ? 1 : -1;
-        int iyIn = (iy > 0) ? 1 : -1;
-        float d1 = sdLegoStud(p, tcx + float(ixIn) * LEGO_PITCH, tcy + float(iy) * LEGO_PITCH, z_floor);
-        float d2 = sdLegoStud(p, tcx + float(ix) * LEGO_PITCH, tcy + float(iyIn) * LEGO_PITCH, z_floor);
-        return std::min(curD, std::min(d1, d2));
+    if (ix < -3) ix = -3; else if (ix > 3) ix = 3;
+    if (iy < -3) iy = -3; else if (iy > 3) iy = 3;
+    auto isValid = [](int gx, int gy) {
+        return (gx * gx + gy * gy) <= 9; // allows 5x5 (max 4+4=8) and (±3,0)/(0,±3) (9), excludes (±3,±1..3)
+    };
+    if (isValid(ix, iy)) {
+        return std::min(curD, sdLegoStud(p, tcx + float(ix) * LEGO_PITCH, tcy + float(iy) * LEGO_PITCH, z_floor));
     }
-    return std::min(curD, sdLegoStud(p, tcx + float(ix) * LEGO_PITCH, tcy + float(iy) * LEGO_PITCH, z_floor));
+    // Check nearest valid inward rosette neighbors for smooth SDF continuity
+    int ixIn = (ix > 0) ? (ix - 1) : ((ix < 0) ? (ix + 1) : 0);
+    int iyIn = (iy > 0) ? (iy - 1) : ((iy < 0) ? (iy + 1) : 0);
+    float dBest = curD;
+    if (isValid(ixIn, iy))   dBest = std::min(dBest, sdLegoStud(p, tcx + float(ixIn) * LEGO_PITCH, tcy + float(iy) * LEGO_PITCH, z_floor));
+    if (isValid(ix, iyIn))   dBest = std::min(dBest, sdLegoStud(p, tcx + float(ix) * LEGO_PITCH, tcy + float(iyIn) * LEGO_PITCH, z_floor));
+    if (isValid(ixIn, iyIn)) dBest = std::min(dBest, sdLegoStud(p, tcx + float(ixIn) * LEGO_PITCH, tcy + float(iyIn) * LEGO_PITCH, z_floor));
+    return dBest;
 }
 
 // Master O(1) LEGO Studs Field across all walkable floors & stair treads!
@@ -651,22 +660,22 @@ inline float legoStudsSDF(const Vec3& p, float curD = 1e6f) {
     float ds = curD;
     Vec3 ap(std::fabs(p.x), p.y, p.z); // X-mirrored point for symmetric left/right castle zones!
 
-    // 1. OPEN COURTYARD FLOOR (z = Z_COURT, skipping smooth gate tunnel y < -88.5 & front turret plinth discs)
+    // 1. OPEN COURTYARD FLOOR (z = Z_COURT, skipping smooth gate tunnel y < -80.5 & front turret plinth discs)
     if (p.z > Z_COURT - 2.0f && p.z < Z_COURT + 3.5f) {
-        // Main courtyard grid: x in [-96, +96] (25 cols, pitch 8), y in [-83, +13] (13 rows, pitch 8)
+        // Main courtyard grid: x in [-96, +96] (25 cols, pitch 8), y in [-75, +21] (13 rows, pitch 8)
         float dxB = std::max(-98.5f - p.x, p.x - 98.5f);
-        float dyB = std::max(-85.5f - p.y, p.y - 15.5f);
+        float dyB = std::max(-77.5f - p.y, p.y - 23.5f);
         float dzB = std::max((Z_COURT - 0.85f) - p.z, p.z - (Z_COURT + LEGO_STUD_H));
         if (std::max(dxB, std::max(dyB, dzB)) < ds) {
             int ix = (int)std::lround((p.x + 96.0f) / LEGO_PITCH);
-            int iy = (int)std::lround((p.y + 83.0f) / LEGO_PITCH);
+            int iy = (int)std::lround((p.y + 75.0f) / LEGO_PITCH);
             if (ix < 0) ix = 0; else if (ix > 24) ix = 24;
             if (iy < 0) iy = 0; else if (iy > 12) iy = 12;
             auto evalCourt = [&](int gx, int gy) -> float {
                 if (gx < 0 || gx > 24 || gy < 0 || gy > 12) return 1e6f;
                 float cx = -96.0f + float(gx) * LEGO_PITCH;
-                float cy = -83.0f + float(gy) * LEGO_PITCH;
-                if (std::hypot(std::fabs(cx) - TWR_X, cy - TWR_F_Y) < 34.5f) return 1e6f;
+                float cy = -75.0f + float(gy) * LEGO_PITCH;
+                if (std::hypot(std::fabs(cx) - TWR_X, cy - TWR_F_Y) < 38.5f) return 1e6f;
                 return sdLegoStud(p, cx, cy, Z_COURT);
             };
             float dc = evalCourt(ix, iy);
@@ -677,78 +686,80 @@ inline float legoStudsSDF(const Vec3& p, float curD = 1e6f) {
             }
             ds = std::min(ds, dc);
         }
-        // Flanking Keep front steps on exact same 8 mm courtyard grid: y = +21 (|x| = 32, 40)
-        ds = sdStudGrid(ap, 32.0f, 2, 21.0f, 1, Z_COURT, ds);
+        // Central courtyard row ahead of Keep front steps (y = +29, x = -40..+40, 11 studs on exact courtyard grid)
+        ds = sdStudGrid(p, -40.0f, 11, 29.0f, 1, Z_COURT, ds);
+        // Flanking Keep front steps on exact same 8 mm courtyard grid: y = +37 (|x| = 32, 40)
+        ds = sdStudGrid(ap, 32.0f, 2, 37.0f, 1, Z_COURT, ds);
     }
 
     // 2. KEEP CEREMONIAL FRONT STEPS (z = 19 & Z_L1_FLOOR) + KEEP LEVEL 1 INTERIOR FLOOR (z = Z_L1_FLOOR)
     if (p.z > Z_COURT + 2.5f && p.z < Z_L1_FLOOR + 3.5f) {
-        ds = sdStudGrid(p, -12.0f,  4, 27.0f, 1, Z_COURT + 4.0f, ds); // Step 0 (4 studs: x = ±4, ±12)
-        ds = sdStudGrid(p,  -4.0f,  2, 33.0f, 1, Z_L1_FLOOR,     ds); // Step 1 inside portal (2 studs: x = ±4)
-        ds = sdStudGrid(p, -36.0f, 10, 50.0f, 9, Z_L1_FLOOR,     ds); // Keep Level 1 interior (10 x 9 = 90 studs)
+        ds = sdStudGrid(p, -12.0f,  4, 40.0f, 1, Z_COURT + 4.0f, ds); // Step 0 (4 studs: x = ±4, ±12)
+        ds = sdStudGrid(p,  -4.0f,  2, 46.0f, 1, Z_L1_FLOOR,     ds); // Step 1 inside portal (2 studs: x = ±4)
+        ds = sdStudGrid(p, -36.0f, 10, 63.0f, 8, Z_L1_FLOOR,     ds); // Keep Level 1 interior (10 x 8 = 80 studs)
     }
 
-    // 3. COURTYARD STAIRCASES (L & R, 10 steps, z = 21..75 mm, single row of studs on EVERY step!)
-    if (p.z > Z_COURT + 4.5f && p.z < Z_WALL_DECK + 3.5f && ap.x > 55.0f && ap.x < 97.0f && p.y > 16.0f && p.y < 95.0f) {
-        int sIdx = (int)std::floor((p.y - 18.0f) / 7.5f);
-        for (int k = std::max(0, sIdx - 1); k <= std::min(9, sIdx + 1); ++k) {
-            float sy = 18.0f + (float(k) + 0.5f) * 7.5f;
-            float sz = Z_COURT + float(k + 1) * 6.0f;
-            int nCols = (k >= 8) ? 4 : 5; // |x| = 60, 68, 76, 84 (, 92 on steps 0..7 clear of inner corbel)
+    // 3. COURTYARD STAIRCASES (L & R, 8 steps of 8.0 mm tread x 7.5 mm rise, y = 29..93, single row of studs on EVERY step!)
+    if (p.z > Z_COURT + 4.5f && p.z < Z_WALL_DECK + 3.5f && ap.x > 55.0f && ap.x < 97.0f && p.y > 27.0f && p.y < 95.0f) {
+        int sIdx = (int)std::floor((p.y - 29.0f) / 8.0f);
+        for (int k = std::max(0, sIdx - 1); k <= std::min(7, sIdx + 1); ++k) {
+            float sy = 29.0f + (float(k) + 0.5f) * 8.0f;
+            float sz = Z_COURT + float(k + 1) * 7.5f;
+            int nCols = (k >= 6) ? 4 : 5; // |x| = 60, 68, 76, 84 (, 92 on steps 0..5 clear of inner corbel)
             ds = sdStudGrid(ap, 60.0f, nCols, sy, 1, sz, ds);
         }
     }
 
     // 4. WALL WALKS + GATEHOUSE TOP DECK + REAR STAIR LANDINGS (all on exact z = Z_WALL_DECK)
     if (p.z > Z_WALL_DECK - 1.5f && p.z < Z_WALL_DECK + 3.5f) {
-        // Front wall walk (3 rows x 18 cols: x = ±4..±68, y = -81.9, -89.9, -97.9)
-        ds = sdStudGrid(p, -68.0f, 18, -97.9f, 3, Z_WALL_DECK, ds);
-        // Gatehouse outward bulge extra 2 front rows (2 rows x 8 cols: x = ±4..±28, y = -105.9, -113.9)
-        ds = sdStudGrid(p, -28.0f,  8, -113.9f, 2, Z_WALL_DECK, ds);
-        // Left & Right side wall walks (3 cols x 14 rows per side: |x| = 98, 106, 114; y = -50.5..+53.5)
-        ds = sdStudGrid(ap, 98.0f,  3, -50.5f, 14, Z_WALL_DECK, ds);
-        // Rear stair landings (3 cols x 3 rows per side: |x| = 60, 68, 76; y = 98, 106, 114)
-        ds = sdStudGrid(ap, 60.0f,  3,  98.0f,  3, Z_WALL_DECK, ds);
+        // Front wall walk (3 rows x 16 cols: x = ±4..±60, y = -73.9, -81.9, -89.9; shifted +8 mm with front wall)
+        ds = sdStudGrid(p, -60.0f, 16, -89.9f, 3, Z_WALL_DECK, ds);
+        // Gatehouse outward bulge extra 2 front rows (2 rows x 8 cols: x = ±4..±28, y = -97.9, -105.9)
+        ds = sdStudGrid(p, -28.0f,  8, -105.9f, 2, Z_WALL_DECK, ds);
+        // Left & Right side wall walks (3 cols x 12 rows per side: |x| = 98, 106, 114; y = -37.6..+50.4, 8 mm shorter!)
+        ds = sdStudGrid(ap, 98.0f,  3, -37.6f, 12, Z_WALL_DECK, ds);
+        // Rear stair landings (2 cols x 3 rows per side: |x| = 60, 68; y = 98, 106, 114; clear of wider rear turrets)
+        ds = sdStudGrid(ap, 60.0f,  2,  98.0f,  3, Z_WALL_DECK, ds);
     }
 
     // 5. TURRET ACCESS STAIRS (Front turret side/front steps + Rear turret steps)
     if (p.z > Z_WALL_DECK + 4.0f && p.z < Z_TWR_R_DECK - 3.0f) {
-        // Front turret side stairs (4a): s=0 (y=-60, z=81.33) & s=1 (y=-66, z=87.67), |x|=98,106,114
-        if (ap.x > 93.0f && p.y < -55.0f && p.y > -71.0f) {
-            ds = sdStudGrid(ap, 98.0f, 3, -60.0f, 1, 81.33f, ds);
-            ds = sdStudGrid(ap, 98.0f, 3, -66.0f, 1, 87.67f, ds);
+        // Front turret side stairs (4a): s=0 (y=-47, z=81.33) & s=1 (y=-53, z=87.67), |x|=98,106,114
+        if (ap.x > 93.0f && p.y < -42.0f && p.y > -58.0f) {
+            ds = sdStudGrid(ap, 98.0f, 3, -47.0f, 1, 81.33f, ds);
+            ds = sdStudGrid(ap, 98.0f, 3, -53.0f, 1, 87.67f, ds);
         }
-        // Front turret front stairs (4b): s=0 (|x|=75, z=81.33) & s=1 (|x|=81, z=87.67), y=-97.9,-89.9,-81.9
-        if (ap.x > 70.0f && ap.x < 86.0f && p.y < -77.0f && p.y > -103.0f) {
-            ds = sdStudGrid(ap, 75.0f, 1, -97.9f, 3, 81.33f, ds);
-            ds = sdStudGrid(ap, 81.0f, 1, -97.9f, 3, 87.67f, ds);
+        // Front turret front stairs (4b): s=0 (|x|=70, z=81.33) & s=1 (|x|=76, z=87.67), y=-89.9,-81.9,-73.9
+        if (ap.x > 65.0f && ap.x < 81.0f && p.y < -69.0f && p.y > -95.0f) {
+            ds = sdStudGrid(ap, 70.0f, 1, -89.9f, 3, 81.33f, ds);
+            ds = sdStudGrid(ap, 76.0f, 1, -89.9f, 3, 87.67f, ds);
         }
-        // Rear turret side stairs (4c): s=0,1,2 (y=65.05, 71.55, 78.05; z=TWR_R_STAIR_Z[0..2]), |x|=98,106,114
-        if (ap.x > 93.0f && p.y > 60.0f && p.y < 83.0f) {
-            ds = sdStudGrid(ap, 98.0f, 3, 65.05f, 1, TWR_R_STAIR_Z[0], ds);
-            ds = sdStudGrid(ap, 98.0f, 3, 71.55f, 1, TWR_R_STAIR_Z[1], ds);
-            ds = sdStudGrid(ap, 98.0f, 3, 78.05f, 1, TWR_R_STAIR_Z[2], ds);
+        // Rear turret side stairs (4c): s=0,1,2 (y=60.05, 66.55, 73.05; z=TWR_R_STAIR_Z[0..2]), |x|=98,106,114
+        if (ap.x > 93.0f && p.y > 55.0f && p.y < 78.0f) {
+            ds = sdStudGrid(ap, 98.0f, 3, 60.05f, 1, TWR_R_STAIR_Z[0], ds);
+            ds = sdStudGrid(ap, 98.0f, 3, 66.55f, 1, TWR_R_STAIR_Z[1], ds);
+            ds = sdStudGrid(ap, 98.0f, 3, 73.05f, 1, TWR_R_STAIR_Z[2], ds);
         }
     }
 
-    // 6. FRONT CORNER TURRET TOPS (z = Z_TWR_F_DECK, 21-stud circular rosette centered at (±TWR_X, TWR_F_Y))
+    // 6. FRONT CORNER TURRET TOPS (z = Z_TWR_F_DECK, 29-stud circular rosette centered at (±TWR_X, TWR_F_Y))
     if (p.z > Z_TWR_F_DECK - 1.5f && p.z < Z_TWR_F_DECK + 3.5f) {
         ds = sdTurretStuds(ap, TWR_X, TWR_F_Y, Z_TWR_F_DECK, ds);
     }
 
-    // 7. REAR CORNER TURRET TOPS (z = Z_TWR_R_DECK, 21-stud circular rosette centered at (±TWR_X, TWR_R_Y))
+    // 7. REAR CORNER TURRET TOPS (z = Z_TWR_R_DECK, 29-stud circular rosette centered at (±TWR_X, TWR_R_Y))
     if (p.z > Z_TWR_R_DECK - 1.5f && p.z < Z_TWR_R_DECK + 3.5f) {
         ds = sdTurretStuds(ap, TWR_X, TWR_R_Y, Z_TWR_R_DECK, ds);
     }
 
-    // 8. KEEP LEVEL 2 INTERIOR FLOOR (z = Z_L2_FLOOR, 10 x 9 = 90 studs)
+    // 8. KEEP LEVEL 2 INTERIOR FLOOR (z = Z_L2_FLOOR, 10 x 8 = 80 studs)
     if (p.z > Z_L2_FLOOR - 1.5f && p.z < Z_L2_FLOOR + 3.5f) {
-        ds = sdStudGrid(p, -36.0f, 10, 50.0f, 9, Z_L2_FLOOR, ds);
+        ds = sdStudGrid(p, -36.0f, 10, 63.0f, 8, Z_L2_FLOOR, ds);
     }
 
-    // 9. KEEP ROOF DECK (z = Z_KEEP_DECK, 11 x 9 = 99 studs)
+    // 9. KEEP ROOF DECK (z = Z_KEEP_DECK, 11 x 8 = 88 studs)
     if (p.z > Z_KEEP_DECK - 1.5f && p.z < Z_KEEP_DECK + 3.5f) {
-        ds = sdStudGrid(p, -40.0f, 11, 48.0f, 9, Z_KEEP_DECK, ds);
+        ds = sdStudGrid(p, -40.0f, 11, 58.25f, 8, Z_KEEP_DECK, ds);
     }
 
     return ds;
@@ -763,58 +774,25 @@ inline float castleSDF(const Vec3& p) {
     using namespace CastleSpec;
 
     // ------------------------------------------------------------------------
-    // 1. WIDE FLAT-BASED ROCKY PLINTH (z = 0..15 mm)
-    //    X in [-144.8, +144.8], Y in [-129.8, +144.8] (+ gatehouse apron & steps out to -139.3 mm)
+    // 1. SOLID INTERIOR FOUNDATION SLAB (z = 0..15 mm, zero scree/glacis skirt!)
+    //    Bounded cleanly inside the outer curtain walls so the steep 25 mm ashlar wall
+    //    batter forms the entire outer base perimeter with continuous dressed stonework.
     // ------------------------------------------------------------------------
     float d = 1e9f;
     {
-        float t = clampf(p.z / Z_COURT, 0.0f, 1.0f);
-        float hx = lerpf(144.8f, 127.8f, t);
-        float yMin = lerpf(-129.8f, -112.8f, t); // shortened 5mm front-to-back along side walls!
-        float yMax = lerpf( 144.8f,  127.8f, t);
-        float yc = 0.5f * (yMin + yMax);
-        float hy = 0.5f * (yMax - yMin);
-        float rad = lerpf(28.0f, 22.0f, t);
-
-        float qx = std::fabs(p.x) - (hx - rad);
-        float qy = std::fabs(p.y - yc) - (hy - rad);
-        float d2 = std::hypot(std::max(qx, 0.0f), std::max(qy, 0.0f)) + std::min(std::max(qx, qy), 0.0f) - rad;
-
-        // Subtle battered rocky apron under the outward-bulging gatehouse (shifted +5mm in Y)
-        float gh_hx = lerpf(45.5f, 40.5f, t);
-        float gh_yMin = lerpf(-133.0f, -124.0f, t);
-        float gh_qx = std::fabs(p.x) - (gh_hx - 8.0f);
-        float gh_qy = std::fabs(p.y - 0.5f * (gh_yMin - 85.0f)) - (0.5f * (-85.0f - gh_yMin) - 8.0f);
-        float d2_gh = std::hypot(std::max(gh_qx, 0.0f), std::max(gh_qy, 0.0f)) + std::min(std::max(gh_qx, gh_qy), 0.0f) - 8.0f;
-        d2 = smin(d2, d2_gh, 5.0f);
-
-        float ang = std::atan2(p.y - yc, p.x);
-        float causewayClear = (1.0f - smoothstep(20.0f, 36.0f, std::fabs(p.x))) * smoothstep(-100.0f, -119.0f, p.y);
-        float rockMask = (1.0f - causewayClear) * smoothstep(Z_COURT + 0.2f, Z_COURT - 2.8f, p.z);
-        float rockLobe = (1.1f * std::sin(ang * 7.0f + 0.5f)
-                        + 0.75f * std::cos(ang * 13.0f - 0.8f)
-                        + 0.45f * std::sin(ang * 21.0f)) * rockMask;
-        d2 -= rockLobe * 0.65f;
-
-        float d_side = d2 * 0.74f;
-        float d_top = p.z - Z_COURT; // COMPLETELY SMOOTH flat courtyard floor!
-        float d_base = std::max(d_side, d_top);
-        if (d_side > 0.0f && d_top > 0.0f) d_base = std::hypot(d_side, d_top);
-
-        if (std::fabs(d_base) < 5.0f && rockMask > 0.001f && p.z > -1.0f) {
-            d_base -= bedrockDisplacement(p) * rockMask * 0.78f;
-        }
-        d = d_base;
+        float d_slab_main = sdBoxMinMax(p, -WALL_OUT_X, WALL_OUT_X, WALL_OUT_Y_MIN, WALL_OUT_Y_MAX, -4.0f, Z_COURT, 0.0f);
+        float d_slab_gh   = sdBoxMinMax(p, -GH_HALF_X,  GH_HALF_X,  GH_Y_MIN,       WALL_OUT_Y_MIN + 2.0f, -4.0f, Z_COURT, 0.0f);
+        d = std::min(d_slab_main, d_slab_gh);
     }
 
     // ------------------------------------------------------------------------
-    // 2. FRONT STEPPED STONE CAUSEWAY (world y = -139.3 to -121.5 mm, shallow ~40-deg pitch)
+    // 2. FRONT STEPPED STONE CAUSEWAY (world y = -131.3 to -113.5 mm, shifted +8 mm with gatehouse)
     // ------------------------------------------------------------------------
     {
-        float d_b = sdBoxMinMax(p, -26.0f, 26.0f, -141.0f, -113.0f, -2.0f, Z_COURT + 8.0f);
+        float d_b = sdBoxMinMax(p, -26.0f, 26.0f, GH_Y_MIN - 19.0f, GH_Y_MIN + 9.0f, -2.0f, Z_COURT + 8.0f);
         if (d_b < d + 3.0f) {
-            float yStart = -139.3f;
-            float yEnd   = -121.5f;
+            float yStart = GH_Y_MIN - 16.8f; // -131.3 mm
+            float yEnd   = GH_Y_MIN + 1.0f;  // -113.5 mm
             int nSteps   = 4;
             float stepRun  = (yEnd - yStart) / float(nSteps);   // 4.45 mm deep treads
             float stepRise = Z_COURT / float(nSteps);           // 3.75 mm gentle rise (~40 deg shallow pitch)
@@ -823,7 +801,7 @@ inline float castleSDF(const Vec3& p) {
             for (int s = 0; s < nSteps; ++s) {
                 float sy0 = yStart + s * stepRun;
                 float sz1 = (s + 1) * stepRise;
-                float sb = sdBoxMinMax(p, -20.5f, 20.5f, sy0, -115.0f, -2.0f, sz1, 0.35f);
+                float sb = sdBoxMinMax(p, -20.5f, 20.5f, sy0, GH_Y_MIN + 7.5f, -2.0f, sz1, 0.35f);
                 d_steps = std::min(d_steps, sb);
             }
             // Flanking stone curbs (matching shallower pitch)
@@ -831,7 +809,7 @@ inline float castleSDF(const Vec3& p) {
             float z_curb = lerpf(4.5f, Z_COURT + 4.0f, ty);
             float dz_c = (p.z - z_curb) * 0.72f;
             float dx_c = std::fabs(std::fabs(p.x) - 21.8f) - 2.6f;
-            float dy_c = std::max(-138.8f - p.y, p.y - (-119.0f));
+            float dy_c = std::max((GH_Y_MIN - 16.3f) - p.y, p.y - (GH_Y_MIN + 3.5f));
             float cx = std::max(dx_c, 0.0f), cy = std::max(dy_c, 0.0f), cz = std::max(dz_c, 0.0f);
             float d_curb = std::sqrt(cx*cx + cy*cy + cz*cz) + std::min(std::max(dx_c, std::max(dy_c, dz_c)), 0.0f) - 0.45f;
 
@@ -846,34 +824,43 @@ inline float castleSDF(const Vec3& p) {
 
     // ------------------------------------------------------------------------
     // 3. OUTER CURTAIN WALLS (from CastleSpec::WALL_* constants)
-    //    Outer wall:  X in [-123.5, +123.5], Y in [-108.5, +123.5]
-    //    Parapet:     X in [-126.5, +126.5], Y in [-111.5, +126.5] (7.6 mm thick -> inner ±118.9 / -103.9)
-    //    Walkway top: X inner ±93.0, Y inner [-78.0, +93.0] -> 25.9 mm wide (fits 3-stud LEGO brick)
-    //    45-deg inner receding slope: z = 73.5 -> 63.0 mm (setback 10.5 mm -> inner ±103.5 / -88.5)
-    //    Main straight walls (z = 15..63): exact 20.0 mm thick
+    //    Outer wall:  X in [-123.5, +123.5], Y in [-100.5, +123.5] (8.0 mm shorter front-to-back!)
+    //    Base flare:  bottom 25.0 mm flares +12.0 mm outward (~64.4-deg slope) with continuous ashlar
+    //    Parapet:     X in [-126.5, +126.5], Y in [-103.5, +126.5] (7.6 mm thick -> inner ±118.9 / -95.9)
+    //    Walkway top: X inner ±93.0, Y inner [-70.0, +93.0] -> 25.9 mm wide (fits 3-stud LEGO brick)
+    //    Main straight walls (z = 25..63): exact 20.0 mm thick
     // ------------------------------------------------------------------------
     {
         static constexpr float WX_H = WALL_OUT_X;
         static constexpr float WY_C = WALL_Y_C;
         static constexpr float WY_H = WALL_Y_H;
 
-        float d_wb = sdBoxMinMax(p, -131.0f, 131.0f, -116.0f, 131.0f, -4.0f, Z_WALL_PARA + 3.0f);
+        float d_wb = sdBoxMinMax(p, -139.0f, 139.0f, WALL_OUT_Y_MIN - 15.5f, WALL_OUT_Y_MAX + 15.5f, -4.0f, Z_WALL_PARA + 3.0f);
         if (d_wb < d + 3.5f) {
             float ax = std::fabs(p.x);
             float ay = std::fabs(p.y - WY_C);
-            // Distance from outer wall plane (0 at x=±123.5 or y=-108.5 / y=+123.5)
+            // Distance from outer wall plane (0 at x=±123.5 or y=-100.5 / y=+123.5)
             float dFromOutX = ax - WX_H;
             float dFromOutY = ay - WY_H;
-            float maxOut = std::max(dFromOutX, dFromOutY); // 0 on exterior wall, -20 on lower courtyard wall, +3 on outer parapet
+            float maxOut = std::max(dFromOutX, dFromOutY);
 
-            float d_out_main  = sdBatteredBox(p, 0.0f, WY_C, -4.0f, Z_COURT + 14.0f, WX_H + 4.5f, WY_H + 4.5f, WX_H, WY_H, 0.9f);
-            float d_out_up    = sdBoxMinMax(p, -WX_H, WX_H, WALL_OUT_Y_MIN, WALL_OUT_Y_MAX, Z_COURT + 10.0f, Z_WALL_DECK + 0.5f, 0.8f);
+            // Seamless pronounced 25 mm battered wall base (+12.0 mm horizontal flare at z=0 -> 0 mm at z=25, ~64.4-deg slope!)
+            // Single continuous profile from z = -4 to Z_WALL_DECK + 0.5 -> ZERO horizontal seam at z = 25 mm!
+            float t_bat = clampf(1.0f - p.z / WALL_BASE_BAT_H, 0.0f, 1.0f);
+            float batOut = WALL_BASE_BAT_OUT * t_bat;
+            float bx = ax - (WX_H + batOut - 0.8f);
+            float by = ay - (WY_H + batOut - 0.8f);
+            float bz = std::max(-4.0f + 0.8f - p.z, p.z - (Z_WALL_DECK + 0.5f - 0.8f));
+            float b2 = std::hypot(std::max(bx, 0.0f), std::max(by, 0.0f)) + std::min(std::max(bx, by), 0.0f);
+            if (p.z < WALL_BASE_BAT_H) b2 *= 0.9015f; // 1 / sqrt(1 + (12/25)^2) for exact Lipschitz SDF on slope
+            float d_out_shaft = std::hypot(std::max(b2, 0.0f), std::max(bz, 0.0f)) + std::min(std::max(b2, bz), 0.0f) - 0.8f;
+
             // Single seamless corbel + parapet solid -> ZERO horizontal groove/void at z = Z_WALL_DECK - 1.5
             float d_out_crown = sdCorbelParapetBox(p, 0.0f, WY_C, WY_C,
                                                    Z_WALL_DECK - 7.8f, Z_WALL_DECK - 1.5f, Z_WALL_PARA,
                                                    WX_H - 0.5f, WY_H - 0.5f, WX_H + WALL_CORB_OUT, WY_H + WALL_CORB_OUT, 0.65f);
 
-            float d_outer = smin(std::min(d_out_main, d_out_up), d_out_crown, 0.65f);
+            float d_outer = smin(d_out_shaft, d_out_crown, 0.65f);
 
             // Continuous seam-free inner courtyard cutout (zero horizontal seam membrane):
             //   z <= 63.0:      wide courtyard [-103.5, +103.5] x [-88.5, +103.5] -> exact 20.0 mm wall thickness
@@ -914,31 +901,27 @@ inline float castleSDF(const Vec3& p) {
                 }
             }
 
-            // Explicit sliver-free crenellation embrasures along all outer curtain walls!
-            // Consistent ~15-16mm merlons & 10.5mm embrasures (pitch ~25.5-26mm) matching gatehouse!
-            if (p.z > Z_WALL_DECK + 7.0f && maxOut > -8.0f) {
+            // Explicit sliver-free crenellation embrasures (~50% wider merlons & crenels, +2 mm taller parapet!)
+            // Crenels ~15.5 mm wide, merlons ~21-22.5 mm wide (sill at Z_WALL_DECK + 11.0, merlons at +22.0)
+            if (p.z > Z_WALL_DECK + 8.0f && maxOut > -8.0f) {
                 float d_emb_u = 1e6f;
                 if (dFromOutX > dFromOutY) {
-                    // Left & Right side walls (clear span y in [-64.5, +79.0] = 143.5mm, centered at y = +7.25):
-                    // 5 evenly spaced embrasures at pitch 25.0mm (width 10.5mm with -0.55 expansion)
-                    // -> 4 interior merlons = 14.5mm wide, end merlons = 16.5mm wide against both towers!
-                    float dyS = std::fabs(p.y - 7.25f);
-                    float d1 = dyS - 4.70f;
-                    float d2 = std::fabs(dyS - 25.0f) - 4.70f;
-                    float d3 = std::fabs(dyS - 50.0f) - 4.70f;
-                    d_emb_u = std::min(d1, std::min(d2, d3));
-                } else if (p.y < WY_C) {
-                    // Front wall flanking the outward-bulging gatehouse (clear span |x| in [40.5, 79.5]):
-                    // With -0.55f expansion below, half-width 4.70 -> exact 10.5mm embrasures [40.5, 51.0] & [67.0, 77.5]
-                    // leaving a crisp 16.0mm merlon [51.0, 67.0] and zero nibbling into the gatehouse cheek at |x|=40.5!
-                    float d1 = std::fabs(ax - 45.75f) - 4.70f;
-                    float d2 = std::fabs(ax - 72.25f) - 4.70f;
+                    // Left & Right side walls (clear span y in [-51.5, +74.0] = 125.5 mm, centered at y = +11.25):
+                    // 3 evenly spaced 15.5 mm crenels at pitch 35.25 mm -> ALL 4 merlons exact 19.75 mm wide!
+                    float dyS = std::fabs(p.y - 11.25f);
+                    float d1 = dyS - 7.20f;
+                    float d2 = std::fabs(dyS - 35.25f) - 7.20f;
                     d_emb_u = std::min(d1, d2);
+                } else if (p.y < WY_C) {
+                    // Front wall flanking gatehouse & wider front turret (clear span |x| in [40.5, 74.5] = 34.0 mm):
+                    // 1 wide 15.5 mm crenel [40.5, 56.0] leaving a chunky 18.5+ mm merlon into the front turret!
+                    d_emb_u = std::fabs(ax - 48.25f) - 7.20f;
                 } else {
-                    // Rear wall flanking the Keep (clear span |x| in [55.5, 79.0]):
-                    d_emb_u = std::fabs(ax - 67.25f) - 4.5f;
+                    // Rear wall flanking Keep & wider rear turret (clear span |x| in [55.5, 74.0] = 18.5 mm):
+                    // 1 crisp 14.0 mm crenel centered at |x| = 64.75
+                    d_emb_u = std::fabs(ax - 64.75f) - 6.45f;
                 }
-                float d_emb = std::max(d_emb_u, (Z_WALL_DECK + 10.0f) - p.z);
+                float d_emb = std::max(d_emb_u, (Z_WALL_DECK + PARA_H * 0.5f) - p.z);
                 d_walls = smax(d_walls, -(d_emb - 0.55f), 0.55f);
             }
 
@@ -946,11 +929,11 @@ inline float castleSDF(const Vec3& p) {
             float slitProtect = 1.0f;
             if (p.z > Z_COURT + 15.0f && p.z < Z_COURT + 44.0f && maxOut > -7.0f) {
                 float u = (dFromOutX > dFromOutY) ? p.y : p.x;
-                bool skipFrontGate = (p.y < -80.0f && std::fabs(p.x) < 42.0f);
+                bool skipFrontGate = (p.y < WALL_WALK_IN_Y0 - 2.0f && std::fabs(p.x) < 42.0f);
                 bool skipRearKeep  = (p.y >  95.0f && std::fabs(p.x) < 56.0f);
-                bool validSpan = (dFromOutX > dFromOutY) ? (p.y > -59.0f && p.y < 74.0f) : (std::fabs(u) < 76.0f);
+                bool validSpan = (dFromOutX > dFromOutY) ? (p.y > -51.0f && p.y < 74.0f) : (std::fabs(u) < 76.0f);
                 if (!skipFrontGate && !skipRearKeep && validSpan) {
-                    float uShift = (dFromOutX > dFromOutY) ? (p.y - 7.25f) : u;
+                    float uShift = (dFromOutX > dFromOutY) ? (p.y - 11.25f) : u;
                     float uf = std::fmod(uShift + 306.0f, 36.0f) - 18.0f;
                     float d_s2 = sdGothicArch2D(uf, p.z, 1.55f, Z_COURT + 20.0f, Z_COURT + 34.0f, Z_COURT + 38.0f);
                     float d_depth = -3.6f - maxOut;
@@ -967,11 +950,14 @@ inline float castleSDF(const Vec3& p) {
             if (std::fabs(d_walls) < 2.5f && maxOut > -33.0f) {
                 float u = (dFromOutX > dFromOutY) ? p.y : p.x;
                 int faceSeed = (dFromOutX > dFromOutY) ? (p.x > 0 ? 11 : 17) : (p.y > WY_C ? 23 : 29);
-                // Keep exterior parapet ashlar continuous across z = Z_WALL_DECK (only fade near deck on inner walkway side!)
+                // Keep exterior parapet & steep 25 mm battered wall base ashlar continuous all the way down to z = 0.5 mm!
+                // On the courtyard side (maxOut < -3.0), keep courtyard floor (z = Z_COURT) & wall walk (z = Z_WALL_DECK) smooth.
                 float deckFade = (maxOut < -2.5f) ? smoothstep(0.0f, 1.5f, std::fabs(p.z - Z_WALL_DECK)) : 1.0f;
+                float botFade  = (maxOut < -3.0f) ? smoothstep(Z_COURT - 2.0f, Z_COURT + 2.5f, p.z)
+                                                  : smoothstep(0.5f, 3.0f, p.z);
                 float walkMask = deckFade
                                * smoothstep(0.0f, 1.2f, Z_WALL_PARA - p.z)
-                               * smoothstep(Z_COURT - 2.0f, Z_COURT + 2.5f, p.z);
+                               * botFade;
                 // Keep 45-deg inner corbel slope crisp and FDM-friendly (fade ashlar smoothly across slope)
                 float innerSlopeFade = (maxOut < -18.5f && p.z > Z_WALL_DECK - 12.5f && p.z < Z_WALL_DECK - 1.0f) ? 0.25f : 1.0f;
                 float floorMask = (maxOut < -4.4f && maxOut > -31.5f) ? smoothstep(1.8f, 0.2f, std::fabs(p.z - Z_WALL_DECK)) : 0.0f;
@@ -991,52 +977,53 @@ inline float castleSDF(const Vec3& p) {
     //    Rear Towers  at (±TWR_X, TWR_R_Y) = (±110, +110): deck z = 102, merlons z = 122 (+20 mm)
     // ------------------------------------------------------------------------
     {
-        float tFL = sdCylTower(p, -TWR_X, TWR_F_Y, TWR_F_R, Z_COURT + 14.0f, Z_TWR_F_DECK, PARA_H, false, -19.0f, 109.0f, 7, true, 101, d);
+        // Wider turrets (+10 mm dia) with ~50% wider merlons & crenels (5 merlons front, 7 merlons rear)
+        float tFL = sdCylTower(p, -TWR_X, TWR_F_Y, TWR_F_R, Z_COURT + 14.0f, Z_TWR_F_DECK, PARA_H, false, -19.0f, 109.0f, 5, true, 101, d);
         d = smin(d, tFL, 0.85f);
-        float tFR = sdCylTower(p, +TWR_X, TWR_F_Y, TWR_F_R, Z_COURT + 14.0f, Z_TWR_F_DECK, PARA_H, true,  -19.0f, 109.0f, 7, true, 102, d);
+        float tFR = sdCylTower(p, +TWR_X, TWR_F_Y, TWR_F_R, Z_COURT + 14.0f, Z_TWR_F_DECK, PARA_H, true,  -19.0f, 109.0f, 5, true, 102, d);
         d = smin(d, tFR, 0.85f);
-        float tRL = sdCylTower(p, -TWR_X, TWR_R_Y, TWR_R_R, Z_COURT + 16.0f, Z_TWR_R_DECK, PARA_H, false, -109.0f, -52.0f, 9, true, 103, d);
+        float tRL = sdCylTower(p, -TWR_X, TWR_R_Y, TWR_R_R, Z_COURT + 16.0f, Z_TWR_R_DECK, PARA_H, false, -109.0f, -52.0f, 7, true, 103, d);
         d = smin(d, tRL, 0.85f);
-        float tRR = sdCylTower(p, +TWR_X, TWR_R_Y, TWR_R_R, Z_COURT + 16.0f, Z_TWR_R_DECK, PARA_H, true,  -109.0f, -52.0f, 9, true, 104, d);
+        float tRR = sdCylTower(p, +TWR_X, TWR_R_Y, TWR_R_R, Z_COURT + 16.0f, Z_TWR_R_DECK, PARA_H, true,  -109.0f, -52.0f, 7, true, 104, d);
         d = smin(d, tRR, 0.85f);
 
         float ax = std::fabs(p.x);
 
-        // 4a. Side-wall stairs climbing from wall walk (z=75) -> Front Corner Towers (z=94):
+        // 4a. Side-wall stairs climbing from wall walk (z=75) -> Wider Front Corner Towers (z=94):
         //     Spans FULL widened walkway width |x| in [93.0, 121.5] straight into the parapet wall -> ZERO crevice!
-        float d_sbF = sdBoxMinMax(Vec3(ax, p.y, p.z), 91.0f, 123.5f, -81.0f, -53.0f, Z_WALL_DECK - 4.0f, Z_TWR_F_DECK + 4.0f);
+        float d_sbF = sdBoxMinMax(Vec3(ax, p.y, p.z), 91.0f, 123.5f, -68.0f, -40.0f, Z_WALL_DECK - 4.0f, Z_TWR_F_DECK + 4.0f);
         if (d_sbF < d + 2.5f) {
             float d_st = 1e9f;
             for (int s = 0; s < 3; ++s) {
-                float y_hi = -57.0f - s * 6.0f;
+                float y_hi = -44.0f - s * 6.0f;
                 float z_hi = Z_WALL_DECK + (s + 1) * ((Z_TWR_F_DECK - Z_WALL_DECK) / 3.0f);
-                d_st = std::min(d_st, sdBoxMinMax(Vec3(ax, p.y, p.z), 93.0f, 121.5f, -79.0f, y_hi, Z_WALL_DECK - 3.0f, z_hi, 0.35f));
+                d_st = std::min(d_st, sdBoxMinMax(Vec3(ax, p.y, p.z), 93.0f, 121.5f, -66.0f, y_hi, Z_WALL_DECK - 3.0f, z_hi, 0.35f));
             }
             d = smin(d, d_st, 0.35f);
         }
 
-        // 4b. Front-wall stairs climbing from front wall walk (z=75) -> Front Corner Towers (z=94):
-        //     Spans FULL widened walkway width y in [-106.5, -78.0] straight into front parapet -> ZERO crevice!
-        float d_sbFront = sdBoxMinMax(Vec3(ax, p.y, p.z), 68.0f, 96.0f, -108.5f, -76.0f, Z_WALL_DECK - 4.0f, Z_TWR_F_DECK + 4.0f);
+        // 4b. Front-wall stairs climbing from front wall walk (z=75) -> Wider Front Corner Towers (z=94):
+        //     Spans FULL widened walkway width y in [-98.5, -70.0] straight into front parapet -> ZERO crevice!
+        float d_sbFront = sdBoxMinMax(Vec3(ax, p.y, p.z), 63.0f, 91.0f, -100.5f, -68.0f, Z_WALL_DECK - 4.0f, Z_TWR_F_DECK + 4.0f);
         if (d_sbFront < d + 2.5f) {
             float d_st = 1e9f;
             for (int s = 0; s < 3; ++s) {
-                float x_lo = 72.0f + s * 6.0f;
+                float x_lo = 67.0f + s * 6.0f;
                 float z_hi = Z_WALL_DECK + (s + 1) * ((Z_TWR_F_DECK - Z_WALL_DECK) / 3.0f);
-                d_st = std::min(d_st, sdBoxMinMax(Vec3(ax, p.y, p.z), x_lo, 94.0f, -106.5f, -78.0f, Z_WALL_DECK - 3.0f, z_hi, 0.35f));
+                d_st = std::min(d_st, sdBoxMinMax(Vec3(ax, p.y, p.z), x_lo, 89.0f, -98.5f, -70.0f, Z_WALL_DECK - 3.0f, z_hi, 0.35f));
             }
             d = smin(d, d_st, 0.35f);
         }
 
-        // 4c. Side-wall stairs climbing from wall walk (z=75) -> Rear Corner Towers (z=102):
-        //     Steps 0..2 stay <= 94.8 mm (< side parapet 95.0 mm); step 3 starts at y=81.3 inside turret crown!
-        float d_sbR = sdBoxMinMax(Vec3(ax, p.y, p.z), 91.0f, 123.5f, 59.0f, 96.0f, Z_WALL_DECK - 4.0f, Z_TWR_R_DECK + 4.0f);
+        // 4c. Side-wall stairs climbing from wall walk (z=75) -> Wider Rear Corner Towers (z=102):
+        //     Steps 0..2 stay <= 94.8 mm (< side parapet 97.0 mm); step 3 starts at y=76.3 inside turret crown!
+        float d_sbR = sdBoxMinMax(Vec3(ax, p.y, p.z), 91.0f, 123.5f, 54.0f, 91.0f, Z_WALL_DECK - 4.0f, Z_TWR_R_DECK + 4.0f);
         if (d_sbR < d + 2.5f) {
             float d_st = 1e9f;
             for (int s = 0; s < 4; ++s) {
-                float y_lo = 61.8f + s * 6.5f;
+                float y_lo = 56.8f + s * 6.5f;
                 float z_hi = TWR_R_STAIR_Z[s];
-                d_st = std::min(d_st, sdBoxMinMax(Vec3(ax, p.y, p.z), 93.0f, 121.5f, y_lo, 94.0f, Z_WALL_DECK - 3.0f, z_hi, 0.35f));
+                d_st = std::min(d_st, sdBoxMinMax(Vec3(ax, p.y, p.z), 93.0f, 121.5f, y_lo, 89.0f, Z_WALL_DECK - 3.0f, z_hi, 0.35f));
             }
             d = smin(d, d_st, 0.35f);
         }
@@ -1054,34 +1041,46 @@ inline float castleSDF(const Vec3& p) {
 
     // ------------------------------------------------------------------------
     // 5. OUTWARD-BULGING FLUSH-HEIGHT GATEHOUSE (world coordinates, from CastleSpec::GH_*)
-    //    Outer wall y = -122.5 (parapet -125.5), inner face flush with front wall (y = -88.5 / -78.0)
+    //    Outer wall y = -114.5 (parapet -117.5), inner face flush with front wall (y = -80.5 / -70.0)
     //    Smooth pass-through Gothic gate tunnel (38 mm wide x 52 mm tall, z = 15..67 mm)
     // ------------------------------------------------------------------------
     {
-        float d_ghb = sdBoxMinMax(p, -44.0f, 44.0f, -130.0f, -74.0f, -4.0f, Z_WALL_PARA + 4.0f);
+        float d_ghb = sdBoxMinMax(p, -54.0f, 54.0f, GH_Y_MIN - 16.0f, GH_Y_MAX + 4.0f, -4.0f, Z_WALL_PARA + 4.0f);
         if (d_ghb < d + 3.5f) {
-            // Battered plinth flares outward ONLY on front & sides (keeps rear y = GH_Y_MAX flush with courtyard)
-            float d_gh_plinth = sdBatteredBox(p, 0.0f, GH_Y_C - 1.5f, -4.0f, Z_COURT + 14.0f,
-                                              GH_HALF_X + 3.5f, GH_Y_H + 1.5f, GH_HALF_X, GH_Y_H - 1.5f, 0.9f);
-            d_gh_plinth = std::max(d_gh_plinth, p.y - GH_Y_MAX);
-            float d_gh_body   = sdBoxMinMax(p, -GH_HALF_X, GH_HALF_X, GH_Y_MIN, GH_Y_MAX, Z_COURT + 10.0f, Z_WALL_DECK + 0.5f, 0.8f);
-            // Seamless corbel + parapet flaring outward ONLY on front (GH_PARA_Y_MIN) & sides (±GH_PARA_HALF_X)
-            float d_gh_crown  = sdCorbelParapetBox(p, 0.0f, GH_Y_C, GH_Y_C - 1.5f,
-                                                   Z_WALL_DECK - 7.8f, Z_WALL_DECK - 1.5f, Z_WALL_PARA,
-                                                   GH_HALF_X, GH_Y_H, GH_PARA_HALF_X, GH_Y_H + 1.5f, 0.65f);
-            d_gh_crown = std::max(d_gh_crown, p.y - GH_Y_MAX);
-            float d_pil       = sdBoxMinMax(Vec3(std::fabs(p.x), p.y, p.z), 31.0f, 39.5f, -124.0f, -105.0f,
-                                            Z_COURT, Z_WALL_DECK - 6.0f, 0.7f);
+            // Matching seamless pronounced 25 mm ashlar base batter (+12.0 mm at z=0 -> 0 at z=25, front & sides only!)
+            float t_gbat = clampf(1.0f - p.z / WALL_BASE_BAT_H, 0.0f, 1.0f);
+            float gBat   = WALL_BASE_BAT_OUT * t_gbat;
+            float gbx = std::fabs(p.x) - (GH_HALF_X + gBat - 0.8f);
+            float gby = std::max((GH_Y_MIN - gBat + 0.8f) - p.y, p.y - (GH_Y_MAX - 0.8f));
+            float gbz = std::max(-4.0f + 0.8f - p.z, p.z - (Z_WALL_DECK + 0.5f - 0.8f));
+            float gb2 = std::hypot(std::max(gbx, 0.0f), std::max(gby, 0.0f)) + std::min(std::max(gbx, gby), 0.0f);
+            if (p.z < WALL_BASE_BAT_H) gb2 *= 0.9015f;
+            float d_gh_shaft = std::hypot(std::max(gb2, 0.0f), std::max(gbz, 0.0f)) + std::min(std::max(gb2, gbz), 0.0f) - 0.8f;
 
-            float d_gh = smin(std::min(d_gh_plinth, d_gh_body), std::min(d_gh_crown, d_pil), 0.65f);
+            // Keep the stair well (|x| <= 19.2, z <= Z_COURT) open through the +12 mm front flare so all 4 causeway steps stay crisp!
+            float d_stair_well = sdBoxMinMax(p, -19.2f, 19.2f, GH_Y_MIN - 15.0f, GH_Y_MIN + 0.5f, -5.0f, Z_COURT + 2.0f, 0.0f);
+            d_gh_shaft = std::max(d_gh_shaft, -d_stair_well);
+
+            // Seamless corbel + parapet flaring outward ONLY on front (GH_PARA_Y_MIN) & sides (±GH_PARA_HALF_X)
+            float d_gh_crown = sdCorbelParapetBox(p, 0.0f, GH_Y_C, GH_Y_C - 1.5f,
+                                                  Z_WALL_DECK - 7.8f, Z_WALL_DECK - 1.5f, Z_WALL_PARA,
+                                                  GH_HALF_X, GH_Y_H, GH_PARA_HALF_X, GH_Y_H + 1.5f, 0.65f);
+            d_gh_crown = std::max(d_gh_crown, p.y - GH_Y_MAX);
+            float d_pil = sdBoxMinMax(Vec3(std::fabs(p.x), p.y, p.z), 31.0f, 39.5f, GH_Y_MIN - 1.5f, GH_Y_MIN + 17.5f,
+                                      Z_COURT, Z_WALL_DECK - 6.0f, 0.7f);
+
+            float d_gh = smin(d_gh_shaft, std::min(d_gh_crown, d_pil), 0.65f);
 
             // Clean corbel brackets under outward-bulging front & side gatehouse overhangs (blends smoothly into parapet)
             float corbM = smoothstep(Z_WALL_DECK - 8.0f, Z_WALL_DECK - 5.2f, p.z)
                         * smoothstep(Z_WALL_DECK + 0.4f, Z_WALL_DECK - 2.2f, p.z);
             if (corbM > 0.001f) {
-                float fMask = smoothstep(-121.0f, -123.0f, p.y) * smoothstep(-127.0f, -124.8f, p.y) * smoothstep(40.0f, 38.0f, std::fabs(p.x));
+                float fMask = smoothstep(GH_Y_MIN + 1.5f, GH_Y_MIN - 0.5f, p.y)
+                            * smoothstep(GH_Y_MIN - 4.5f, GH_Y_MIN - 2.3f, p.y)
+                            * smoothstep(40.0f, 38.0f, std::fabs(p.x));
                 float sMask = smoothstep(37.0f, 39.0f, std::fabs(p.x)) * smoothstep(42.0f, 40.0f, std::fabs(p.x))
-                            * smoothstep(-105.0f, -107.5f, p.y) * smoothstep(-125.0f, -122.5f, p.y);
+                            * smoothstep(GH_Y_MIN + 17.5f, GH_Y_MIN + 15.0f, p.y)
+                            * smoothstep(GH_Y_MIN - 2.5f,  GH_Y_MIN,         p.y);
                 if (fMask > 0.001f) {
                     float uf = std::fabs(std::fmod(p.x + 200.0f, 9.5f) - 4.75f);
                     d_gh -= 0.72f * smoothstep(2.4f, 1.2f, uf) * corbM * fMask;
@@ -1093,11 +1092,11 @@ inline float castleSDF(const Vec3& p) {
             }
 
             // Continuous EXACT SHARP flat walkable battlement deck at z = Z_WALL_DECK (7.6 mm thick parapet)
-            float d_gh_deck1 = sdBoxMinMax(p, -GH_WALK_HALF_X, GH_WALK_HALF_X, GH_WALK_Y_MIN, -74.0f, Z_WALL_DECK, 125.0f, 0.0f);
-            float d_gh_deck2 = sdBoxMinMax(p, -44.0f, 44.0f, WALL_WALK_OUT_Y0, -74.0f, Z_WALL_DECK, 125.0f, 0.0f);
+            float d_gh_deck1 = sdBoxMinMax(p, -GH_WALK_HALF_X, GH_WALK_HALF_X, GH_WALK_Y_MIN, GH_Y_MAX + 4.0f, Z_WALL_DECK, 125.0f, 0.0f);
+            float d_gh_deck2 = sdBoxMinMax(p, -44.0f, 44.0f, WALL_WALK_OUT_Y0, GH_Y_MAX + 4.0f, Z_WALL_DECK, 125.0f, 0.0f);
             d_gh = std::max(d_gh, -std::min(d_gh_deck1, d_gh_deck2));
 
-            // Match the exact same continuous courtyard wall profile (y = -88.5 below z = 63, 45-deg corbel up to y = -78.0 at z = 73.5)
+            // Match the exact same continuous courtyard wall profile (y = -80.5 below z = 63, 45-deg corbel up to y = -70.0 at z = 73.5)
             {
                 float t_corb = clampf((p.z - (Z_WALL_DECK - 12.0f)) / 10.5f, 0.0f, 1.0f);
                 float gc_yMax = lerpf(GH_COURT_LOW_Y, GH_Y_MAX, t_corb);
@@ -1105,23 +1104,23 @@ inline float castleSDF(const Vec3& p) {
                 d_gh = smax(d_gh, -d_gc_cut, 0.45f);
             }
 
-            // Consistent crenellation merlons & embrasures along the outward-bulging gatehouse parapet
-            // Front: center 17.0 mm merlon [-8.5, +8.5], pair of 10.5 mm embrasures [8.5, 19.0], solid side-return cheeks
-            if (p.z > Z_WALL_DECK + 7.0f) {
+            // Consistent wider crenellation merlons & crenels along the outward-bulging gatehouse parapet
+            // Front: center 20.0 mm merlon [-10.0, +10.0], pair of 14.5 mm crenels [10.0, 24.5], solid 16x14 mm corner L-merlons
+            if (p.z > Z_WALL_DECK + 8.0f) {
                 float ax = std::fabs(p.x);
-                if (p.y < -116.0f && ax < 33.0f) {
-                    float d_emb_all = std::fabs(ax - 13.75f) - 4.70f;
-                    float d_e = std::max(d_emb_all, (Z_WALL_DECK + 10.0f) - p.z);
+                if (p.y < GH_Y_MIN + 6.5f && ax < 33.0f) {
+                    float d_emb_all = std::fabs(ax - 17.25f) - 6.70f;
+                    float d_e = std::max(d_emb_all, (Z_WALL_DECK + PARA_H * 0.5f) - p.z);
                     d_gh = smax(d_gh, -(d_e - 0.55f), 0.55f);
                 }
             }
 
             // Flanking cruciform arrow slits on gate piers (z = 36..53, relative to Z_COURT)
             float ghProtect = 1.0f;
-            if (p.z > Z_COURT + 18.0f && p.z < Z_COURT + 44.0f && p.y < -117.0f && std::fabs(std::fabs(p.x) - 29.0f) < 6.0f) {
+            if (p.z > Z_COURT + 18.0f && p.z < Z_COURT + 44.0f && p.y < GH_Y_MIN + 6.5f && std::fabs(std::fabs(p.x) - 29.0f) < 6.0f) {
                 float ux = std::fabs(p.x) - 29.0f;
                 float d_s2 = sdGothicArch2D(ux, p.z, 1.45f, Z_COURT + 21.0f, Z_COURT + 34.0f, Z_COURT + 38.0f);
-                float d_depth = -129.1f + p.y;
+                float d_depth = p.y - (GH_Y_MIN + 4.5f);
                 float d_sill = (Z_COURT + 21.0f + (p.y - GH_Y_MIN) * 0.9f) - p.z;
                 float d_slit = std::max(std::max(d_s2, d_depth), d_sill);
                 float d_cross = std::max(std::max(std::fabs(ux) - 3.0f, std::fabs(p.z - (Z_COURT + 30.0f)) - 1.0f), d_depth + 0.6f);
@@ -1131,12 +1130,12 @@ inline float castleSDF(const Vec3& p) {
             }
 
             // Carved stone Voussoir Arch Ring framing outer front portal (y = GH_Y_MIN);
-            // inner courtyard portal exits cleanly through the y = -88.5 wall and 45-deg corbel
-            if (p.z > Z_COURT - 1.0f && p.z < Z_COURT + 59.0f && std::fabs(p.x) < 27.0f && p.y < -117.0f) {
+            // inner courtyard portal exits cleanly through the y = -80.5 wall and 45-deg corbel
+            if (p.z > Z_COURT - 1.0f && p.z < Z_COURT + 59.0f && std::fabs(p.x) < 27.0f && p.y < GH_Y_MIN + 5.5f) {
                 float d_ao = sdGothicArch2D(p.x, p.z, 23.2f, Z_COURT - 1.0f, Z_COURT + 28.0f, Z_COURT + 56.5f);
                 float d_ai = sdGothicArch2D(p.x, p.z, GATE_HALF_W, Z_COURT - 1.0f, Z_COURT + 28.0f, Z_COURT + 52.0f);
                 float d_ring = std::max(d_ao, -d_ai);
-                float dyFR = std::fabs(p.y - (-122.8f)) - 1.6f;
+                float dyFR = std::fabs(p.y - (GH_Y_MIN - 0.3f)) - 1.6f;
                 float d_vous = std::max(d_ring, dyFR);
                 if (std::fabs(d_vous) < 2.2f && p.z > Z_COURT + 27.0f) {
                     float va = std::atan2(p.z - (Z_COURT + 28.0f), p.x);
@@ -1148,58 +1147,65 @@ inline float castleSDF(const Vec3& p) {
                 ghProtect = std::min(ghProtect, smoothstep(-0.4f, 1.5f, d_vous));
             }
 
-            // Carved medieval heater shield centered on the 17 mm-wide central gate merlon
+            // Carved medieval heater shield centered on the 20 mm-wide central gate merlon
             {
                 float sx = std::fabs(p.x);
-                float sz = p.z - (Z_WALL_DECK + 10.0f);
+                float sz = p.z - (Z_WALL_DECK + 11.0f);
                 float wAtZ = (sz >= -0.5f) ? 4.6f : lerpf(4.6f, 0.5f, clampf((-0.5f - sz) / 5.5f, 0.0f, 1.0f));
                 float d_sh2d = std::max(sx - wAtZ, std::max(sz - 5.4f, -6.0f - sz));
-                float d_shield = std::max(d_sh2d, std::fabs(p.y - (-125.6f)) - 1.35f) - 0.35f;
-                float d_cr = std::min(std::fabs(p.x) - 0.85f, std::fabs(p.z - (Z_WALL_DECK + 10.7f)) - 0.85f);
-                float d_sh_cr = std::max(std::max(d_cr, d_sh2d + 1.2f), std::fabs(p.y - (-126.5f)) - 0.75f) - 0.2f;
+                float d_shield = std::max(d_sh2d, std::fabs(p.y - (GH_PARA_Y_MIN - 0.1f)) - 1.35f) - 0.35f;
+                float d_cr = std::min(std::fabs(p.x) - 0.85f, std::fabs(p.z - (Z_WALL_DECK + 11.7f)) - 0.85f);
+                float d_sh_cr = std::max(std::max(d_cr, d_sh2d + 1.2f), std::fabs(p.y - (GH_PARA_Y_MIN - 1.0f)) - 0.75f) - 0.2f;
                 d_gh = smin(d_gh, smin(d_shield, d_sh_cr, 0.25f), 0.35f);
                 ghProtect = std::min(ghProtect, smoothstep(-0.4f, 1.5f, d_shield));
                 // Matching interior corbel ribs on gatehouse courtyard slope (skipping gate tunnel |x| < 22)
                 float inGhCorb = smoothstep(Z_WALL_DECK - 11.2f, Z_WALL_DECK - 8.5f, p.z)
                                * smoothstep(Z_WALL_DECK - 1.2f, Z_WALL_DECK - 3.0f, p.z)
-                               * smoothstep(-90.0f, -86.5f, p.y) * smoothstep(20.5f, 23.0f, std::fabs(p.x));
+                               * smoothstep(GH_COURT_LOW_Y - 1.5f, GH_COURT_LOW_Y + 2.0f, p.y)
+                               * smoothstep(20.5f, 23.0f, std::fabs(p.x));
                 if (inGhCorb > 0.001f) {
                     float uf = std::fabs(std::fmod(p.x + 300.0f, 10.5f) - 5.25f);
                     d_gh -= 0.65f * smoothstep(2.3f, 1.2f, uf) * inGhCorb;
                 }
             }
 
-            // Fine ashlar stone on EXTERIOR & COURTYARD vertical gatehouse walls (side cheeks + front/back, NOT floor)
+            // Protect the stair well side cheeks (|x| <= 21, z <= Z_COURT) from ashlar bleed
+            if (p.z < Z_COURT + 1.0f && p.y < GH_Y_MIN + 1.0f) {
+                ghProtect = std::min(ghProtect, smoothstep(19.0f, 22.0f, std::fabs(p.x)));
+            }
+
+            // Fine ashlar stone on EXTERIOR (all the way down the 25 mm battered base to z = 0.5!) & COURTYARD gatehouse walls
             if (std::fabs(d_gh) < 2.5f) {
-                float floorMask = (p.y > -118.5f && p.y < -76.0f)
+                float floorMask = (p.y > GH_WALK_Y_MIN - 0.6f && p.y < GH_Y_MAX + 2.0f)
                                 ? smoothstep(1.8f, 0.2f, std::fabs(p.z - Z_WALL_DECK)) : 0.0f;
-                if (floorMask < 0.85f && p.z > Z_COURT - 4.0f) {
-                    bool isSideFace = (std::fabs(p.x) > 34.5f && p.y > -123.0f && p.y < -100.0f);
+                if (floorMask < 0.85f && p.z > 0.2f) {
+                    bool isSideFace = ((std::fabs(p.x) - (GH_HALF_X + gBat)) > ((GH_Y_MIN - gBat) - p.y)) && (p.y < WALL_OUT_Y_MIN + 8.5f);
                     float u = isSideFace ? (p.y + 145.0f) : (p.x + 100.0f);
                     int seed = isSideFace ? (p.x > 0 ? 206 : 207) : 205;
                     float disp = ashlarDisplacement(u, p.z, 4.6f, 8.8f, 0.50f, 0.32f, seed);
-                    float ghSlopeFade = (p.y > -90.0f && p.z > Z_WALL_DECK - 12.5f && p.z < Z_WALL_DECK - 1.0f) ? 0.25f : 1.0f;
-                    bool isExtGh = (p.y < -120.0f) || (std::fabs(p.x) > 35.5f && p.y < -103.0f);
+                    float ghSlopeFade = (p.y > GH_COURT_LOW_Y - 1.5f && p.z > Z_WALL_DECK - 12.5f && p.z < Z_WALL_DECK - 1.0f) ? 0.25f : 1.0f;
+                    bool isExtGh = (p.y < GH_Y_MIN + 2.5f) || (std::fabs(p.x) > 35.5f && p.y < WALL_OUT_Y_MIN + 5.5f);
                     float ghDeckFade = isExtGh ? 1.0f : smoothstep(0.0f, 1.5f, std::fabs(p.z - Z_WALL_DECK));
+                    float ghBotFade  = isExtGh ? smoothstep(0.5f, 3.0f, p.z) : smoothstep(Z_COURT - 2.0f, Z_COURT + 2.5f, p.z);
                     float topMask = smoothstep(0.0f, 1.2f, Z_WALL_PARA - p.z)
                                   * ghDeckFade
-                                  * smoothstep(Z_COURT - 4.0f, Z_COURT + 2.0f, p.z);
+                                  * ghBotFade;
                     d_gh -= disp * topMask * ghProtect * ghSlopeFade;
                 }
             }
             d = smin(d, d_gh, 0.75f);
             // Re-flatten gatehouse & front wall top deck AFTER smin(d_walls, d_gh) -> exact 0.000 mm flat z = Z_WALL_DECK
-            float d_gh_flat = std::min(sdBoxMinMax(p, -GH_WALK_HALF_X, GH_WALK_HALF_X, GH_WALK_Y_MIN, -74.0f, Z_WALL_DECK, 125.0f, 0.0f),
-                                       sdBoxMinMax(p, -44.0f, 44.0f, WALL_WALK_OUT_Y0, -74.0f, Z_WALL_DECK, 125.0f, 0.0f));
+            float d_gh_flat = std::min(sdBoxMinMax(p, -GH_WALK_HALF_X, GH_WALK_HALF_X, GH_WALK_Y_MIN, GH_Y_MAX + 4.0f, Z_WALL_DECK, 125.0f, 0.0f),
+                                       sdBoxMinMax(p, -44.0f, 44.0f, WALL_WALK_OUT_Y0, GH_Y_MAX + 4.0f, Z_WALL_DECK, 125.0f, 0.0f));
             d = std::max(d, -d_gh_flat);
         }
 
         // CARVE 100% SMOOTH PASS-THROUGH POINTED GOTHIC GATE TUNNEL (38 mm wide x 52 mm tall, z = 15..67 mm)
-        // Completely smooth walls & floor — no doors, vault ribs, or portcullis clutter
+        // Extends out to GH_Y_MIN - 15.0 to clear the full +12 mm gatehouse base flare cleanly!
         {
-            float d_tb = sdBoxMinMax(p, -24.0f, 24.0f, -130.0f, -72.0f, Z_COURT - 2.0f, Z_COURT + 56.0f);
+            float d_tb = sdBoxMinMax(p, -24.0f, 24.0f, GH_Y_MIN - 16.0f, GH_Y_MAX + 6.0f, Z_COURT - 2.0f, Z_COURT + 56.0f);
             if (d_tb < 4.0f) {
-                float d_tunnel = sdGothicTunnelY(p, 0.0f, GATE_HALF_W, -129.0f, -73.0f, Z_COURT, Z_COURT + 28.0f, Z_COURT + 52.0f);
+                float d_tunnel = sdGothicTunnelY(p, 0.0f, GATE_HALF_W, GH_Y_MIN - 15.0f, GH_Y_MAX + 5.0f, Z_COURT, Z_COURT + 28.0f, Z_COURT + 52.0f);
                 d = std::max(d, -d_tunnel);
             }
         }
@@ -1207,18 +1213,17 @@ inline float castleSDF(const Vec3& p) {
 
     // ------------------------------------------------------------------------
     // 6. FULL-WIDTH REAR-ANCHORED STAIRCASES (z = 15 -> 75 mm!)
-    //    Entirely fill the widened gap between Keep sides (|x|=52) and thinned side walls (|x|=103.5)!
-    //    Moved all the way back to touch the rear curtain walls (y = +18 .. +93, solid back into y=105)!
+    //    8 steps of 8.0 mm tread x 7.5 mm rise (y = 29..93) aligned cleanly with the shortened Keep!
     // ------------------------------------------------------------------------
     {
         float sx = std::fabs(p.x);
-        float d_sb = sdBoxMinMax(Vec3(sx, p.y, p.z), 50.0f, 107.0f, 15.0f, 107.0f, Z_COURT - 3.0f, Z_WALL_DECK + 3.0f);
+        float d_sb = sdBoxMinMax(Vec3(sx, p.y, p.z), 50.0f, 107.0f, 26.0f, 107.0f, Z_COURT - 3.0f, Z_WALL_DECK + 3.0f);
         if (d_sb < d + 3.0f) {
-            float y0 = 18.0f;
+            float y0 = 29.0f;
             float y1 = 93.0f; // lands flush against the rear curtain wall walk (y >= 93, z = 75mm)!
-            int numSteps = 10;
-            float stepRun  = (y1 - y0) / float(numSteps);            // 7.5 mm deep treads!
-            float stepRise = (Z_WALL_DECK - Z_COURT) / float(numSteps); // 6.0 mm rise!
+            int numSteps = 8;
+            float stepRun  = (y1 - y0) / float(numSteps);            // 8.0 mm deep treads (exact LEGO pitch)!
+            float stepRise = (Z_WALL_DECK - Z_COURT) / float(numSteps); // 7.5 mm rise (<45 deg)!
 
             float d_stair = 1e9f;
             for (int i = 0; i < numSteps; ++i) {
@@ -1242,15 +1247,16 @@ inline float castleSDF(const Vec3& p) {
     //      Level 2 (Upper Chamber): floor z = 109.0.. ceiling z = 187.0 (78 mm clear)
     // ------------------------------------------------------------------------
     {
-        float d_kb = sdBoxMinMax(p, -61.0f, 61.0f, 16.0f, 134.5f, Z_COURT - 4.0f, Z_KEEP_PARA + 3.0f);
+        float d_kb = sdBoxMinMax(p, -61.0f, 61.0f, KEEP_Y0 - 20.0f, 134.5f, Z_COURT - 10.0f, Z_KEEP_PARA + 3.0f);
         if (d_kb < d + 4.0f) {
             float kx0 = KEEP_X0, kx1 = KEEP_X1;
             float ky0 = KEEP_Y0, ky1 = KEEP_Y1;
             float kcx = KEEP_CX, kcy = KEEP_CY;
             float khx = KEEP_HX, khy = KEEP_HY;
 
-            // 7a. Main Keep Body + Battered Plinth + Seamless Support-Free Corbelled Crown (ZERO horizontal void!)
+            // 7a. Main Keep Body + Battered Plinth (clamped flush at rear wall so the rear wall's 25 mm batter is seamless!)
             float d_kp_plinth = sdBatteredBox(p, kcx, kcy, Z_COURT - 4.0f, Z_COURT + 20.0f, khx + 4.5f, khy + 4.5f, khx, khy, 0.9f);
+            d_kp_plinth = std::max(d_kp_plinth, p.y - KEEP_Y1);
             float d_kp_shaft  = sdBoxMinMax(p, kx0, kx1, ky0, ky1, Z_COURT + 16.0f, Z_KEEP_DECK + 1.0f, 0.9f);
             float d_kp_crown  = sdCorbelParapetBox(p, kcx, kcy, kcy,
                                                    Z_KEEP_DECK - 8.2f, Z_KEEP_DECK - 1.5f, Z_KEEP_PARA,
@@ -1258,6 +1264,7 @@ inline float castleSDF(const Vec3& p) {
             float d_keep = smin(std::min(d_kp_plinth, d_kp_shaft), d_kp_crown, 0.75f);
 
             // 7b. Classic Norman Stepped Corner Buttresses & Side Wall Pilasters (step aligned at Floor 2!)
+            //     Extended down to z = Z_COURT - 8 so rear corner buttresses sink smoothly into the 25 mm rear batter!
             {
                 float set1 = smoothstep(Z_L2_FLOOR - 5.0f, Z_L2_FLOOR - 0.5f, p.z);
                 float buttOut = 3.5f - 1.3f * set1;
@@ -1265,7 +1272,7 @@ inline float castleSDF(const Vec3& p) {
                 float axk = std::fabs(p.x - kcx);
                 float ayk = std::fabs(p.y - kcy);
                 float d_cbut = sdBoxMinMax(Vec3(axk, ayk, p.z), khx - 10.0f, khx + buttOut, khy - 12.0f, khy + buttOut,
-                                           Z_COURT - 2.0f, Z_KEEP_DECK - 6.5f, 0.75f);
+                                           Z_COURT - 8.0f, Z_KEEP_DECK - 6.5f, 0.75f);
                 float d_sbutLR = sdBoxMinMax(Vec3(axk, ayk, p.z), khx - 2.0f, khx + buttOut * 0.75f, 0.0f, 6.8f,
                                              Z_COURT - 2.0f, Z_KEEP_DECK - 6.5f, 0.65f);
                 d_keep = smin(d_keep, std::min(d_cbut, d_sbutLR), 0.55f);
@@ -1300,43 +1307,46 @@ inline float castleSDF(const Vec3& p) {
             float d_kp_deck = sdBoxMinMax(p, kx0 + 4.8f, kx1 - 4.8f, ky0 + 4.8f, ky1 - 4.8f, Z_KEEP_DECK, 245.0f, 0.0f);
             d_keep = std::max(d_keep, -d_kp_deck);
 
-            // 7f. Explicit sliver-free 20 mm crenellations along Keep crown (deck 195, notch 205, merlons 215 mm)
-            if (p.z > Z_KEEP_DECK + 7.0f && p.z < Z_KEEP_PARA + 3.0f) {
+            // 7f. Explicit sliver-free 22 mm crenellations (~50% wider merlons & 15.5 mm crenels along Keep crown!)
+            if (p.z > Z_KEEP_DECK + 8.0f && p.z < Z_KEEP_PARA + 3.0f) {
                 float axk = std::fabs(p.x - kcx) - khx;
                 float ayk = std::fabs(p.y - kcy) - khy;
                 if (std::max(axk, ayk) > -6.0f) {
                     float d_emb_u = 1e6f;
                     if (axk > ayk) {
+                        // Left & Right faces (81.5 mm after 13 mm Keep shortening):
+                        // 2 wide 14.5 mm crenels at |y - kcy| = 15.5 -> 16.5 mm center merlon, 18.0 mm corner merlons!
                         float dyAbs = std::fabs(p.y - kcy);
-                        d_emb_u = std::min(dyAbs - 4.8f, std::fabs(dyAbs - 22.0f) - 4.8f);
+                        d_emb_u = std::fabs(dyAbs - 15.50f) - 6.70f;
                     } else {
+                        // Front & Rear faces (111.0 mm): 3 wide 15.5 mm crenels at |x| = 0, 32.0 -> 16.5 mm interior merlons
                         float dxAbs = std::fabs(p.x - kcx);
-                        d_emb_u = std::min(std::fabs(dxAbs - 11.0f) - 4.8f, std::fabs(dxAbs - 33.0f) - 4.8f);
+                        d_emb_u = std::min(dxAbs - 7.20f, std::fabs(dxAbs - 32.0f) - 7.20f);
                     }
-                    float d_emb = std::max(d_emb_u, (Z_KEEP_DECK + 10.0f) - p.z);
+                    float d_emb = std::max(d_emb_u, (Z_KEEP_DECK + PARA_H * 0.5f) - p.z);
                     d_keep = smax(d_keep, -(d_emb - 0.55f), 0.60f);
                 }
             }
 
-            // 7g. Grand Ceremonial Front Steps & Gothic Portal Frame (Front of Keep, y = +36, z = 23..75)
+            // 7g. Grand Ceremonial Front Steps & Gothic Portal Frame (Front of Keep, y = KEEP_Y0 = +49, z = 23..75)
             float portalProtect = 1.0f;
             {
-                float d_fb = sdBoxMinMax(p, -29.0f, 29.0f, 20.0f, 44.0f, Z_COURT - 2.0f, Z_L1_FLOOR + 60.0f);
+                float d_fb = sdBoxMinMax(p, -29.0f, 29.0f, KEEP_Y0 - 16.0f, KEEP_Y0 + 8.0f, Z_COURT - 2.0f, Z_L1_FLOOR + 60.0f);
                 if (d_fb < d_keep + 3.5f) {
                     // 2 broad ceremonial stone steps rising from courtyard z=15 -> z=23mm
                     for (int s = 0; s < 2; ++s) {
-                        float sy0 = 24.0f + s * 6.0f;
+                        float sy0 = (KEEP_Y0 - 12.0f) + s * 6.0f;
                         float sz1 = Z_COURT + 4.0f * (s + 1);
-                        d_keep = smin(d_keep, sdBoxMinMax(p, -22.0f, 22.0f, sy0, 38.0f, Z_COURT - 2.0f, sz1, 0.45f), 0.4f);
+                        d_keep = smin(d_keep, sdBoxMinMax(p, -22.0f, 22.0f, sy0, KEEP_Y0 + 2.0f, Z_COURT - 2.0f, sz1, 0.45f), 0.4f);
                     }
                     // Flanking low carved stone stair cheeks
-                    float d_cheek = sdBoxMinMax(Vec3(std::fabs(p.x), p.y, p.z), 20.0f, 24.2f, 24.5f, 37.0f, Z_COURT - 2.0f, Z_COURT + 11.5f, 0.55f);
+                    float d_cheek = sdBoxMinMax(Vec3(std::fabs(p.x), p.y, p.z), 20.0f, 24.2f, KEEP_Y0 - 11.5f, KEEP_Y0 + 1.0f, Z_COURT - 2.0f, Z_COURT + 11.5f, 0.55f);
                     d_keep = smin(d_keep, d_cheek, 0.45f);
 
                     // Carved Gothic Portal Voussoir Frame on Keep Front Face (30mm wide x 52mm tall opening!)
                     float d_po = sdGothicArch2D(p.x, p.z, 19.2f, Z_L1_FLOOR - 1.0f, Z_L1_FLOOR + 28.0f, Z_L1_FLOOR + 57.0f);
                     float d_pi = sdGothicArch2D(p.x, p.z, 15.0f, Z_L1_FLOOR - 1.0f, Z_L1_FLOOR + 28.0f, Z_L1_FLOOR + 52.0f);
-                    float d_pframe = std::max(std::max(d_po, -d_pi), std::fabs(p.y - 35.6f) - 1.8f);
+                    float d_pframe = std::max(std::max(d_po, -d_pi), std::fabs(p.y - (KEEP_Y0 - 0.4f)) - 1.8f);
                     if (std::fabs(d_pframe) < 2.0f && p.z > Z_L1_FLOOR + 27.0f) {
                         float va = std::atan2(p.z - (Z_L1_FLOOR + 28.0f), p.x);
                         float vf = std::fmod(va + PI, PI / 13.0f);
@@ -1372,31 +1382,57 @@ inline float castleSDF(const Vec3& p) {
     }
 
     // ------------------------------------------------------------------------
-    // 8. CARVE 2-LEVEL OPEN-BACK KEEP INTERIOR & LEGO-SCALE PASS-THROUGH WINDOWS!
+    // 8. CARVE 2-LEVEL OPEN-BACK KEEP INTERIOR (WITH MATCHING ASHLAR STONEWORK ON INTERIOR WALLS!)
     //    Applied AFTER unioning curtain wall & Keep so the rear wall opens cleanly!
-    //      Level 1 (Great Hall):    floor z = 23.0 .. ceiling z = 102.0 (79mm clear!) + 30x52mm front portal
-    //      Level 2 (Upper Chamber): floor z = 109.0.. ceiling z = 187.0 (78mm clear!) + 7 wide pass-through windows
+    //      Level 1 (Great Hall):    floor z = 23.0 .. ceiling z = 102.0 (79 mm clear) + 30x52 mm front portal
+    //      Level 2 (Upper Chamber): floor z = 109.0.. ceiling z = 187.0 (78 mm clear) + 7 wide pass-through windows
     // ------------------------------------------------------------------------
     {
-        float d_open_bound = sdBoxMinMax(p, -58.0f, 58.0f, 30.0f, 134.0f, Z_L1_FLOOR - 2.0f, Z_KEEP_DECK);
+        static constexpr float KEEP_IN_Y0 = KEEP_Y0 + 9.0f; // +58.0 mm (preserves exact 9.0 mm Keep front wall thickness)
+        float d_open_bound = sdBoxMinMax(p, -58.0f, 58.0f, KEEP_Y0 - 6.0f, 134.0f, Z_L1_FLOOR - 2.0f, Z_KEEP_DECK);
         if (d_open_bound < 4.0f) {
-            float d_room1 = sdBoxMinMax(p, -43.0f, 43.0f, 45.0f, 132.0f, Z_L1_FLOOR, Z_L1_FLOOR + 79.0f, 0.8f);
-            float d_room2 = sdBoxMinMax(p, -43.0f, 43.0f, 45.0f, 132.0f, Z_L2_FLOOR, Z_L2_FLOOR + 78.0f, 0.8f);
-            float d_cut = std::min(d_room1, d_room2);
+            float d_room1 = sdBoxMinMax(p, -43.0f, 43.0f, KEEP_IN_Y0, 132.0f, Z_L1_FLOOR, Z_L1_FLOOR + 79.0f, 0.8f);
+            float d_room2 = sdBoxMinMax(p, -43.0f, 43.0f, KEEP_IN_Y0, 132.0f, Z_L2_FLOOR, Z_L2_FLOOR + 78.0f, 0.8f);
+            float d_rooms = std::min(d_room1, d_room2);
 
-            // Level 1 Front Gothic Portal opening ALL THE WAY THROUGH into Level 1 Great Hall (30mm wide x 52mm tall)!
-            float d_portal = sdGothicTunnelY(p, 0.0f, 15.0f, 30.0f, 50.0f, Z_L1_FLOOR, Z_L1_FLOOR + 28.0f, Z_L1_FLOOR + 52.0f);
+            // Apply the exact same fine ashlar masonry (4.6 x 9.0 mm blocks) to the 3 vertical interior Keep walls
+            // (left x=-43, right x=+43, front y=KEEP_IN_Y0), keeping floors, ceilings, and window/portal arches completely crisp!
+            if (std::fabs(d_rooms) < 2.2f && p.y < KEEP_Y1 - 0.2f) {
+                float dxIn = 43.0f - std::fabs(p.x);
+                float dyIn = p.y - KEEP_IN_Y0;
+                if (std::min(dxIn, dyIn) < 2.2f) {
+                    float zMask1 = smoothstep(Z_L1_FLOOR + 0.6f, Z_L1_FLOOR + 2.4f, p.z)
+                                 * smoothstep(Z_L1_FLOOR + 78.4f, Z_L1_FLOOR + 76.4f, p.z);
+                    float zMask2 = smoothstep(Z_L2_FLOOR + 0.6f, Z_L2_FLOOR + 2.4f, p.z)
+                                 * smoothstep(Z_L2_FLOOR + 77.4f, Z_L2_FLOOR + 75.4f, p.z);
+                    float zMask  = std::max(zMask1, zMask2);
+                    float backFade = smoothstep(KEEP_Y1 - 0.3f, KEEP_Y1 - 2.2f, p.y);
+                    if (zMask * backFade > 0.001f) {
+                        bool onSide = (dxIn < dyIn);
+                        float u = onSide ? (p.y + 120.0f) : (p.x + 120.0f);
+                        int iseed = onSide ? (p.x > 0 ? 601 : 602) : 603;
+                        float disp = ashlarDisplacement(u, p.z, 4.6f, 9.0f, 0.50f, 0.32f, iseed);
+                        // Positive disp pushes solid wall inward into the room; negative disp carves mortar joints into wall!
+                        d_rooms += disp * zMask * backFade;
+                    }
+                }
+            }
+
+            float d_cut = d_rooms;
+
+            // Level 1 Front Gothic Portal opening ALL THE WAY THROUGH into Level 1 Great Hall (30 mm wide x 52 mm tall)
+            float d_portal = sdGothicTunnelY(p, 0.0f, 15.0f, KEEP_Y0 - 6.0f, KEEP_Y0 + 14.0f, Z_L1_FLOOR, Z_L1_FLOOR + 28.0f, Z_L1_FLOOR + 52.0f);
             d_cut = std::min(d_cut, d_portal);
 
-            // Level 2 Pass-Through Gothic Lancet Windows (floor z=109 -> sill z=121 (+12mm), peak z=161 (+52mm)!)
-            // Generous 13.0-13.6mm width so LEGO minifigure heads, helmets & shields are clearly visible!
+            // Level 2 Pass-Through Gothic Lancet Windows (floor z=109 -> sill z=121 (+12 mm), peak z=161 (+52 mm))
+            // Generous width so LEGO minifigure heads, helmets & shields are clearly visible
             if (p.z > Z_L2_FLOOR + 9.0f && p.z < Z_L2_FLOOR + 57.0f) {
-                // Front face (y = 36..45): Triple grand lancet windows at x = -25, 0, +25
-                float d_w2fC = sdGothicTunnelY(p, 0.0f, 6.5f, 31.0f, 49.0f, Z_L2_FLOOR + 12.0f, Z_L2_FLOOR + 39.0f, Z_L2_FLOOR + 52.0f);
-                float d_w2fS = sdGothicTunnelY(Vec3(std::fabs(p.x), p.y, p.z), 25.0f, 6.5f, 31.0f, 49.0f, Z_L2_FLOOR + 12.0f, Z_L2_FLOOR + 39.0f, Z_L2_FLOOR + 52.0f);
-                // Left & Right faces (x = ±43..±52): Twin grand lancet windows at y = 62 and y = 96
-                float d_w2s1 = sdGothicTunnelX(Vec3(std::fabs(p.x), p.y, p.z), 62.0f, 6.8f, 40.0f, 58.0f, Z_L2_FLOOR + 12.0f, Z_L2_FLOOR + 39.0f, Z_L2_FLOOR + 52.5f);
-                float d_w2s2 = sdGothicTunnelX(Vec3(std::fabs(p.x), p.y, p.z), 96.0f, 6.8f, 40.0f, 58.0f, Z_L2_FLOOR + 12.0f, Z_L2_FLOOR + 39.0f, Z_L2_FLOOR + 52.5f);
+                // Front face (y = KEEP_Y0..KEEP_IN_Y0): Triple grand lancet windows at x = -25, 0, +25
+                float d_w2fC = sdGothicTunnelY(p, 0.0f, 6.5f, KEEP_Y0 - 5.0f, KEEP_Y0 + 13.0f, Z_L2_FLOOR + 12.0f, Z_L2_FLOOR + 39.0f, Z_L2_FLOOR + 52.0f);
+                float d_w2fS = sdGothicTunnelY(Vec3(std::fabs(p.x), p.y, p.z), 25.0f, 6.5f, KEEP_Y0 - 5.0f, KEEP_Y0 + 13.0f, Z_L2_FLOOR + 12.0f, Z_L2_FLOOR + 39.0f, Z_L2_FLOOR + 52.0f);
+                // Left & Right faces (x = ±43..±52): Twin grand lancet windows centered in the two 18.45 mm bays at y = 70.25 and 102.25
+                float d_w2s1 = sdGothicTunnelX(Vec3(std::fabs(p.x), p.y, p.z), KEEP_CY - 16.0f, 6.2f, 40.0f, 58.0f, Z_L2_FLOOR + 12.0f, Z_L2_FLOOR + 39.0f, Z_L2_FLOOR + 52.5f);
+                float d_w2s2 = sdGothicTunnelX(Vec3(std::fabs(p.x), p.y, p.z), KEEP_CY + 16.0f, 6.2f, 40.0f, 58.0f, Z_L2_FLOOR + 12.0f, Z_L2_FLOOR + 39.0f, Z_L2_FLOOR + 52.5f);
                 d_cut = std::min(d_cut, std::min(std::min(d_w2fC, d_w2fS), std::min(d_w2s1, d_w2s2)));
             }
 
@@ -1432,8 +1468,8 @@ inline Vec3 calcNormal(const Vec3& p, float eps = 0.18f) {
 // Built-In Studio Raymarcher (Soft Shadows & AO)
 // ============================================================================
 float traceRay(const Vec3& ro, const Vec3& rd, float tMax) {
-    Vec3 bmin(-147.0f, -147.0f, -0.5f);
-    Vec3 bmax( 147.0f,  147.0f, 224.0f);
+    Vec3 bmin(-151.0f, -151.0f, -0.5f);
+    Vec3 bmax( 151.0f,  151.0f, 224.0f);
     float t0 = 0.0f, t1 = tMax;
     for (int a = 0; a < 3; ++a) {
         float o = (&ro.x)[a], d = (&rd.x)[a];
@@ -1525,10 +1561,10 @@ void renderView(const std::string& filename, int W, int H,
                 float hemi = (0.5f + 0.5f * n.z) * 0.32f;
 
                 float stoneVar = 0.94f + 0.08f * fbm3(pos.x * 0.05f, pos.y * 0.05f, pos.z * 0.05f, 2);
-                float baseTint = smoothstep(11.0f, 16.0f, pos.z);
-                float br = lerpf(0.56f, 0.78f, baseTint) * stoneVar;
-                float bg = lerpf(0.54f, 0.76f, baseTint) * stoneVar;
-                float bb = lerpf(0.51f, 0.72f, baseTint) * stoneVar;
+                float baseTint = smoothstep(0.0f, 10.0f, pos.z);
+                float br = lerpf(0.71f, 0.78f, baseTint) * stoneVar;
+                float bg = lerpf(0.69f, 0.76f, baseTint) * stoneVar;
+                float bb = lerpf(0.65f, 0.72f, baseTint) * stoneVar;
 
                 Vec3 halfV = normalize(sunDir - rd);
                 float spec = std::pow(std::max(dot(n, halfV), 0.0f), 28.0f) * 0.16f * sh;
@@ -1677,11 +1713,11 @@ void verifyManifold(const Mesh& mesh, const char* tag) {
 }
 
 Mesh extractWatertightMesh(float h, bool projectToSurface = true) {
-    const float x0 = -147.0f, y0 = -147.0f;
+    const float x0 = -150.0f, y0 = -150.0f;
     const float z0 = -0.5f * h;
-    const int nx = (int)std::ceil(294.0f / h) + 3;
-    const int ny = (int)std::ceil(294.0f / h) + 3;
-    const int nz = (int)std::ceil(218.0f / h) + 3;
+    const int nx = (int)std::ceil(300.0f / h) + 3;
+    const int ny = (int)std::ceil(300.0f / h) + 3;
+    const int nz = (int)std::ceil(220.0f / h) + 3;
 
     std::cout << "Strict-Manifold MT6 Grid: " << nx << " x " << ny << " x " << nz
               << " (voxel h=" << h << " mm, total=" << (double(nx)*ny*nz/1e6) << "M)\n" << std::flush;
