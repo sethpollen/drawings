@@ -241,6 +241,34 @@ inline float sdBatteredBox(const Vec3& p, float cx, float cy, float z0, float z1
     return std::sqrt(ox * ox + oy * oy + oz * oz) + std::min(std::max(qx, std::max(qy, qz)), 0.0f) - r;
 }
 
+// Seamless corbel + vertical parapet box (single continuous solid from z0 -> z_corb_top -> z1, ZERO horizontal gap!)
+inline float sdCorbelParapetBox(const Vec3& p, float cx, float cy0, float cy1,
+                                float z0, float z_corb_top, float z1,
+                                float hx0, float hy0, float hx1, float hy1, float r = 0.65f) {
+    float t  = clampf((p.z - z0) / (z_corb_top - z0), 0.0f, 1.0f);
+    float cy = lerpf(cy0, cy1, t);
+    float hx = lerpf(hx0, hx1, t);
+    float hy = lerpf(hy0, hy1, t);
+    float qx = std::fabs(p.x - cx) - (hx - r);
+    float qy = std::fabs(p.y - cy) - (hy - r);
+    float qz = std::fabs(p.z - 0.5f * (z0 + z1)) - (0.5f * (z1 - z0) - r);
+    float d2 = std::hypot(std::max(qx, 0.0f), std::max(qy, 0.0f)) + std::min(std::max(qx, qy), 0.0f);
+    if (p.z < z_corb_top) d2 *= 0.84f;
+    return std::hypot(std::max(d2, 0.0f), std::max(qz, 0.0f)) + std::min(std::max(d2, qz), 0.0f) - r;
+}
+
+// Seamless corbel + vertical parapet cylinder (ZERO horizontal gap at z_corb_top!)
+inline float sdCorbelParapetCyl(const Vec3& p, float cx, float cy,
+                                float z0, float z_corb_top, float z1,
+                                float R0, float R1, float r = 0.65f) {
+    float t   = clampf((p.z - z0) / (z_corb_top - z0), 0.0f, 1.0f);
+    float rad = lerpf(R0, R1, t);
+    float dr  = std::hypot(p.x - cx, p.y - cy) - (rad - r);
+    if (p.z < z_corb_top) dr *= 0.84f;
+    float dz  = std::fabs(p.z - 0.5f * (z0 + z1)) - (0.5f * (z1 - z0) - r);
+    return std::hypot(std::max(dr, 0.0f), std::max(dz, 0.0f)) + std::min(std::max(dr, dz), 0.0f) - r;
+}
+
 // ============================================================================
 // Refined, Realistic Fine-Scale Medieval Stone Textures (Vertical Walls Only!)
 // Walkable floors (courtyard, walltops, turrets, keep roof & interior floors)
@@ -343,18 +371,17 @@ inline float sdCylTower(const Vec3& p, float cx, float cy, float R, float z_plin
     float d_body   = smin(d_shaft, d_plinth, 1.4f);
 
     float R_crown  = R + 3.0f;
-    float d_corbel = sdConeFrustumZ(p, cx, cy, z_deck - 7.5f, z_deck - 1.5f, R - 0.5f, R_crown);
-    float d_top    = sdCylinderZ(p, cx, cy, R_crown, z_deck - 1.5f, z_deck + parapet_h, 0.65f);
+    float d_crown  = sdCorbelParapetCyl(p, cx, cy, z_deck - 7.5f, z_deck - 1.5f, z_deck + parapet_h, R - 0.5f, R_crown, 0.65f);
 
-    float corbEnv = smoothstep(z_deck - 8.2f, z_deck - 5.2f, p.z) * smoothstep(z_deck - 1.2f, z_deck - 2.6f, p.z)
+    float corbEnv = smoothstep(z_deck - 8.0f, z_deck - 5.2f, p.z) * smoothstep(z_deck + 0.4f, z_deck - 2.2f, p.z)
                   * smoothstep(R - 2.0f, R, r) * smoothstep(R_crown + 2.0f, R_crown - 0.5f, r);
     if (corbEnv > 0.001f) {
         float cAng = std::fmod(ang + TAU * 2.0f, TAU / 20.0f);
         float cDist = std::fabs(cAng - 0.5f * TAU / 20.0f) * R;
-        d_corbel -= 0.90f * smoothstep(2.3f, 1.3f, cDist) * corbEnv;
+        d_crown -= 0.85f * smoothstep(2.3f, 1.3f, cDist) * corbEnv;
     }
 
-    d_body = smin(d_body, smin(d_corbel, d_top, 0.5f), 0.65f);
+    d_body = smin(d_body, d_crown, 0.65f);
 
     // Subtle dressed stone belt course halfway up
     float z_belt = 0.5f * (z_plinth_top + z_deck - 8.0f);
@@ -441,7 +468,8 @@ inline float sdCylTower(const Vec3& p, float cx, float cy, float R, float z_plin
 
     // Fine dressed ashlar stone masonry on vertical walls ONLY (flat circular deck stays completely smooth!)
     if (std::fabs(d_body) < 2.5f) {
-        float wallMask = smoothstep(0.0f, 1.5f, std::fabs(p.z - z_deck))
+        float deckFade = (r < R_crown - 2.0f) ? smoothstep(0.0f, 1.5f, std::fabs(p.z - z_deck)) : 1.0f;
+        float wallMask = deckFade
                        * smoothstep(0.0f, 1.2f, (z_deck + parapet_h) - p.z)
                        * smoothstep(0.5f, 3.5f, p.z);
         if (r > R - 5.5f && wallMask > 0.001f) {
@@ -452,6 +480,174 @@ inline float sdCylTower(const Vec3& p, float cx, float cy, float R, float z_plin
         }
     }
     return d_body;
+}
+
+// ============================================================================
+// Precision FDM-Tolerant LEGO-Compatible Studs (EXACT 8.00 mm Grid Pitch!)
+//   Stud diameter: 4.70 mm (R = 2.35 mm) -> comfortable non-tight FDM clutch for LEGO minifigures
+//   Stud height:   1.70 mm with 0.20 mm 45-deg lead-in top chamfer
+//   Covers: Open Courtyard, Wall Walks + Gatehouse Deck, Rear Stair Landings, All 4 Turret Tops,
+//           Keep Roof + Both Keep Interior Floors, and Single-Row Studs on All Suitable Stair Steps!
+// ============================================================================
+static constexpr float LEGO_PITCH   = 8.00f;
+static constexpr float LEGO_STUD_R  = 2.35f; // 4.70 mm dia (FDM-tuned non-tight fit for LEGO minifigs!)
+static constexpr float LEGO_STUD_H  = 1.70f; // standard LEGO stud height
+static constexpr float LEGO_CHAMFER = 0.20f; // 0.20 mm 45-deg lead-in chamfer on top edge
+
+inline float sdLegoStud(const Vec3& p, float cx, float cy, float z_floor) {
+    float r = std::hypot(p.x - cx, p.y - cy);
+    float dz_top = p.z - (z_floor + LEGO_STUD_H);
+    float dz_bot = (z_floor - 0.85f) - p.z;
+    float dz = std::max(dz_top, dz_bot);
+    float dr = r - LEGO_STUD_R;
+    float d_cyl = std::hypot(std::max(dr, 0.0f), std::max(dz, 0.0f)) + std::min(std::max(dr, dz), 0.0f);
+    float d_chamf = (dr + dz_top + LEGO_CHAMFER) * 0.70710678f;
+    return std::max(d_cyl, d_chamf);
+}
+
+// O(1) rectangular grid of LEGO studs: x = x0 + ix*8 (ix in [0..nx-1]), y = y0 + iy*8 (iy in [0..ny-1])
+inline float sdStudGrid(const Vec3& p, float x0, int nx, float y0, int ny, float z_floor, float curD) {
+    float x1 = x0 + float(nx - 1) * LEGO_PITCH;
+    float y1 = y0 + float(ny - 1) * LEGO_PITCH;
+    float dxB = std::max(x0 - LEGO_STUD_R - p.x, p.x - (x1 + LEGO_STUD_R));
+    float dyB = std::max(y0 - LEGO_STUD_R - p.y, p.y - (y1 + LEGO_STUD_R));
+    float dzB = std::max((z_floor - 0.85f) - p.z, p.z - (z_floor + LEGO_STUD_H));
+    if (std::max(dxB, std::max(dyB, dzB)) >= curD) return curD;
+
+    int ix = (int)std::lround((p.x - x0) / LEGO_PITCH);
+    int iy = (int)std::lround((p.y - y0) / LEGO_PITCH);
+    if (ix < 0) ix = 0; else if (ix >= nx) ix = nx - 1;
+    if (iy < 0) iy = 0; else if (iy >= ny) iy = ny - 1;
+    return std::min(curD, sdLegoStud(p, x0 + float(ix) * LEGO_PITCH, y0 + float(iy) * LEGO_PITCH, z_floor));
+}
+
+// O(1) circular rosette of 21 LEGO studs centered on turret (tcx, tcy): dx, dy in {0, ±8, ±16} omitting (±16, ±16)
+inline float sdTurretStuds(const Vec3& p, float tcx, float tcy, float z_floor, float curD) {
+    float dzB = std::max((z_floor - 0.85f) - p.z, p.z - (z_floor + LEGO_STUD_H));
+    float rB  = std::hypot(p.x - tcx, p.y - tcy) - 21.0f;
+    if (std::max(dzB, rB) >= curD) return curD;
+
+    int ix = (int)std::lround((p.x - tcx) / LEGO_PITCH);
+    int iy = (int)std::lround((p.y - tcy) / LEGO_PITCH);
+    if (ix < -2) ix = -2; else if (ix > 2) ix = 2;
+    if (iy < -2) iy = -2; else if (iy > 2) iy = 2;
+    if (std::abs(ix) == 2 && std::abs(iy) == 2) {
+        // Check the two adjacent valid rosette neighbors for smooth SDF continuity
+        int ixIn = (ix > 0) ? 1 : -1;
+        int iyIn = (iy > 0) ? 1 : -1;
+        float d1 = sdLegoStud(p, tcx + float(ixIn) * LEGO_PITCH, tcy + float(iy) * LEGO_PITCH, z_floor);
+        float d2 = sdLegoStud(p, tcx + float(ix) * LEGO_PITCH, tcy + float(iyIn) * LEGO_PITCH, z_floor);
+        return std::min(curD, std::min(d1, d2));
+    }
+    return std::min(curD, sdLegoStud(p, tcx + float(ix) * LEGO_PITCH, tcy + float(iy) * LEGO_PITCH, z_floor));
+}
+
+// Master O(1) LEGO Studs Field across all walkable floors & stair treads!
+inline float legoStudsSDF(const Vec3& p, float curD = 1e6f) {
+    float ds = curD;
+    Vec3 ap(std::fabs(p.x), p.y, p.z); // X-mirrored point for symmetric left/right castle zones!
+
+    // 1. OPEN COURTYARD FLOOR (z = 15.0 mm, skipping smooth gate tunnel y < -88.5 & front turret plinth discs)
+    if (p.z > 13.0f && p.z < 18.5f) {
+        // Main courtyard grid: x in [-96, +96] (25 cols, pitch 8), y in [-83, +13] (13 rows, pitch 8)
+        float dxB = std::max(-98.5f - p.x, p.x - 98.5f);
+        float dyB = std::max(-85.5f - p.y, p.y - 15.5f);
+        float dzB = std::max(14.15f - p.z, p.z - 16.70f);
+        if (std::max(dxB, std::max(dyB, dzB)) < ds) {
+            int ix = (int)std::lround((p.x + 96.0f) / LEGO_PITCH);
+            int iy = (int)std::lround((p.y + 83.0f) / LEGO_PITCH);
+            if (ix < 0) ix = 0; else if (ix > 24) ix = 24;
+            if (iy < 0) iy = 0; else if (iy > 12) iy = 12;
+            auto evalCourt = [&](int gx, int gy) -> float {
+                if (gx < 0 || gx > 24 || gy < 0 || gy > 12) return 1e6f;
+                float cx = -96.0f + float(gx) * LEGO_PITCH;
+                float cy = -83.0f + float(gy) * LEGO_PITCH;
+                if (std::hypot(std::fabs(cx) - 110.0f, cy + 95.0f) < 34.5f) return 1e6f;
+                return sdLegoStud(p, cx, cy, 15.0f);
+            };
+            float dc = evalCourt(ix, iy);
+            if (dc > 1e5f) {
+                // Inside excluded front-turret corner disc: check inward neighbors for continuous SDF
+                int sxIn = (ix > 12) ? (ix - 1) : (ix + 1);
+                dc = std::min(evalCourt(sxIn, iy), evalCourt(ix, iy + 1));
+            }
+            ds = std::min(ds, dc);
+        }
+        // Flanking Keep front steps on exact same 8mm courtyard grid: y = +21 (|x| = 32, 40)
+        ds = sdStudGrid(ap, 32.0f, 2, 21.0f, 1, 15.0f, ds);
+    }
+
+    // 2. KEEP CEREMONIAL FRONT STEPS (z = 19.0 & z = 23.0 mm) + KEEP LEVEL 1 INTERIOR FLOOR (z = 23.0 mm)
+    if (p.z > 17.5f && p.z < 26.5f) {
+        ds = sdStudGrid(p, -12.0f, 4, 27.0f, 1, 19.0f, ds);  // Step 0 (4 studs: x = ±4, ±12)
+        ds = sdStudGrid(p,  -4.0f, 2, 33.0f, 1, 23.0f, ds);  // Step 1 inside portal (2 studs: x = ±4)
+        ds = sdStudGrid(p, -36.0f, 10, 50.0f, 9, 23.0f, ds); // Keep Level 1 interior (10 x 9 = 90 studs!)
+    }
+
+    // 3. COURTYARD STAIRCASES (L & R, 10 steps, z = 21..75 mm, single row of studs on EVERY step!)
+    if (p.z > 19.5f && p.z < 78.5f && ap.x > 55.0f && ap.x < 97.0f && p.y > 16.0f && p.y < 95.0f) {
+        int sIdx = (int)std::floor((p.y - 18.0f) / 7.5f);
+        for (int k = std::max(0, sIdx - 1); k <= std::min(9, sIdx + 1); ++k) {
+            float sy = 18.0f + (float(k) + 0.5f) * 7.5f;
+            float sz = 15.0f + float(k + 1) * 6.0f;
+            int nCols = (k >= 8) ? 4 : 5; // |x| = 60, 68, 76, 84 (, 92 on steps 0..7 clear of corbel!)
+            ds = sdStudGrid(ap, 60.0f, nCols, sy, 1, sz, ds);
+        }
+    }
+
+    // 4. WALL WALKS + GATEHOUSE TOP DECK + REAR STAIR LANDINGS (all on exact z = 75.0 mm!)
+    if (p.z > 73.5f && p.z < 78.5f) {
+        // Front wall walk (3 rows x 18 cols: x = ±4..±68, y = -81.9, -89.9, -97.9)
+        ds = sdStudGrid(p, -68.0f, 18, -97.9f, 3, 75.0f, ds);
+        // Gatehouse outward bulge extra 2 front rows (2 rows x 8 cols: x = ±4..±28, y = -105.9, -113.9)
+        ds = sdStudGrid(p, -28.0f, 8, -113.9f, 2, 75.0f, ds);
+        // Left & Right side wall walks (3 cols x 14 rows per side: |x| = 98, 106, 114; y = -50.5..+53.5)
+        ds = sdStudGrid(ap, 98.0f, 3, -50.5f, 14, 75.0f, ds);
+        // Rear stair landings (3 cols x 3 rows per side: |x| = 60, 68, 76; y = 98, 106, 114)
+        ds = sdStudGrid(ap, 60.0f, 3, 98.0f, 3, 75.0f, ds);
+    }
+
+    // 5. TURRET ACCESS STAIRS (Front turret side/front steps + Rear turret steps)
+    if (p.z > 79.0f && p.z < 99.0f) {
+        // Front turret side stairs (4a): s=0 (y=-60, z=81.33) & s=1 (y=-66, z=87.67), |x|=98,106,114
+        if (ap.x > 93.0f && p.y < -55.0f && p.y > -71.0f) {
+            ds = sdStudGrid(ap, 98.0f, 3, -60.0f, 1, 81.33f, ds);
+            ds = sdStudGrid(ap, 98.0f, 3, -66.0f, 1, 87.67f, ds);
+        }
+        // Front turret front stairs (4b): s=0 (|x|=75, z=81.33) & s=1 (|x|=81, z=87.67), y=-97.9,-89.9,-81.9
+        if (ap.x > 70.0f && ap.x < 86.0f && p.y < -77.0f && p.y > -103.0f) {
+            ds = sdStudGrid(ap, 75.0f, 1, -97.9f, 3, 81.33f, ds);
+            ds = sdStudGrid(ap, 81.0f, 1, -97.9f, 3, 87.67f, ds);
+        }
+        // Rear turret side stairs (4c): s=0,1,2 (y=65.05, 71.55, 78.05; z=81.6, 88.2, 94.8), |x|=98,106,114
+        if (ap.x > 93.0f && p.y > 60.0f && p.y < 83.0f) {
+            ds = sdStudGrid(ap, 98.0f, 3, 65.05f, 1, 81.60f, ds);
+            ds = sdStudGrid(ap, 98.0f, 3, 71.55f, 1, 88.20f, ds);
+            ds = sdStudGrid(ap, 98.0f, 3, 78.05f, 1, 94.80f, ds);
+        }
+    }
+
+    // 6. FRONT CORNER TURRET TOPS (z = 94.0 mm, 21-stud circular rosette centered at (±110, -95))
+    if (p.z > 92.5f && p.z < 97.5f) {
+        ds = sdTurretStuds(ap, 110.0f, -95.0f, 94.0f, ds);
+    }
+
+    // 7. REAR CORNER TURRET TOPS (z = 102.0 mm, 21-stud circular rosette centered at (±110, +110))
+    if (p.z > 100.5f && p.z < 105.5f) {
+        ds = sdTurretStuds(ap, 110.0f, 110.0f, 102.0f, ds);
+    }
+
+    // 8. KEEP LEVEL 2 INTERIOR FLOOR (z = 109.0 mm, 10 x 9 = 90 studs!)
+    if (p.z > 107.5f && p.z < 112.5f) {
+        ds = sdStudGrid(p, -36.0f, 10, 50.0f, 9, 109.0f, ds);
+    }
+
+    // 9. KEEP ROOF DECK (z = 195.0 mm, 11 x 9 = 99 studs!)
+    if (p.z > 193.5f && p.z < 198.5f) {
+        ds = sdStudGrid(p, -40.0f, 11, 48.0f, 9, 195.0f, ds);
+    }
+
+    return ds;
 }
 
 // ============================================================================
@@ -468,8 +664,8 @@ inline float castleSDF(const Vec3& p) {
     static constexpr float Z_WALL_DECK = 75.0f;
     static constexpr float Z_WALL_PARA = 95.0f;  // 20.0 mm merlon height above 75.0 mm walltop!
 
-    static constexpr float Z_TWR_F_DECK = 89.0f; // merlon top at 109.0 mm (+20.0 mm)
-    static constexpr float Z_TWR_R_DECK = 97.0f; // merlon top at 117.0 mm (+20.0 mm)
+    static constexpr float Z_TWR_F_DECK = 94.0f;  // merlon top at 114.0 mm (+20.0 mm)
+    static constexpr float Z_TWR_R_DECK = 102.0f; // merlon top at 122.0 mm (+20.0 mm)
 
     static constexpr float Z_KEEP_DECK = 195.0f;
     static constexpr float Z_KEEP_PARA = 215.0f; // 20.0 mm merlon height above 195.0 mm keep roof!
@@ -486,7 +682,7 @@ inline float castleSDF(const Vec3& p) {
     {
         float t = clampf(p.z / Z_COURT, 0.0f, 1.0f);
         float hx = lerpf(144.8f, 127.8f, t);
-        float yMin = lerpf(-134.8f, -117.8f, t); // pulled back 10mm with front wall & turrets!
+        float yMin = lerpf(-129.8f, -112.8f, t); // shortened 5mm front-to-back along side walls!
         float yMax = lerpf( 144.8f,  127.8f, t);
         float yc = 0.5f * (yMin + yMax);
         float hy = 0.5f * (yMax - yMin);
@@ -496,16 +692,16 @@ inline float castleSDF(const Vec3& p) {
         float qy = std::fabs(p.y - yc) - (hy - rad);
         float d2 = std::hypot(std::max(qx, 0.0f), std::max(qy, 0.0f)) + std::min(std::max(qx, qy), 0.0f) - rad;
 
-        // Subtle battered rocky apron under the outward-bulging gatehouse (x in [-44, 44], y out to -137)
+        // Subtle battered rocky apron under the outward-bulging gatehouse (shifted +5mm in Y)
         float gh_hx = lerpf(45.5f, 40.5f, t);
-        float gh_yMin = lerpf(-138.0f, -129.0f, t);
+        float gh_yMin = lerpf(-133.0f, -124.0f, t);
         float gh_qx = std::fabs(p.x) - (gh_hx - 8.0f);
-        float gh_qy = std::fabs(p.y - 0.5f * (gh_yMin - 90.0f)) - (0.5f * (-90.0f - gh_yMin) - 8.0f);
+        float gh_qy = std::fabs(p.y - 0.5f * (gh_yMin - 85.0f)) - (0.5f * (-85.0f - gh_yMin) - 8.0f);
         float d2_gh = std::hypot(std::max(gh_qx, 0.0f), std::max(gh_qy, 0.0f)) + std::min(std::max(gh_qx, gh_qy), 0.0f) - 8.0f;
         d2 = smin(d2, d2_gh, 5.0f);
 
         float ang = std::atan2(p.y - yc, p.x);
-        float causewayClear = (1.0f - smoothstep(20.0f, 36.0f, std::fabs(p.x))) * smoothstep(-105.0f, -124.0f, p.y);
+        float causewayClear = (1.0f - smoothstep(20.0f, 36.0f, std::fabs(p.x))) * smoothstep(-100.0f, -119.0f, p.y);
         float rockMask = (1.0f - causewayClear) * smoothstep(Z_COURT + 0.2f, Z_COURT - 2.8f, p.z);
         float rockLobe = (1.1f * std::sin(ang * 7.0f + 0.5f)
                         + 0.75f * std::cos(ang * 13.0f - 0.8f)
@@ -524,9 +720,9 @@ inline float castleSDF(const Vec3& p) {
     }
 
     // ------------------------------------------------------------------------
-    // 2. FRONT STEPPED STONE CAUSEWAY (y = -144.8 to -126.5, protruding cleanly out to 290mm edge!)
+    // 2. FRONT STEPPED STONE CAUSEWAY (shifted +5.0mm in Y -> y = -139.3 to -121.5!)
     // ------------------------------------------------------------------------
-    {
+    [&](const Vec3& p) {
         float d_b = sdBoxMinMax(p, -26.0f, 26.0f, -146.0f, -118.0f, -2.0f, Z_COURT + 8.0f);
         if (d_b < d + 3.0f) {
             float yStart = -144.3f;
@@ -558,59 +754,58 @@ inline float castleSDF(const Vec3& p) {
             }
             d = smin(d, d_ramp, 0.65f);
         }
-    }
+    }(Vec3(p.x, p.y - 5.0f, p.z));
 
     // ------------------------------------------------------------------------
-    // 3. OUTER CURTAIN WALLS (Moved +2.5mm outward into glacis top, 25.9mm wide 3-stud LEGO walks,
-    //    and 20.0mm thick main straight walls via a 45-deg receding inner courtyard corbel!)
-    //    Outer wall:  X in [-123.5, +123.5], Y in [-113.5, +123.5]
-    //    Parapet:     X in [-126.5, +126.5], Y in [-116.5, +126.5] (7.6mm thick -> inner ±118.9 / -108.9)
-    //    Walkway top: X inner ±93.0, Y inner [-83.0, +93.0] -> 25.9mm wide (fits full 3-stud 24mm LEGO brick!)
-    //    45-deg inner receding slope: z = 73.5 -> 63.0 mm (setback 10.5mm -> inner ±103.5 / -93.5)
-    //    Main straight walls (z = 15..63): exact 20.0 mm thick, opening +21mm x +10.5mm extra courtyard!
+    // 3. OUTER CURTAIN WALLS (Shortened 5mm front-to-back along side walls: Y in [-108.5, +123.5]!)
+    //    Outer wall:  X in [-123.5, +123.5], Y in [-108.5, +123.5]
+    //    Parapet:     X in [-126.5, +126.5], Y in [-111.5, +126.5] (7.6mm thick -> inner ±118.9 / -103.9)
+    //    Walkway top: X inner ±93.0, Y inner [-78.0, +93.0] -> exact 25.9mm wide (fits 3-stud LEGO brick!)
+    //    45-deg inner receding slope: z = 73.5 -> 63.0 mm (setback 10.5mm -> inner ±103.5 / -88.5)
+    //    Main straight walls (z = 15..63): exact 20.0 mm thick!
     // ------------------------------------------------------------------------
     {
         static constexpr float WX_H = 123.5f;  // outer X wall face (±123.5)
-        static constexpr float WY_C = 5.0f;    // center of [-113.5, +123.5]
-        static constexpr float WY_H = 118.5f;  // half-span of [-113.5, +123.5]
+        static constexpr float WY_C = 7.5f;    // center of [-108.5, +123.5]
+        static constexpr float WY_H = 116.0f;  // half-span of [-108.5, +123.5]
 
-        float d_wb = sdBoxMinMax(p, -131.0f, 131.0f, -121.0f, 131.0f, -4.0f, Z_WALL_PARA + 3.0f);
+        float d_wb = sdBoxMinMax(p, -131.0f, 131.0f, -116.0f, 131.0f, -4.0f, Z_WALL_PARA + 3.0f);
         if (d_wb < d + 3.5f) {
             float ax = std::fabs(p.x);
             float ay = std::fabs(p.y - WY_C);
-            // Distance from outer wall plane (0 at x=±123.5 or y=-113.5 / y=+123.5)
+            // Distance from outer wall plane (0 at x=±123.5 or y=-108.5 / y=+123.5)
             float dFromOutX = ax - WX_H;
             float dFromOutY = ay - WY_H;
             float maxOut = std::max(dFromOutX, dFromOutY); // 0 on exterior wall, -20 on lower courtyard wall, +3 on outer parapet!
 
-            float d_out_main = sdBatteredBox(p, 0.0f, WY_C, -4.0f, Z_COURT + 14.0f, WX_H + 4.5f, WY_H + 4.5f, WX_H, WY_H, 0.9f);
-            float d_out_up   = sdBoxMinMax(p, -WX_H, WX_H, -113.5f, 123.5f, Z_COURT + 10.0f, Z_WALL_DECK + 0.5f, 0.8f);
-            float d_out_corb = sdBatteredBox(p, 0.0f, WY_C, Z_WALL_DECK - 7.8f, Z_WALL_DECK - 1.5f,
-                                             WX_H - 0.5f, WY_H - 0.5f, WX_H + 3.0f, WY_H + 3.0f, 0.65f);
-            float d_out_para = sdBoxMinMax(p, -(WX_H + 3.0f), WX_H + 3.0f, -116.5f, 126.5f,
-                                           Z_WALL_DECK - 1.5f, Z_WALL_PARA, 0.65f);
+            float d_out_main  = sdBatteredBox(p, 0.0f, WY_C, -4.0f, Z_COURT + 14.0f, WX_H + 4.5f, WY_H + 4.5f, WX_H, WY_H, 0.9f);
+            float d_out_up    = sdBoxMinMax(p, -WX_H, WX_H, -108.5f, 123.5f, Z_COURT + 10.0f, Z_WALL_DECK + 0.5f, 0.8f);
+            // Single seamless corbel + parapet solid -> ZERO horizontal groove/void at z = Z_WALL_DECK - 1.5!
+            float d_out_crown = sdCorbelParapetBox(p, 0.0f, WY_C, WY_C,
+                                                   Z_WALL_DECK - 7.8f, Z_WALL_DECK - 1.5f, Z_WALL_PARA,
+                                                   WX_H - 0.5f, WY_H - 0.5f, WX_H + 3.0f, WY_H + 3.0f, 0.65f);
 
-            float d_outer = smin(std::min(d_out_main, d_out_up), smin(d_out_corb, d_out_para, 0.5f), 0.65f);
+            float d_outer = smin(std::min(d_out_main, d_out_up), d_out_crown, 0.65f);
 
             // Continuous seam-free inner courtyard cutout (zero horizontal seam membrane!):
-            //   z <= 63.0:      wide courtyard [-103.5, +103.5] x [-93.5, +103.5] -> exact 20.0mm wall thickness!
+            //   z <= 63.0:      wide courtyard [-103.5, +103.5] x [-88.5, +103.5] -> exact 20.0mm wall thickness!
             //   z = 63.0..73.5: exact 45-deg receding corbel slope (10.5mm run over 10.5mm rise)
-            //   z >= 73.5:      [-93.0, +93.0] x [-83.0, +93.0] -> exact 25.9mm wide walkway (fits 3-stud LEGO brick!)
+            //   z >= 73.5:      [-93.0, +93.0] x [-78.0, +93.0] -> exact 25.9mm wide walkway (fits 3-stud LEGO brick!)
             float t_corb = clampf((p.z - (Z_WALL_DECK - 12.0f)) / 10.5f, 0.0f, 1.0f);
             float c_hx   = lerpf(103.5f, 93.0f, t_corb);
-            float c_hy   = lerpf( 98.5f, 88.0f, t_corb);
+            float c_hy   = lerpf( 96.0f, 85.5f, t_corb);
             float c_qx   = std::fabs(p.x) - (c_hx - 0.5f);
             float c_qy   = std::fabs(p.y - WY_C) - (c_hy - 0.5f);
             float c_d2   = std::hypot(std::max(c_qx, 0.0f), std::max(c_qy, 0.0f)) + std::min(std::max(c_qx, c_qy), 0.0f) - 0.5f;
             float d_court_cut = c_d2 * 0.707f;
 
-            float d_walk_cut  = sdBoxMinMax(p, -118.9f, 118.9f, -108.9f, 118.9f, Z_WALL_DECK, 120.0f, 0.0f);
+            float d_walk_cut  = sdBoxMinMax(p, -118.9f, 118.9f, -103.9f, 118.9f, Z_WALL_DECK, 120.0f, 0.0f);
 
             float d_walls = std::max(smax(d_outer, -d_court_cut, 0.45f), -d_walk_cut);
 
-            // Corbel brackets under exterior parapet overhang
+            // Corbel brackets under exterior parapet overhang (blends smoothly into parapet ashlars above!)
             float corbM = smoothstep(Z_WALL_DECK - 8.0f, Z_WALL_DECK - 5.2f, p.z)
-                        * smoothstep(Z_WALL_DECK - 1.4f, Z_WALL_DECK - 3.0f, p.z)
+                        * smoothstep(Z_WALL_DECK + 0.4f, Z_WALL_DECK - 2.2f, p.z)
                         * smoothstep(-2.5f, 0.0f, maxOut) * smoothstep(5.0f, 2.5f, maxOut);
             if (corbM > 0.001f) {
                 float u = (dFromOutX > dFromOutY) ? p.y : p.x;
@@ -636,13 +831,13 @@ inline float castleSDF(const Vec3& p) {
             if (p.z > Z_WALL_DECK + 7.0f && maxOut > -8.0f) {
                 float d_emb_u = 1e6f;
                 if (dFromOutX > dFromOutY) {
-                    // Left & Right side walls (clear span y in [-69.5, +79.0] = 148.5mm, centered at y = +4.75):
-                    // 5 evenly spaced embrasures at y = -46.25, -20.75, +4.75, +30.25, +55.75 (pitch 25.5mm, width 10.5mm!)
-                    // -> 4 interior merlons = 15.0mm wide, end merlons = 18.0mm wide against both towers!
-                    float dyS = std::fabs(p.y - 4.75f);
-                    float d1 = dyS - 5.25f;
-                    float d2 = std::fabs(dyS - 25.5f) - 5.25f;
-                    float d3 = std::fabs(dyS - 51.0f) - 5.25f;
+                    // Left & Right side walls (clear span y in [-64.5, +79.0] = 143.5mm, centered at y = +7.25):
+                    // 5 evenly spaced embrasures at pitch 25.0mm (width 10.5mm with -0.55 expansion)
+                    // -> 4 interior merlons = 14.5mm wide, end merlons = 16.5mm wide against both towers!
+                    float dyS = std::fabs(p.y - 7.25f);
+                    float d1 = dyS - 4.70f;
+                    float d2 = std::fabs(dyS - 25.0f) - 4.70f;
+                    float d3 = std::fabs(dyS - 50.0f) - 4.70f;
                     d_emb_u = std::min(d1, std::min(d2, d3));
                 } else if (p.y < WY_C) {
                     // Front wall flanking the outward-bulging gatehouse (clear span |x| in [40.5, 79.5]):
@@ -663,11 +858,11 @@ inline float castleSDF(const Vec3& p) {
             float slitProtect = 1.0f;
             if (p.z > Z_COURT + 15.0f && p.z < Z_COURT + 44.0f && maxOut > -7.0f) {
                 float u = (dFromOutX > dFromOutY) ? p.y : p.x;
-                bool skipFrontGate = (p.y < -85.0f && std::fabs(p.x) < 42.0f);
+                bool skipFrontGate = (p.y < -80.0f && std::fabs(p.x) < 42.0f);
                 bool skipRearKeep  = (p.y >  95.0f && std::fabs(p.x) < 56.0f);
-                bool validSpan = (dFromOutX > dFromOutY) ? (p.y > -64.0f && p.y < 74.0f) : (std::fabs(u) < 76.0f);
+                bool validSpan = (dFromOutX > dFromOutY) ? (p.y > -59.0f && p.y < 74.0f) : (std::fabs(u) < 76.0f);
                 if (!skipFrontGate && !skipRearKeep && validSpan) {
-                    float uShift = (dFromOutX > dFromOutY) ? (p.y - 5.0f) : u;
+                    float uShift = (dFromOutX > dFromOutY) ? (p.y - 7.25f) : u;
                     float uf = std::fmod(uShift + 306.0f, 36.0f) - 18.0f;
                     float d_s2 = sdGothicArch2D(uf, p.z, 1.55f, Z_COURT + 20.0f, Z_COURT + 34.0f, Z_COURT + 38.0f);
                     float d_depth = -3.6f - maxOut;
@@ -684,7 +879,9 @@ inline float castleSDF(const Vec3& p) {
             if (std::fabs(d_walls) < 2.5f && maxOut > -33.0f) {
                 float u = (dFromOutX > dFromOutY) ? p.y : p.x;
                 int faceSeed = (dFromOutX > dFromOutY) ? (p.x > 0 ? 11 : 17) : (p.y > WY_C ? 23 : 29);
-                float walkMask = smoothstep(0.0f, 1.5f, std::fabs(p.z - Z_WALL_DECK))
+                // Keep exterior parapet ashlar continuous across z = Z_WALL_DECK (only fade near deck on inner walkway side!)
+                float deckFade = (maxOut < -2.5f) ? smoothstep(0.0f, 1.5f, std::fabs(p.z - Z_WALL_DECK)) : 1.0f;
+                float walkMask = deckFade
                                * smoothstep(0.0f, 1.2f, Z_WALL_PARA - p.z)
                                * smoothstep(Z_COURT - 2.0f, Z_COURT + 2.5f, p.z);
                 // Keep 45-deg inner corbel slope crisp and FDM-friendly (fade ashlar smoothly across slope)
@@ -706,9 +903,9 @@ inline float castleSDF(const Vec3& p) {
     //    Rear Towers  at (±110, +110), deck z=102, merlons z=122 (+20mm)
     // ------------------------------------------------------------------------
     {
-        float tFL = sdCylTower(p, -110.0f, -100.0f, 27.5f, Z_COURT + 14.0f, Z_TWR_F_DECK, 20.0f, false, -19.0f, 109.0f, 7, true, 101, d);
+        float tFL = sdCylTower(p, -110.0f, -95.0f, 27.5f, Z_COURT + 14.0f, Z_TWR_F_DECK, 20.0f, false, -19.0f, 109.0f, 7, true, 101, d);
         d = smin(d, tFL, 0.85f);
-        float tFR = sdCylTower(p, +110.0f, -100.0f, 27.5f, Z_COURT + 14.0f, Z_TWR_F_DECK, 20.0f, true,  -19.0f, 109.0f, 7, true, 102, d);
+        float tFR = sdCylTower(p, +110.0f, -95.0f, 27.5f, Z_COURT + 14.0f, Z_TWR_F_DECK, 20.0f, true,  -19.0f, 109.0f, 7, true, 102, d);
         d = smin(d, tFR, 0.85f);
         float tRL = sdCylTower(p, -110.0f, +110.0f, 28.0f, Z_COURT + 16.0f, Z_TWR_R_DECK, 20.0f, false, -109.0f, -52.0f, 9, true, 103, d);
         d = smin(d, tRL, 0.85f);
@@ -717,40 +914,41 @@ inline float castleSDF(const Vec3& p) {
 
         float ax = std::fabs(p.x);
 
-        // 4a. Side-wall stairs climbing from wall walk (z=75) -> Front Corner Towers (z=89):
+        // 4a. Side-wall stairs climbing from wall walk (z=75) -> Front Corner Towers (z=94):
         //     Spans FULL widened walkway width |x| in [93.0, 121.5] straight into the parapet wall -> ZERO crevice!
-        float d_sbF = sdBoxMinMax(Vec3(ax, p.y, p.z), 91.0f, 123.5f, -86.0f, -58.0f, Z_WALL_DECK - 4.0f, Z_TWR_F_DECK + 4.0f);
+        float d_sbF = sdBoxMinMax(Vec3(ax, p.y, p.z), 91.0f, 123.5f, -81.0f, -53.0f, Z_WALL_DECK - 4.0f, Z_TWR_F_DECK + 4.0f);
         if (d_sbF < d + 2.5f) {
             float d_st = 1e9f;
             for (int s = 0; s < 3; ++s) {
-                float y_hi = -62.0f - s * 6.0f;
-                float z_hi = Z_WALL_DECK + 4.7f + s * 4.65f;
-                d_st = std::min(d_st, sdBoxMinMax(Vec3(ax, p.y, p.z), 93.0f, 121.5f, -84.0f, y_hi, Z_WALL_DECK - 3.0f, z_hi, 0.35f));
+                float y_hi = -57.0f - s * 6.0f;
+                float z_hi = Z_WALL_DECK + (s + 1) * ((Z_TWR_F_DECK - Z_WALL_DECK) / 3.0f);
+                d_st = std::min(d_st, sdBoxMinMax(Vec3(ax, p.y, p.z), 93.0f, 121.5f, -79.0f, y_hi, Z_WALL_DECK - 3.0f, z_hi, 0.35f));
             }
             d = smin(d, d_st, 0.35f);
         }
 
-        // 4b. Front-wall stairs climbing from front wall walk (z=75) -> Front Corner Towers (z=89):
-        //     Spans FULL widened walkway width y in [-111.5, -83.0] straight into front parapet -> ZERO crevice!
-        float d_sbFront = sdBoxMinMax(Vec3(ax, p.y, p.z), 68.0f, 96.0f, -113.5f, -81.0f, Z_WALL_DECK - 4.0f, Z_TWR_F_DECK + 4.0f);
+        // 4b. Front-wall stairs climbing from front wall walk (z=75) -> Front Corner Towers (z=94):
+        //     Spans FULL widened walkway width y in [-106.5, -78.0] straight into front parapet -> ZERO crevice!
+        float d_sbFront = sdBoxMinMax(Vec3(ax, p.y, p.z), 68.0f, 96.0f, -108.5f, -76.0f, Z_WALL_DECK - 4.0f, Z_TWR_F_DECK + 4.0f);
         if (d_sbFront < d + 2.5f) {
             float d_st = 1e9f;
             for (int s = 0; s < 3; ++s) {
                 float x_lo = 72.0f + s * 6.0f;
-                float z_hi = Z_WALL_DECK + 4.7f + s * 4.65f;
-                d_st = std::min(d_st, sdBoxMinMax(Vec3(ax, p.y, p.z), x_lo, 94.0f, -111.5f, -83.0f, Z_WALL_DECK - 3.0f, z_hi, 0.35f));
+                float z_hi = Z_WALL_DECK + (s + 1) * ((Z_TWR_F_DECK - Z_WALL_DECK) / 3.0f);
+                d_st = std::min(d_st, sdBoxMinMax(Vec3(ax, p.y, p.z), x_lo, 94.0f, -106.5f, -78.0f, Z_WALL_DECK - 3.0f, z_hi, 0.35f));
             }
             d = smin(d, d_st, 0.35f);
         }
 
-        // 4c. Side-wall stairs climbing from wall walk (z=75) -> Rear Corner Towers (z=97):
-        //     Spans FULL widened walkway width |x| in [93.0, 121.5] straight into the outer parapet -> ZERO crevice!
-        float d_sbR = sdBoxMinMax(Vec3(ax, p.y, p.z), 91.0f, 123.5f, 58.0f, 96.0f, Z_WALL_DECK - 4.0f, Z_TWR_R_DECK + 4.0f);
+        // 4c. Side-wall stairs climbing from wall walk (z=75) -> Rear Corner Towers (z=102):
+        //     Steps 0..2 stay <= 94.8mm (< side parapet 95.0mm); step 3 starts at y=81.3 inside turret crown!
+        float d_sbR = sdBoxMinMax(Vec3(ax, p.y, p.z), 91.0f, 123.5f, 59.0f, 96.0f, Z_WALL_DECK - 4.0f, Z_TWR_R_DECK + 4.0f);
         if (d_sbR < d + 2.5f) {
+            static constexpr float zStepsR[4] = {81.60f, 88.20f, 94.80f, 102.00f};
             float d_st = 1e9f;
             for (int s = 0; s < 4; ++s) {
-                float y_lo = 60.0f + s * 6.6f;
-                float z_hi = Z_WALL_DECK + 5.5f + s * 5.5f;
+                float y_lo = 61.8f + s * 6.5f;
+                float z_hi = zStepsR[s];
                 d_st = std::min(d_st, sdBoxMinMax(Vec3(ax, p.y, p.z), 93.0f, 121.5f, y_lo, 94.0f, Z_WALL_DECK - 3.0f, z_hi, 0.35f));
             }
             d = smin(d, d_st, 0.35f);
@@ -758,8 +956,8 @@ inline float castleSDF(const Vec3& p) {
 
         // 4d. Re-clear all four circular turret interior decks with EXACT SHARP std::max (r=0, k=0) AFTER unioning walls & stairs!
         {
-            float d_clrFL = sdCylinderZ(p, -110.0f, -100.0f, 23.1f, Z_TWR_F_DECK, Z_TWR_F_DECK + 35.0f, 0.0f);
-            float d_clrFR = sdCylinderZ(p, +110.0f, -100.0f, 23.1f, Z_TWR_F_DECK, Z_TWR_F_DECK + 35.0f, 0.0f);
+            float d_clrFL = sdCylinderZ(p, -110.0f, -95.0f, 23.1f, Z_TWR_F_DECK, Z_TWR_F_DECK + 35.0f, 0.0f);
+            float d_clrFR = sdCylinderZ(p, +110.0f, -95.0f, 23.1f, Z_TWR_F_DECK, Z_TWR_F_DECK + 35.0f, 0.0f);
             float d_clrRL = sdCylinderZ(p, -110.0f, +110.0f, 23.6f, Z_TWR_R_DECK, Z_TWR_R_DECK + 35.0f, 0.0f);
             float d_clrRR = sdCylinderZ(p, +110.0f, +110.0f, 23.6f, Z_TWR_R_DECK, Z_TWR_R_DECK + 35.0f, 0.0f);
             float d_clrAll = std::min(std::min(d_clrFL, d_clrFR), std::min(d_clrRL, d_clrRR));
@@ -768,14 +966,9 @@ inline float castleSDF(const Vec3& p) {
     }
 
     // ------------------------------------------------------------------------
-    // 5. OUTWARD-BULGING FLUSH-HEIGHT GATEHOUSE (NO INWARD COURTYARD PROTRUSION!)
-    //    Inner face flush with front curtain wall at y = -83.0 mm!
-    //    Outer face bulges boldly +16.5 mm outward to y = -127.5 mm (parapet outer -130.5 mm)!
-    //    Consistent 7.6 mm parapet thickness, 20 mm merlon height, ~15 mm merlons & 10.5 mm embrasures
-    //    continuing seamlessly around the outward-bulging side cheeks!
-    //    100% SMOOTH interior tunnel walls & floor (no doors, ribs, or portcullis clutter)!
+    // 5. OUTWARD-BULGING FLUSH-HEIGHT GATEHOUSE (shifted rigidly +5.0mm in Y -> identical size!)
     // ------------------------------------------------------------------------
-    {
+    [&](const Vec3& p) {
         static constexpr float GY_MIN = -127.5f;
         static constexpr float GY_MAX = -83.0f;  // EXACTLY FLUSH with front curtain wall inner face!
         static constexpr float GY_C   = 0.5f * (GY_MIN + GY_MAX); // -105.25
@@ -787,19 +980,19 @@ inline float castleSDF(const Vec3& p) {
             float d_gh_plinth = sdBatteredBox(p, 0.0f, GY_C - 1.5f, -4.0f, Z_COURT + 14.0f, 41.5f, GY_H + 1.5f, 38.0f, GY_H - 1.5f, 0.9f);
             d_gh_plinth = std::max(d_gh_plinth, p.y - GY_MAX); // strictly flush at y = -83.0!
             float d_gh_body   = sdBoxMinMax(p, -38.0f, 38.0f, GY_MIN, GY_MAX, Z_COURT + 10.0f, Z_WALL_DECK + 0.5f, 0.8f);
-            // Corbel flares outward ONLY on front (-130.5) & left/right (±40.5), staying flush at y = -83.0 inside courtyard!
-            float d_gh_corb   = sdBatteredBox(p, 0.0f, -106.75f, Z_WALL_DECK - 7.8f, Z_WALL_DECK - 1.5f,
-                                              38.0f, 20.75f, 40.5f, 23.75f, 0.65f);
-            d_gh_corb = std::max(d_gh_corb, p.y - GY_MAX);
-            float d_gh_top    = sdBoxMinMax(p, -40.5f, 40.5f, -130.5f, GY_MAX, Z_WALL_DECK - 1.5f, Z_WALL_PARA, 0.65f);
+            // Seamless corbel + parapet flaring outward ONLY on front (-130.5) & left/right (±40.5), ZERO horizontal void!
+            float d_gh_crown  = sdCorbelParapetBox(p, 0.0f, -105.25f, -106.75f,
+                                                   Z_WALL_DECK - 7.8f, Z_WALL_DECK - 1.5f, Z_WALL_PARA,
+                                                   38.0f, 22.25f, 40.5f, 23.75f, 0.65f);
+            d_gh_crown = std::max(d_gh_crown, p.y - GY_MAX);
             float d_pil       = sdBoxMinMax(Vec3(std::fabs(p.x), p.y, p.z), 31.0f, 39.5f, -129.0f, -110.0f,
                                             Z_COURT, Z_WALL_DECK - 6.0f, 0.7f);
 
-            float d_gh = smin(std::min(d_gh_plinth, d_gh_body), std::min(smin(d_gh_corb, d_gh_top, 0.5f), d_pil), 0.65f);
+            float d_gh = smin(std::min(d_gh_plinth, d_gh_body), std::min(d_gh_crown, d_pil), 0.65f);
 
-            // Clean corbel brackets under outward-bulging front & side gatehouse overhangs
+            // Clean corbel brackets under outward-bulging front & side gatehouse overhangs (blends smoothly into parapet!)
             float corbM = smoothstep(Z_WALL_DECK - 8.0f, Z_WALL_DECK - 5.2f, p.z)
-                        * smoothstep(Z_WALL_DECK - 1.4f, Z_WALL_DECK - 3.0f, p.z);
+                        * smoothstep(Z_WALL_DECK + 0.4f, Z_WALL_DECK - 2.2f, p.z);
             if (corbM > 0.001f) {
                 float fMask = smoothstep(-126.0f, -128.0f, p.y) * smoothstep(-132.0f, -129.8f, p.y) * smoothstep(40.0f, 38.0f, std::fabs(p.x));
                 float sMask = smoothstep(37.0f, 39.0f, std::fabs(p.x)) * smoothstep(42.0f, 40.0f, std::fabs(p.x))
@@ -906,8 +1099,10 @@ inline float castleSDF(const Vec3& p) {
                     int seed = isSideFace ? (p.x > 0 ? 206 : 207) : 205;
                     float disp = ashlarDisplacement(u, p.z, 4.6f, 8.8f, 0.50f, 0.32f, seed);
                     float ghSlopeFade = (p.y > -95.0f && p.z > Z_WALL_DECK - 12.5f && p.z < Z_WALL_DECK - 1.0f) ? 0.25f : 1.0f;
+                    bool isExtGh = (p.y < -125.0f) || (std::fabs(p.x) > 35.5f && p.y < -108.0f);
+                    float ghDeckFade = isExtGh ? 1.0f : smoothstep(0.0f, 1.5f, std::fabs(p.z - Z_WALL_DECK));
                     float topMask = smoothstep(0.0f, 1.2f, Z_WALL_PARA - p.z)
-                                  * smoothstep(0.0f, 1.5f, std::fabs(p.z - Z_WALL_DECK))
+                                  * ghDeckFade
                                   * smoothstep(Z_COURT - 4.0f, Z_COURT + 2.0f, p.z);
                     d_gh -= disp * topMask * ghProtect * ghSlopeFade;
                 }
@@ -928,7 +1123,7 @@ inline float castleSDF(const Vec3& p) {
                 d = std::max(d, -d_tunnel);
             }
         }
-    }
+    }(Vec3(p.x, p.y - 5.0f, p.z));
 
     // ------------------------------------------------------------------------
     // 6. FULL-WIDTH REAR-ANCHORED STAIRCASES (z = 15 -> 75 mm!)
@@ -974,14 +1169,13 @@ inline float castleSDF(const Vec3& p) {
             float kcx = 0.0f,   kcy = 79.75f;
             float khx = 52.0f,  khy = 43.75f;
 
-            // 7a. Main Keep Body + Battered Plinth + 38-deg Support-Free Corbelled Crown (solid overlap into roof!)
+            // 7a. Main Keep Body + Battered Plinth + Seamless Support-Free Corbelled Crown (ZERO horizontal void!)
             float d_kp_plinth = sdBatteredBox(p, kcx, kcy, Z_COURT - 4.0f, Z_COURT + 20.0f, khx + 4.5f, khy + 4.5f, khx, khy, 0.9f);
             float d_kp_shaft  = sdBoxMinMax(p, kx0, kx1, ky0, ky1, Z_COURT + 16.0f, Z_KEEP_DECK + 1.0f, 0.9f);
-            float d_kp_corb   = sdBatteredBox(p, kcx, kcy, Z_KEEP_DECK - 8.2f, Z_KEEP_DECK - 1.5f,
-                                              khx - 0.5f, khy - 0.5f, khx + 3.5f, khy + 3.5f, 0.7f);
-            float d_kp_crown  = sdBoxMinMax(p, kx0 - 3.5f, kx1 + 3.5f, ky0 - 3.5f, ky1 + 3.5f,
-                                            Z_KEEP_DECK - 1.5f, Z_KEEP_PARA, 0.7f);
-            float d_keep = smin(std::min(d_kp_plinth, d_kp_shaft), smin(d_kp_corb, d_kp_crown, 0.5f), 0.75f);
+            float d_kp_crown  = sdCorbelParapetBox(p, kcx, kcy, kcy,
+                                                   Z_KEEP_DECK - 8.2f, Z_KEEP_DECK - 1.5f, Z_KEEP_PARA,
+                                                   khx - 0.5f, khy - 0.5f, khx + 3.5f, khy + 3.5f, 0.7f);
+            float d_keep = smin(std::min(d_kp_plinth, d_kp_shaft), d_kp_crown, 0.75f);
 
             // 7b. Classic Norman Stepped Corner Buttresses & Side Wall Pilasters (step aligned at Floor 2!)
             {
@@ -1013,7 +1207,7 @@ inline float castleSDF(const Vec3& p) {
                 float ayk = std::fabs(p.y - kcy) - khy;
                 float mXY = std::max(axk, ayk);
                 float corbM = smoothstep(Z_KEEP_DECK - 8.2f, Z_KEEP_DECK - 5.4f, p.z)
-                            * smoothstep(Z_KEEP_DECK - 1.4f, Z_KEEP_DECK - 3.0f, p.z)
+                            * smoothstep(Z_KEEP_DECK + 0.4f, Z_KEEP_DECK - 2.2f, p.z)
                             * smoothstep(-1.5f, 0.5f, mXY) * smoothstep(5.5f, 3.0f, mXY);
                 if (corbM > 0.001f) {
                     float u = (axk > ayk) ? (p.y - kcy) : (p.x - kcx);
@@ -1085,8 +1279,9 @@ inline float castleSDF(const Vec3& p) {
                     float u = (axk > ayk) ? (p.y - kcy) : (p.x - kcx);
                     int fseed = (axk > ayk) ? (p.x > 0 ? 501 : 502) : (p.y > kcy ? 503 : 504);
                     float disp = ashlarDisplacement(u + 120.0f, p.z, 4.6f, 9.0f, 0.50f, 0.32f, fseed);
+                    float keepDeckFade = (std::max(axk, ayk) < -1.0f) ? smoothstep(0.0f, 1.5f, std::fabs(p.z - Z_KEEP_DECK)) : 1.0f;
                     float topMask = smoothstep(0.0f, 1.2f, Z_KEEP_PARA - p.z)
-                                  * smoothstep(0.0f, 1.5f, std::fabs(p.z - Z_KEEP_DECK))
+                                  * keepDeckFade
                                   * smoothstep(Z_COURT - 3.0f, Z_COURT + 2.0f, p.z);
                     d_keep -= disp * topMask * portalProtect;
                 }
@@ -1128,6 +1323,12 @@ inline float castleSDF(const Vec3& p) {
             d = smax(d, -d_cut, 0.45f);
         }
     }
+
+    // ------------------------------------------------------------------------
+    // 9. PRECISION LEGO-COMPATIBLE STUDS ON ALL WALKABLE SURFACES & STAIRS
+    //    Sharp union (std::min, zero base fillet!) so minifigure feet seat flush on flat floors!
+    // ------------------------------------------------------------------------
+    d = std::min(d, legoStudsSDF(p, d));
 
     // ------------------------------------------------------------------------
     // 10. EXACT DEAD-FLAT BASE AT z = 0.000 mm AND BOUNDING ENVELOPE CLAMP
@@ -1620,23 +1821,36 @@ Mesh extractWatertightMesh(float h, bool projectToSurface = true) {
     verifyManifold(mesh, "Post-MT6");
 
     if (projectToSurface) {
-        static constexpr float FLAT_FLOORS[] = {15.0f, 23.0f, 75.0f, 89.0f, 97.0f, 109.0f, 195.0f};
+        static constexpr float FLAT_FLOORS[] = {15.0f, 23.0f, 75.0f, 94.0f, 102.0f, 109.0f, 195.0f};
+        static constexpr float STUD_TOPS[]   = {16.7f, 24.7f, 76.7f, 95.7f, 103.7f, 110.7f, 196.7f};
         #pragma omp parallel for schedule(static)
         for (size_t i = 0; i < mesh.verts.size(); ++i) {
             Vec3& v = mesh.verts[i];
             if (v.z == 0.0f) continue;
-            float f = castleSDF(v);
-            Vec3 n = calcNormal(v, h * 0.35f);
-            if (std::fabs(f) > 1e-4f && std::fabs(f) < h * 0.45f) {
-                Vec3 vn = v - n * (f * 0.65f);
-                if (vn.z > 0.03f) v = vn;
+            bool onStud = (legoStudsSDF(v, 2.0f) < h * 0.90f);
+            int nIter = onStud ? 2 : 1;
+            Vec3 n(0, 0, 1);
+            for (int it = 0; it < nIter; ++it) {
+                float f = castleSDF(v);
+                n = calcNormal(v, h * (onStud ? 0.25f : 0.35f));
+                if (std::fabs(f) > 1e-4f && std::fabs(f) < h * 0.45f) {
+                    Vec3 vn = v - n * (f * (onStud ? 0.58f : 0.65f));
+                    if (vn.z > 0.03f) v = vn;
+                }
             }
             // Snap interior upward-facing walkable floor vertices onto their exact mathematical Z planes -> 0.000mm slicer flatness!
-            // Using wider normal probe (h * 0.90f) avoids snapping wall-to-floor crease vertices into coincident coordinates!
-            if (n.z > 0.96f && calcNormal(v, h * 0.90f).z > 0.98f) {
+            // Using wider normal probe (h * 0.90f) avoids snapping wall/stud-base crease vertices into coincident coordinates!
+            if (!onStud && n.z > 0.96f && calcNormal(v, h * 0.90f).z > 0.98f) {
                 for (float zf : FLAT_FLOORS) {
                     if (std::fabs(v.z - zf) < h * 0.55f) {
                         v.z = zf;
+                        break;
+                    }
+                }
+            } else if (onStud && n.z > 0.96f && calcNormal(v, h * 0.55f).z > 0.98f) {
+                for (float zt : STUD_TOPS) {
+                    if (std::fabs(v.z - zt) < h * 0.45f) {
+                        v.z = zt;
                         break;
                     }
                 }
@@ -1703,6 +1917,13 @@ void simplifyManifoldQEM(Mesh& mesh, size_t targetTris, double maxError = 0.08) 
     std::vector<uint32_t> vVer(nV, 0);
     std::vector<std::vector<uint32_t>> vTris(nV);
 
+    // Protect precision LEGO stud cylinders with 25x quadric weight so QEM keeps exact 4.70mm roundness!
+    std::vector<uint8_t> vIsStud(nV, 0);
+    #pragma omp parallel for schedule(static)
+    for (size_t i = 0; i < nV; ++i) {
+        if (legoStudsSDF(mesh.verts[i], 1.0f) < 0.45f) vIsStud[i] = 1;
+    }
+
     for (uint32_t ti = 0; ti < nT; ++ti) {
         const auto& t = mesh.tris[ti];
         vTris[t[0]].push_back(ti);
@@ -1712,7 +1933,8 @@ void simplifyManifoldQEM(Mesh& mesh, size_t targetTris, double maxError = 0.08) 
         Vec3 n = cross(p1 - p0, p2 - p0);
         double len = std::sqrt(double(n.x)*n.x + double(n.y)*n.y + double(n.z)*n.z);
         if (len > 1e-12) {
-            double nx = n.x / len, ny = n.y / len, nz = n.z / len;
+            double w = (vIsStud[t[0]] || vIsStud[t[1]] || vIsStud[t[2]]) ? 5.0 : 1.0;
+            double nx = (n.x / len) * w, ny = (n.y / len) * w, nz = (n.z / len) * w;
             double d = -(nx * p0.x + ny * p0.y + nz * p0.z);
             Q[t[0]].addPlane(nx, ny, nz, d);
             Q[t[1]].addPlane(nx, ny, nz, d);
