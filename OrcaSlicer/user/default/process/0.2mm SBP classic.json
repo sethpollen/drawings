@@ -13,8 +13,7 @@
 	],
 	"print_settings_id": "0.2mm SBP classic",
 	"set_other_flow_ratios": "1",
-	"sparse_infill_density": "20%",
-	"sparse_infill_pattern": "grid",
+	"sparse_infill_pattern": "adaptivecubic",
 	"top_surface_pattern": "monotonic",
 	"version": "2.4.0.6"
 }
