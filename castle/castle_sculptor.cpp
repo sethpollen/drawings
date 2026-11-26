@@ -87,8 +87,8 @@ namespace CastleSpec {
     static constexpr float TWR_F_R_IN = 28.1f;
     static constexpr float TWR_R_R_IN = 28.6f;
 
-    // Rear turret stair step elevations (steps 0..2 stay below 97 mm side parapet; step 3 enters turret crown)
-    static constexpr float TWR_R_STAIR_Z[4] = {81.60f, 88.20f, 94.80f, Z_TWR_R_DECK};
+    // Rear turret stair step elevations (4 uniform 6.75 mm rises from 75 -> 102; steps 0..2 stay < 97 mm parapet)
+    static constexpr float TWR_R_STAIR_Z[4] = {81.75f, 88.50f, 95.25f, Z_TWR_R_DECK};
 
     // Outward-bulging gatehouse (identical size/details; shifted +8.0 mm in +Y flush with front curtain wall)
     static constexpr float GH_HALF_X      = 38.0f;
@@ -113,9 +113,9 @@ namespace CastleSpec {
     static constexpr float KEEP_HX = 0.5f * (KEEP_X1 - KEEP_X0); // 52.0f
     static constexpr float KEEP_HY = 0.5f * (KEEP_Y1 - KEEP_Y0); // 37.25f
 
-    // Precision FDM-tolerant LEGO-compatible stud parameters (calibrated from test print: 4.70 -> 4.60 mm printed)
+    // Precision FDM-tolerant LEGO-compatible stud parameters (calibrated from 2 test prints: +0.20 mm -> 5.10 mm)
     static constexpr float LEGO_PITCH   = 8.00f; // exact standard LEGO stud pitch
-    static constexpr float LEGO_STUD_R  = 2.45f; // 4.90 mm modeled -> ~4.80 mm printed for crisp minifig click!
+    static constexpr float LEGO_STUD_R  = 2.55f; // 5.10 mm modeled for tight LEGO minifigure foot grip!
     static constexpr float LEGO_STUD_H  = 1.70f; // standard LEGO stud height
     static constexpr float LEGO_CHAMFER = 0.20f; // 0.20 mm 45-deg lead-in top chamfer
 
@@ -663,8 +663,8 @@ inline float legoStudsSDF(const Vec3& p, float curD = 1e6f) {
     // 1. OPEN COURTYARD FLOOR (z = Z_COURT, skipping smooth gate tunnel y < -80.5 & front turret plinth discs)
     if (p.z > Z_COURT - 2.0f && p.z < Z_COURT + 3.5f) {
         // Main courtyard grid: x in [-96, +96] (25 cols, pitch 8), y in [-75, +21] (13 rows, pitch 8)
-        float dxB = std::max(-98.5f - p.x, p.x - 98.5f);
-        float dyB = std::max(-77.5f - p.y, p.y - 23.5f);
+        float dxB = std::max(-99.0f - p.x, p.x - 99.0f);
+        float dyB = std::max(-78.0f - p.y, p.y - 24.0f);
         float dzB = std::max((Z_COURT - 0.85f) - p.z, p.z - (Z_COURT + LEGO_STUD_H));
         if (std::max(dxB, std::max(dyB, dzB)) < ds) {
             int ix = (int)std::lround((p.x + 96.0f) / LEGO_PITCH);
@@ -712,33 +712,33 @@ inline float legoStudsSDF(const Vec3& p, float curD = 1e6f) {
 
     // 4. WALL WALKS + GATEHOUSE TOP DECK + REAR STAIR LANDINGS (all on exact z = Z_WALL_DECK)
     if (p.z > Z_WALL_DECK - 1.5f && p.z < Z_WALL_DECK + 3.5f) {
-        // Front wall walk (3 rows x 16 cols: x = ±4..±60, y = -73.9, -81.9, -89.9; shifted +8 mm with front wall)
-        ds = sdStudGrid(p, -60.0f, 16, -89.9f, 3, Z_WALL_DECK, ds);
+        // Front wall walk (3 rows x 14 cols: x = ±4..±52, y = -73.9, -81.9, -89.9; 5.5 mm clear of 4b stair riser at ±57.5)
+        ds = sdStudGrid(p, -52.0f, 14, -89.9f, 3, Z_WALL_DECK, ds);
         // Gatehouse outward bulge extra 2 front rows (2 rows x 8 cols: x = ±4..±28, y = -97.9, -105.9)
         ds = sdStudGrid(p, -28.0f,  8, -105.9f, 2, Z_WALL_DECK, ds);
-        // Left & Right side wall walks (3 cols x 12 rows per side: |x| = 98, 106, 114; y = -37.6..+50.4, 8 mm shorter!)
-        ds = sdStudGrid(ap, 98.0f,  3, -37.6f, 12, Z_WALL_DECK, ds);
+        // Left & Right side wall walks (3 cols x 10 rows per side: |x| = 98, 106, 114; y = -29..+43, 5.5 mm clear of both risers!)
+        ds = sdStudGrid(ap, 98.0f,  3, -29.0f, 10, Z_WALL_DECK, ds);
         // Rear stair landings (2 cols x 3 rows per side: |x| = 60, 68; y = 98, 106, 114; clear of wider rear turrets)
         ds = sdStudGrid(ap, 60.0f,  2,  98.0f,  3, Z_WALL_DECK, ds);
     }
 
-    // 5. TURRET ACCESS STAIRS (Front turret side/front steps + Rear turret steps)
+    // 5. TURRET ACCESS STAIRS (Full unobstructed 8.50 mm LEGO-element treads completely clear of turret crowns!)
     if (p.z > Z_WALL_DECK + 4.0f && p.z < Z_TWR_R_DECK - 3.0f) {
-        // Front turret side stairs (4a): s=0 (y=-47, z=81.33) & s=1 (y=-53, z=87.67), |x|=98,106,114
-        if (ap.x > 93.0f && p.y < -42.0f && p.y > -58.0f) {
-            ds = sdStudGrid(ap, 98.0f, 3, -47.0f, 1, 81.33f, ds);
-            ds = sdStudGrid(ap, 98.0f, 3, -53.0f, 1, 87.67f, ds);
+        // Front turret side stairs (4a): s=0 (y=-38.75, z=81.33) & s=1 (y=-47.25, z=87.67), |x|=98,106,114
+        if (ap.x > 93.0f && p.y < -34.0f && p.y > -52.0f) {
+            ds = sdStudGrid(ap, 98.0f, 3, -38.75f, 1, 81.33f, ds);
+            ds = sdStudGrid(ap, 98.0f, 3, -47.25f, 1, 87.67f, ds);
         }
-        // Front turret front stairs (4b): s=0 (|x|=70, z=81.33) & s=1 (|x|=76, z=87.67), y=-89.9,-81.9,-73.9
-        if (ap.x > 65.0f && ap.x < 81.0f && p.y < -69.0f && p.y > -95.0f) {
-            ds = sdStudGrid(ap, 70.0f, 1, -89.9f, 3, 81.33f, ds);
-            ds = sdStudGrid(ap, 76.0f, 1, -89.9f, 3, 87.67f, ds);
+        // Front turret front stairs (4b): s=0 (|x|=61.75, z=81.33) & s=1 (|x|=70.25, z=87.67), y=-89.9,-81.9,-73.9
+        if (ap.x > 57.0f && ap.x < 75.0f && p.y < -69.0f && p.y > -95.0f) {
+            ds = sdStudGrid(ap, 61.75f, 1, -89.9f, 3, 81.33f, ds);
+            ds = sdStudGrid(ap, 70.25f, 1, -89.9f, 3, 87.67f, ds);
         }
-        // Rear turret side stairs (4c): s=0,1,2 (y=60.05, 66.55, 73.05; z=TWR_R_STAIR_Z[0..2]), |x|=98,106,114
-        if (ap.x > 93.0f && p.y > 55.0f && p.y < 78.0f) {
-            ds = sdStudGrid(ap, 98.0f, 3, 60.05f, 1, TWR_R_STAIR_Z[0], ds);
-            ds = sdStudGrid(ap, 98.0f, 3, 66.55f, 1, TWR_R_STAIR_Z[1], ds);
-            ds = sdStudGrid(ap, 98.0f, 3, 73.05f, 1, TWR_R_STAIR_Z[2], ds);
+        // Rear turret side stairs (4c): s=0,1,2 (y=52.75, 61.25, 69.75; z=TWR_R_STAIR_Z[0..2]), |x|=98,106,114
+        if (ap.x > 93.0f && p.y > 48.0f && p.y < 75.0f) {
+            ds = sdStudGrid(ap, 98.0f, 3, 52.75f, 1, TWR_R_STAIR_Z[0], ds);
+            ds = sdStudGrid(ap, 98.0f, 3, 61.25f, 1, TWR_R_STAIR_Z[1], ds);
+            ds = sdStudGrid(ap, 98.0f, 3, 69.75f, 1, TWR_R_STAIR_Z[2], ds);
         }
     }
 
@@ -990,40 +990,41 @@ inline float castleSDF(const Vec3& p) {
         float ax = std::fabs(p.x);
 
         // 4a. Side-wall stairs climbing from wall walk (z=75) -> Wider Front Corner Towers (z=94):
-        //     Spans FULL widened walkway width |x| in [93.0, 121.5] straight into the parapet wall -> ZERO crevice!
-        float d_sbF = sdBoxMinMax(Vec3(ax, p.y, p.z), 91.0f, 123.5f, -68.0f, -40.0f, Z_WALL_DECK - 4.0f, Z_TWR_F_DECK + 4.0f);
+        //     Full unobstructed 8.50 mm LEGO treads completely outside front turret crown (y = -34.5 -> -43.0 -> -51.5)!
+        float d_sbF = sdBoxMinMax(Vec3(ax, p.y, p.z), 91.0f, 123.5f, -69.0f, -32.5f, Z_WALL_DECK - 4.0f, Z_TWR_F_DECK + 4.0f);
         if (d_sbF < d + 2.5f) {
             float d_st = 1e9f;
             for (int s = 0; s < 3; ++s) {
-                float y_hi = -44.0f - s * 6.0f;
+                float y_hi = -34.5f - s * 8.5f;
                 float z_hi = Z_WALL_DECK + (s + 1) * ((Z_TWR_F_DECK - Z_WALL_DECK) / 3.0f);
-                d_st = std::min(d_st, sdBoxMinMax(Vec3(ax, p.y, p.z), 93.0f, 121.5f, -66.0f, y_hi, Z_WALL_DECK - 3.0f, z_hi, 0.35f));
+                d_st = std::min(d_st, sdBoxMinMax(Vec3(ax, p.y, p.z), 93.0f, 121.5f, -66.5f, y_hi, Z_WALL_DECK - 3.0f, z_hi, 0.35f));
             }
             d = smin(d, d_st, 0.35f);
         }
 
         // 4b. Front-wall stairs climbing from front wall walk (z=75) -> Wider Front Corner Towers (z=94):
-        //     Spans FULL widened walkway width y in [-98.5, -70.0] straight into front parapet -> ZERO crevice!
-        float d_sbFront = sdBoxMinMax(Vec3(ax, p.y, p.z), 63.0f, 91.0f, -100.5f, -68.0f, Z_WALL_DECK - 4.0f, Z_TWR_F_DECK + 4.0f);
+        //     Full unobstructed 8.50 mm LEGO treads completely outside front turret crown (|x| = 57.5 -> 66.0 -> 74.5)!
+        float d_sbFront = sdBoxMinMax(Vec3(ax, p.y, p.z), 55.5f, 92.0f, -100.5f, -68.0f, Z_WALL_DECK - 4.0f, Z_TWR_F_DECK + 4.0f);
         if (d_sbFront < d + 2.5f) {
             float d_st = 1e9f;
             for (int s = 0; s < 3; ++s) {
-                float x_lo = 67.0f + s * 6.0f;
+                float x_lo = 57.5f + s * 8.5f;
                 float z_hi = Z_WALL_DECK + (s + 1) * ((Z_TWR_F_DECK - Z_WALL_DECK) / 3.0f);
-                d_st = std::min(d_st, sdBoxMinMax(Vec3(ax, p.y, p.z), x_lo, 89.0f, -98.5f, -70.0f, Z_WALL_DECK - 3.0f, z_hi, 0.35f));
+                d_st = std::min(d_st, sdBoxMinMax(Vec3(ax, p.y, p.z), x_lo, 89.5f, -98.5f, -70.0f, Z_WALL_DECK - 3.0f, z_hi, 0.35f));
             }
             d = smin(d, d_st, 0.35f);
         }
 
         // 4c. Side-wall stairs climbing from wall walk (z=75) -> Wider Rear Corner Towers (z=102):
-        //     Steps 0..2 stay <= 94.8 mm (< side parapet 97.0 mm); step 3 starts at y=76.3 inside turret crown!
-        float d_sbR = sdBoxMinMax(Vec3(ax, p.y, p.z), 91.0f, 123.5f, 54.0f, 91.0f, Z_WALL_DECK - 4.0f, Z_TWR_R_DECK + 4.0f);
+        //     Full unobstructed 8.50 mm LEGO treads completely outside rear turret crown (y = 48.5 -> 57.0 -> 65.5 -> 74.0)!
+        float d_sbR = sdBoxMinMax(Vec3(ax, p.y, p.z), 91.0f, 123.5f, 46.5f, 91.5f, Z_WALL_DECK - 4.0f, Z_TWR_R_DECK + 4.0f);
         if (d_sbR < d + 2.5f) {
             float d_st = 1e9f;
             for (int s = 0; s < 4; ++s) {
-                float y_lo = 56.8f + s * 6.5f;
+                float y_lo = 48.5f + s * 8.5f;
                 float z_hi = TWR_R_STAIR_Z[s];
-                d_st = std::min(d_st, sdBoxMinMax(Vec3(ax, p.y, p.z), 93.0f, 121.5f, y_lo, 89.0f, Z_WALL_DECK - 3.0f, z_hi, 0.35f));
+                float x_hi = (s == 3) ? 118.9f : 121.5f; // step 3 (z=102) stays flush inside 97 mm side parapet
+                d_st = std::min(d_st, sdBoxMinMax(Vec3(ax, p.y, p.z), 93.0f, x_hi, y_lo, 89.5f, Z_WALL_DECK - 3.0f, z_hi, 0.35f));
             }
             d = smin(d, d_st, 0.35f);
         }
@@ -2273,7 +2274,7 @@ int main(int argc, char** argv) {
     }
 
     if (mode == "mesh" || mode == "final") {
-        float h = (argc > 3) ? std::stof(argv[3]) : 0.421f;
+        float h = (argc > 3) ? std::stof(argv[3]) : 0.443f;
         size_t targetTris = (argc > 4) ? (size_t)std::stoull(argv[4]) : 2000000ULL;
         std::string stlPath = outDir + "/medieval_castle_290x215.stl";
 
